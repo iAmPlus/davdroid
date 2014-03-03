@@ -5,7 +5,7 @@
     android:orientation="vertical" >
 
     <TextView
-        style="@style/TextView.Heading"
+        style="@style/QuotedTextHeaderStyle"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/address_books" />

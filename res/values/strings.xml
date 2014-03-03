@@ -26,9 +26,11 @@
     <string name="error_home_set_address_books">"Couldn't determine address book home set"</string>
     <string name="error_home_set_calendars">"Couldn't determine calendar home set"</string>
     <string name="add_account">Add account</string>
+    <string name="add_action">Add Account</string>
+    <string name="finish_action">Finish</string>
     <string name="querying_server">Querying server. Please wait…</string>
     <string name="exception_http">HTTP error: %s</string>
-    <string name="what_to_sync">Which collections shall be synchronized?</string>
+    <string name="what_to_sync">Select collections</string>
     <string name="address_books">Address books</string>
     <string name="calendars">Calendars</string>
     <string name="select_address_book">Select up to one address book (tap again to unselect):</string>

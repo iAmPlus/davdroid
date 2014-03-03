@@ -45,11 +45,10 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicLineParser;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.util.Log;
 import at.bitfire.davdroid.LoggingInputStream;
 import at.bitfire.davdroid.URIUtils;
@@ -68,7 +67,8 @@ public class WebDavResource {
 		ADDRESSBOOK_HOMESET, CALENDAR_HOMESET,
 		IS_ADDRESSBOOK, IS_CALENDAR,
 		CTAG, ETAG,
-		CONTENT_TYPE
+		CONTENT_TYPE,
+		REDIRECTION_URL
 	}
 	public enum PutMode {
 		ADD_DONT_OVERWRITE,
@@ -258,6 +258,14 @@ public class WebDavResource {
 		return properties.containsKey(Property.IS_CALENDAR);
 	}
 	
+	public String getRedirectionURL() {
+		return properties.get(Property.REDIRECTION_URL);
+	}
+	
+	public void setRedirectionURL(String redirectionURL) {
+		properties.put(Property.REDIRECTION_URL, redirectionURL);
+	}
+	
 	
 	/* collection operations */
 	
@@ -266,9 +274,31 @@ public class WebDavResource {
 		if(authBearer != null)
 			propfind.addHeader("Authorization", "Bearer " + authBearer);
 		HttpResponse response = client.execute(propfind);
+		
 		checkResponse(response);
+		
+		int statusCode = response.getStatusLine().getStatusCode();
+		Log.v("sk", "Status code = " + statusCode);
+		
+		if (statusCode == HttpStatus.SC_MOVED_PERMANENTLY) {
+			//TODO properly parse html to get redirection url
+			Log.v("sk", "Moved getting new url");
+			HttpEntity entity = response.getEntity();
+			String responseString = EntityUtils.toString(entity, "UTF-8");
+			Log.v("sk", "Response is: " + responseString);
+			String redirectUrl = "";
+			int urlStart = responseString.indexOf("<A HREF=\"") + "<A HREF=\"".length();
+			if(urlStart > 0) {
+				int urlEnd = responseString.indexOf("\">", urlStart);
+				if(urlEnd > 0) {
+					redirectUrl = responseString.substring(urlStart, urlEnd);
+					setRedirectionURL(redirectUrl);
+				}
+			}
+			throw new PermanentlyMovedException(redirectUrl);
+		}
 
-		if (response.getStatusLine().getStatusCode() != HttpStatus.SC_MULTI_STATUS)
+		if (statusCode != HttpStatus.SC_MULTI_STATUS)
 			throw new DavNoMultiStatusException();
 
 		HttpEntity entity = response.getEntity();
@@ -408,6 +438,9 @@ public class WebDavResource {
 		Log.d(TAG, "Received " + statusLine.getProtocolVersion() + " " + code + " " + statusLine.getReasonPhrase());
 		
 		if (code/100 == 1 || code/100 == 2)		// everything OK
+			return;
+		
+		if (code == 301)		// Moved permanently
 			return;
 		
 		String reason = code + " " + statusLine.getReasonPhrase();

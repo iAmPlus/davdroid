@@ -8,9 +8,11 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -28,10 +30,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
-import android.view.Menu;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebView;
@@ -46,6 +48,7 @@ public class AccountAuthenticatorActivity extends Activity {
 	ListeningThread lT = null;
 	Account account = null;
 	private int listeningPort;
+	Properties properties;
 	
 	final class ListeningThread extends AsyncTask<String, Integer, HttpResponse> implements Runnable {
 	    private ServerSocket serverSocket;
@@ -87,7 +90,7 @@ public class AccountAuthenticatorActivity extends Activity {
 	            	Date currentTime = new Date();
 
 	                out.write("HTTP/1.0 200 OK\r\n");
-		            out.write("Date: " + currentTime.toGMTString());
+		            out.write("Date: " + currentTime.toString());
 		            out.write("Server: Apache/0.8.4\r\n");
 		            out.write("Content-Type: text/html\r\n");
 		            out.write("Content-Length: 59\r\n");
@@ -161,7 +164,7 @@ public class AccountAuthenticatorActivity extends Activity {
 			
 
 			HttpClient httpclient = new DefaultHttpClient();
-			HttpPost httppost = new HttpPost("https://accounts.google.com/o/oauth2/token");
+			HttpPost httppost = new HttpPost(properties.getProperty("token_url"));
 			HttpResponse response;
 			try {
 				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
@@ -178,8 +181,6 @@ public class AccountAuthenticatorActivity extends Activity {
 					e.printStackTrace();
 				}
 				return response;
-				/*Gson gSon = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").create();
-			    gSon.fromJson(IOUtils.toString(result.getEntity().getContent()), LogonInfo.class).fill(form);*/
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 			} catch (HttpResponseException e) {
@@ -207,12 +208,10 @@ public class AccountAuthenticatorActivity extends Activity {
 				e.printStackTrace();
 			}
 			AccountManager mAccountManager = AccountManager.get(myApp.getApplicationContext());
-			//Account []accounts = mAccountManager.getAccountsByType(Constants.ACCOUNT_TYPE);
 			setResult(RESULT_CANCELED);
 			Log.v("sk", "name = " + account.name + "  type = " + account.type);
 			if(authCode != null) {
 				Bundle userData = new Bundle();
-				//userData.putString(Constants.ACCOUNT_KEY_BASE_URL, serverInfo.getBaseURL());
 				if (mAccountManager.addAccountExplicitly(account, "", userData)) {
 					mAccountManager.setAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, authCode);
 					Log.v("sk", "access_token = " + authCode);
@@ -233,23 +232,28 @@ public class AccountAuthenticatorActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		AccountDeatilsReader reader = new AccountDeatilsReader(this);
 		Bundle bnd = getIntent().getExtras();
+		ServerInfo serverInfo = null;
 		String account_name;
 		String account_type;
 		Log.v("sk", "onCreate");
 		if(bnd != null) {
-			account_name = bnd.getString(Constants.ACCOUNT_KEY_ACCOUNT_NAME);
-			account_type = bnd.getString(Constants.ACCOUNT_KEY_ACCOUNT_TYPE);
+			serverInfo = (ServerInfo) bnd.getSerializable(Constants.KEY_SERVER_INFO);
+			account_name = serverInfo.getAccountName();
+			account_type = Constants.ACCOUNT_TYPE;
 			account = new Account(account_name, account_type);
+			properties = reader.getProperties(serverInfo.getAccountServer());
 			setContentView(R.layout.activity_main);
 		} else {
 			Log.v("sk", "onCreate null bundle");
 			setResult(RESULT_CANCELED);
 			finish();
 		}
-		
+
 	}
 	
+	@SuppressLint("SetJavaScriptEnabled")
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -275,10 +279,10 @@ public class AccountAuthenticatorActivity extends Activity {
 	        			String code = lT.getCode();
 	        			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();  
 	        			nameValuePairs.add(new BasicNameValuePair("code", code));
-	        			nameValuePairs.add(new BasicNameValuePair("client_id", "240498934020.apps.googleusercontent.com"));
-	        			nameValuePairs.add(new BasicNameValuePair("client_secret", "HuScmc9E5sIp-3epayh7g3ge"));
-	        			nameValuePairs.add(new BasicNameValuePair("redirect_uri", "http://localhost:" + listeningPort));
-	        			nameValuePairs.add(new BasicNameValuePair("grant_type", "authorization_code"));
+	        			nameValuePairs.add(new BasicNameValuePair("client_id", properties.getProperty("client_id")));
+	        			nameValuePairs.add(new BasicNameValuePair("client_secret", properties.getProperty("client_secret")));
+	        			nameValuePairs.add(new BasicNameValuePair("redirect_uri", properties.getProperty("redirect_uri")+ ":" + listeningPort));
+	        			nameValuePairs.add(new BasicNameValuePair(properties.getProperty("grant_type"), properties.getProperty("grant_type_value")));
 	        			new GetAuthCode(nameValuePairs).execute("");
 	        		}
 	            }
@@ -293,17 +297,29 @@ public class AccountAuthenticatorActivity extends Activity {
 		new Thread(lT).start();
 		listeningPort = port;
 		if (port != 0) {
-			browser.loadUrl("https://accounts.google.com/o/oauth2/auth?" + 
-				"scope=https%3A%2F%2Fwww.google.com%2Fcalendar%2Ffeeds%2F&" +
-				"redirect_uri=http%3A%2F%2Flocalhost%3A" + port + "&response_type=code&" +
-				"client_id=240498934020.apps.googleusercontent.com");
+			String query = "";
+			try {
+				if(properties.getProperty("scope") != null)
+					query = query.concat("scope=" + URLEncoder.encode(properties.getProperty("scope"), "utf-8"));
+				if(properties.getProperty("redirect_uri") != null)
+					query = query.concat("&redirect_uri=" +
+							URLEncoder.encode(properties.getProperty("redirect_uri") + ":" + port, "utf-8"));
+				if((properties.getProperty("response_type") != null) && 
+						(properties.getProperty("response_type_value") != null))
+					query = query.concat("&" + properties.getProperty("response_type") + "=" +
+							URLEncoder.encode(properties.getProperty("response_type_value"), "utf-8"));
+				if(properties.getProperty("client_id") != null)
+					query = query.concat("&client_id=" +
+							URLEncoder.encode(properties.getProperty("client_id"), "utf-8"));
+				Log.v("sk", "query" + query);
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			String auth_url = properties.getProperty("auth_url") + "?" + query;
+			Log.v("sk", "auth_url=" + auth_url);
+			browser.loadUrl( auth_url);
 		}
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		return true;
 	}
 
 }

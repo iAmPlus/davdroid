@@ -41,7 +41,6 @@ import android.os.IBinder;
 import android.text.TextUtils;
 import android.util.Log;
 import at.bitfire.davdroid.Constants;
-import at.bitfire.davdroid.syncadapter.AccountAuthenticatorActivity.GetAuthCode;
 
 public class AccountAuthenticatorService extends Service {
 	private static AccountAuthenticator accountAuthenticator;

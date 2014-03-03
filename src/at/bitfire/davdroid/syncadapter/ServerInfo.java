@@ -22,15 +22,10 @@ import lombok.RequiredArgsConstructor;
 public class ServerInfo implements Serializable {
 	private static final long serialVersionUID = 6744847358282980437L;
 	
-	final private String authURL = "https://accounts.google.com/o/oauth2/auth";
-	final private String tokenURL = "https://accounts.google.com/o/oauth2/token";
-	//final private String baseURL = "https://www.googleapis.com/.well-known/carddav";
-	final private String baseURL = "https://apidata.googleusercontent.com/caldav/v2/";
-	//final private String baseURL = "https://apidata.googleusercontent.com/.well-known/caldav/";
-	final private String client_id = "240498934020.apps.googleusercontent.com'";
-	final private String client_secret = "HuScmc9E5sIp-3epayh7g3ge";
-	final private String redirect_uri = "http://localhost";
-	final private String accountType;
+	private String baseURL = null;
+	private String caldavURL = null;
+	private String carddavURL = null;
+	final private String accountServer;
 	private String accountName;
 	
 	private String errorMessage;
