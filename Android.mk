@@ -3,17 +3,8 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE_TAGS := optional
 
-LOCAL_JAVA_LIBRARIES := com.iamplus
-
-LOCAL_SRC_FILES := $(call all-java-files-under, src) 
-
-LOCAL_RESOURCE_DIR += $(LOCAL_PATH)/res
-
-LOCAL_PACKAGE_NAME := IamPlusSyncAdapter
-
-LOCAL_CLASSPATH := $(LOCAL_PATH)/libs/lombok.jar
-
-LOCAL_STATIC_JAVA_LIBRARIES := \
+LOCAL_STATIC_JAVA_LIBRARIES := android-common \
+		android-support-v4 \
 		libbackport-util-concurrent \
 		libcommons-lang \
 		libical4j \
@@ -24,13 +15,17 @@ LOCAL_STATIC_JAVA_LIBRARIES := \
 		libez-vcard \
 		libsimple-xml
 
-#LOCAL_STATIC_LIBRARIES := liblombok
+LOCAL_SRC_FILES := $(call all-java-files-under, src)
+
+LOCAL_RESOURCE_DIR += $(LOCAL_PATH)/res
+
+LOCAL_PACKAGE_NAME := IamPlusSyncAdapter
+
+LOCAL_CLASSPATH := $(LOCAL_PATH)/libs/lombok.jar
 
 include $(BUILD_PACKAGE)
 
 include $(CLEAR_VARS)
-
-#LOCAL_SDK_VERSION := current
 
 LOCAL_PREBUILT_STATIC_JAVA_LIBRARIES := \
 		libbackport-util-concurrent:libs/backport-util-concurrent-3.1.jar \
