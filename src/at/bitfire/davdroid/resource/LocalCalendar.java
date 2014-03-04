@@ -93,10 +93,9 @@ public class LocalCalendar extends LocalCollection<Event> {
 	protected String entryColumnDirty()			{ return Events.DIRTY; }
 	protected String entryColumnDeleted()		{ return Events.DELETED; }
 	
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+	//@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	protected String entryColumnUID() {
-		return (android.os.Build.VERSION.SDK_INT >= 17) ?
-			Events.UID_2445 : Events.SYNC_DATA2;
+		return Events.SYNC_DATA2;
 	}
 
 	
