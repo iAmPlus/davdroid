@@ -4,15 +4,16 @@
     <string name="app_name">DAVdroid</string>
     <string name="menu_settings">Settings</string>
 
-    <string-array name="http_protocols">
-        <item>http://</item>
-        <item>https://</item>
+    <string-array name="server_names">
+        <item>Google</item>
+        <!-- <item>Apple</item>
+        <item>Yahoo</item> -->
+        <!-- <item>https://</item> -->
     </string-array>
-
-    <string name="http_warning">"If you don't use encryption (HTTPS), other people may easily intercept your login details, contacts and events."</string>
+    
     <string name="user_name">User name:</string>
-    <string name="password">Password:</string>
-    <string name="root_url">Root URL (collections will be auto-detected):</string>
+    <string name="token">Token:</string>
+    <string name="root_url">Account type:</string>
     <string name="next">Next</string>
     <string name="help">Help</string>
     <string name="invalid_base_url">Invalid base URL: </string>
@@ -25,9 +26,11 @@
     <string name="error_home_set_address_books">"Couldn't determine address book home set"</string>
     <string name="error_home_set_calendars">"Couldn't determine calendar home set"</string>
     <string name="add_account">Add account</string>
+    <string name="add_action">Add Account</string>
+    <string name="finish_action">Finish</string>
     <string name="querying_server">Querying server. Please wait…</string>
     <string name="exception_http">HTTP error: %s</string>
-    <string name="what_to_sync">Which collections shall be synchronized?</string>
+    <string name="what_to_sync">Select collections</string>
     <string name="address_books">Address books</string>
     <string name="calendars">Calendars</string>
     <string name="select_address_book">Select up to one address book (tap again to unselect):</string>

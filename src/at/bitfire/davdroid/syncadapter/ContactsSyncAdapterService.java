@@ -10,6 +10,7 @@
  ******************************************************************************/
 package at.bitfire.davdroid.syncadapter;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
@@ -17,10 +18,15 @@ import java.util.Map;
 
 import lombok.Synchronized;
 import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.app.Service;
 import android.content.ContentProviderClient;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import at.bitfire.davdroid.Constants;
@@ -58,13 +64,19 @@ public class ContactsSyncAdapterService extends Service {
 			
 			try {
 				LocalCollection<?> database = new LocalAddressBook(account, provider, accountManager);
-				
-				URI uri = new URI(accountManager.getUserData(account, Constants.ACCOUNT_KEY_BASE_URL)).resolve(addressBookPath);
-				RemoteCollection<?> dav = new CardDavAddressBook(
-					uri.toString(),
-					accountManager.getUserData(account, Constants.ACCOUNT_KEY_USERNAME),
-					accountManager.getPassword(account),
-					Boolean.parseBoolean(accountManager.getUserData(account, Constants.ACCOUNT_KEY_AUTH_PREEMPTIVE)));
+
+				URI uri = null;
+				if(accountManager.getUserData(account, Constants.ACCOUNT_KEY_BASE_URL) != null)
+					uri = new URI(accountManager.getUserData(account, Constants.ACCOUNT_KEY_BASE_URL)).resolve(addressBookPath);
+				else if(accountManager.getUserData(account, Constants.ACCOUNT_KEY_CARDDAV_URL) != null)
+					uri = new URI(accountManager.getUserData(account, Constants.ACCOUNT_KEY_CARDDAV_URL)).resolve(addressBookPath);
+				else
+					return null;
+				accountManager.invalidateAuthToken(Constants.ACCOUNT_TYPE, Constants.ACCOUNT_KEY_ACCESS_TOKEN);
+				AccountManagerFuture<Bundle> authBundle = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, null, null, null);
+				String accessToken = authBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
+
+				RemoteCollection<?> dav = new CardDavAddressBook(uri.toString(), accessToken);
 				
 				Map<LocalCollection<?>, RemoteCollection<?>> map = new HashMap<LocalCollection<?>, RemoteCollection<?>>();
 				map.put(database, dav);
@@ -72,6 +84,15 @@ public class ContactsSyncAdapterService extends Service {
 				return map;
 			} catch (URISyntaxException ex) {
 				Log.e(TAG, "Couldn't build address book URI", ex);
+			} catch (OperationCanceledException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (AuthenticatorException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 			
 			return null;

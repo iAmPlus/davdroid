@@ -36,4 +36,8 @@ public class CardDavAddressBook extends RemoteCollection<Contact> {
 	public CardDavAddressBook(String baseURL, String user, String password, boolean preemptiveAuth) throws URISyntaxException {
 		super(baseURL, user, password, preemptiveAuth);
 	}
+
+	public CardDavAddressBook(String baseURL, String accessToken) throws URISyntaxException {
+		super(baseURL, accessToken);
+	}
 }

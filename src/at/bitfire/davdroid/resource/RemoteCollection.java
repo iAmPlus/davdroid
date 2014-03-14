@@ -51,6 +51,9 @@ public abstract class RemoteCollection<T extends Resource> {
 	
 	/* collection operations */
 
+	public RemoteCollection(String baseURL, String accessToken) throws URISyntaxException {
+		collection = new WebDavResource(new URI(baseURL), accessToken);
+	}
 	public String getCTag() throws IOException, HttpException {
 		try {
 			if (collection.getCTag() == null && collection.getMembers() == null)	// not already fetched

@@ -45,6 +45,7 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicLineParser;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
@@ -58,7 +59,7 @@ import at.bitfire.davdroid.webdav.DavProp.DavPropComp;
 @ToString
 public class WebDavResource {
 	private static final String TAG = "davdroid.WebDavResource";
-	
+
 	public enum Property {
 		CURRENT_USER_PRINCIPAL,
 		DISPLAY_NAME, DESCRIPTION, COLOR,
@@ -66,7 +67,8 @@ public class WebDavResource {
 		ADDRESSBOOK_HOMESET, CALENDAR_HOMESET,
 		IS_ADDRESSBOOK, IS_CALENDAR,
 		CTAG, ETAG,
-		CONTENT_TYPE
+		CONTENT_TYPE,
+		REDIRECTION_URL
 	}
 	public enum PutMode {
 		ADD_DONT_OVERWRITE,
@@ -75,15 +77,15 @@ public class WebDavResource {
 
 	// location of this resource
 	@Getter protected URI location;
-	
+
 	// DAV capabilities (DAV: header) and allowed DAV methods (set for OPTIONS request)
 	protected Set<String>	capabilities = new HashSet<String>(),
 							methods = new HashSet<String>();
-	
+
 	// DAV properties
 	protected HashMap<Property, String> properties = new HashMap<Property, String>();
 	@Getter protected List<String> supportedComponents;
-	
+
 	// list of members (only for collections)
 	@Getter protected List<WebDavResource> members;
 
@@ -92,7 +94,9 @@ public class WebDavResource {
 
 	protected DefaultHttpClient client;
 	
-	
+	private String authBearer = null;
+	private boolean needBearer = false;
+
 	public WebDavResource(URI baseURL, boolean trailingSlash) throws URISyntaxException {
 		location = baseURL.normalize();
 		
@@ -100,6 +104,17 @@ public class WebDavResource {
 			location = new URI(location.getScheme(), location.getSchemeSpecificPart() + "/", null);
 		
 		client = DavHttpClient.getDefault();
+	}
+	
+	public WebDavResource(URI baseURL, boolean trailingSlash, String bearer) throws URISyntaxException {
+		location = baseURL.normalize();
+		
+		if (trailingSlash && !location.getRawPath().endsWith("/"))
+			location = new URI(location.getScheme(), location.getSchemeSpecificPart() + "/", null);
+		
+		client = DavHttpClient.getDefault();
+		needBearer = true;
+		authBearer = bearer;
 	}
 	
 	public WebDavResource(URI baseURL, String username, String password, boolean preemptive, boolean trailingSlash) throws URISyntaxException {
@@ -119,6 +134,7 @@ public class WebDavResource {
 	protected WebDavResource(WebDavResource parent, URI uri) {
 		location = uri;
 		client = parent.client;
+		authBearer = parent.authBearer;
 	}
 	
 	public WebDavResource(WebDavResource parent, String member) {
@@ -137,8 +153,16 @@ public class WebDavResource {
 
 	/* feature detection */
 
+	public WebDavResource(URI baseURL, String accessToken) {
+		location = baseURL;
+		client = DavHttpClient.getDefault();
+		authBearer = accessToken;
+	}
+
 	public void options() throws IOException, HttpException {
 		HttpOptions options = new HttpOptions(location);
+		if(authBearer != null)
+			options.addHeader("Authorization", "Bearer " + authBearer);
 		HttpResponse response = client.execute(options);
 		checkResponse(response);
 		
@@ -146,12 +170,18 @@ public class WebDavResource {
 			response.getEntity().consumeContent();
 		
 		Header[] allowHeaders = response.getHeaders("Allow");
-		for (Header allowHeader : allowHeaders)
+		for (Header allowHeader : allowHeaders) {
+			Log.v("sk", allowHeader.getName() + "  " + allowHeader.getValue());
 			methods.addAll(Arrays.asList(allowHeader.getValue().split(", ?")));
+		}
+		Log.v("sk", Arrays.toString(methods.toArray()));
 
 		Header[] capHeaders = response.getHeaders("DAV");
-		for (Header capHeader : capHeaders)
+		for (Header capHeader : capHeaders) {
+			Log.v("sk", capHeader.getName() + "  " + capHeader.getValue());
 			capabilities.addAll(Arrays.asList(capHeader.getValue().split(", ?")));
+		}
+		Log.v("sk", Arrays.toString(capabilities.toArray()));
 	}
 
 	public boolean supportsDAV(String capability) {
@@ -228,15 +258,47 @@ public class WebDavResource {
 		return properties.containsKey(Property.IS_CALENDAR);
 	}
 	
+	public String getRedirectionURL() {
+		return properties.get(Property.REDIRECTION_URL);
+	}
+	
+	public void setRedirectionURL(String redirectionURL) {
+		properties.put(Property.REDIRECTION_URL, redirectionURL);
+	}
+	
 	
 	/* collection operations */
 	
 	public void propfind(HttpPropfind.Mode mode) throws IOException, DavException, HttpException {
 		HttpPropfind propfind = new HttpPropfind(location, mode);
+		if(authBearer != null)
+			propfind.addHeader("Authorization", "Bearer " + authBearer);
 		HttpResponse response = client.execute(propfind);
+		
 		checkResponse(response);
+		
+		int statusCode = response.getStatusLine().getStatusCode();
+		Log.v("sk", "Status code = " + statusCode);
+		
+		if (statusCode == HttpStatus.SC_MOVED_PERMANENTLY) {
+			//TODO properly parse html to get redirection url
+			Log.v("sk", "Moved getting new url");
+			HttpEntity entity = response.getEntity();
+			String responseString = EntityUtils.toString(entity, "UTF-8");
+			Log.v("sk", "Response is: " + responseString);
+			String redirectUrl = "";
+			int urlStart = responseString.indexOf("<A HREF=\"") + "<A HREF=\"".length();
+			if(urlStart > 0) {
+				int urlEnd = responseString.indexOf("\">", urlStart);
+				if(urlEnd > 0) {
+					redirectUrl = responseString.substring(urlStart, urlEnd);
+					setRedirectionURL(redirectUrl);
+				}
+			}
+			throw new PermanentlyMovedException(redirectUrl);
+		}
 
-		if (response.getStatusLine().getStatusCode() != HttpStatus.SC_MULTI_STATUS)
+		if (statusCode != HttpStatus.SC_MULTI_STATUS)
 			throw new DavNoMultiStatusException();
 
 		HttpEntity entity = response.getEntity();
@@ -274,6 +336,8 @@ public class WebDavResource {
 		}
 
 		HttpReport report = new HttpReport(location, writer.toString());
+		if(authBearer != null)
+			report.addHeader("Authorization", "Bearer " + authBearer);
 		HttpResponse response = client.execute(report);
 		checkResponse(response);
 		
@@ -303,6 +367,8 @@ public class WebDavResource {
 	
 	public void get() throws IOException, HttpException {
 		HttpGet get = new HttpGet(location);
+		if(authBearer != null)
+			get.addHeader("Authorization", "Bearer " + authBearer);
 		HttpResponse response = client.execute(get);
 		checkResponse(response);
 		
@@ -336,6 +402,9 @@ public class WebDavResource {
 		
 		if (getContentType() != null)
 			put.addHeader("Content-Type", getContentType());
+		
+		if(authBearer != null)
+			put.addHeader("Authorization", "Bearer " + authBearer);
 
 		HttpResponse response = client.execute(put);
 		@Cleanup("consumeContent") HttpEntity entity = response.getEntity();
@@ -347,6 +416,9 @@ public class WebDavResource {
 		
 		if (getETag() != null)
 			delete.addHeader("If-Match", getETag());
+		
+		if (getContentType() != null)
+			delete.addHeader("Content-Type", getContentType());
 		
 		HttpResponse response = client.execute(delete);
 		@Cleanup("consumeContent") HttpEntity entity = response.getEntity();
@@ -366,6 +438,9 @@ public class WebDavResource {
 		Log.d(TAG, "Received " + statusLine.getProtocolVersion() + " " + code + " " + statusLine.getReasonPhrase());
 		
 		if (code/100 == 1 || code/100 == 2)		// everything OK
+			return;
+		
+		if (code == 301)		// Moved permanently
 			return;
 		
 		String reason = code + " " + statusLine.getReasonPhrase();

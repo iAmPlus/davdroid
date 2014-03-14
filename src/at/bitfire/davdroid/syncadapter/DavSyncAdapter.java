@@ -49,7 +49,7 @@ public abstract class DavSyncAdapter extends AbstractThreadedSyncAdapter {
 				androidID = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
 		}
 		
-		accountManager = AccountManager.get(context);
+		accountManager = AccountManager.get(context.getApplicationContext());
 	}
 	
 	protected abstract Map<LocalCollection<?>, RemoteCollection<?>> getSyncPairs(Account account, ContentProviderClient provider);

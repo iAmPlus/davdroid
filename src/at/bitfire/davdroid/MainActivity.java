@@ -15,14 +15,15 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.text.Html;
-import android.text.method.LinkMovementMethod;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.widget.TextView;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
 public class MainActivity extends Activity {
+	
+	ListView listView;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -30,32 +31,61 @@ public class MainActivity extends Activity {
 		
 		setContentView(R.layout.activity_main);
 		
+		listView = (ListView) findViewById(R.id.main_activity_list);
+		
 		setTitle("DAVdroid " + Constants.APP_VERSION);
 		
-		TextView tv = (TextView)findViewById(R.id.text_info);
-		tv.setText(Html.fromHtml(getString(R.string.html_info)));
-	    tv.setMovementMethod(LinkMovementMethod.getInstance());
-	}
+		String[] values = new String[] { "Add Account", 
+                "Manage accounts",
+                "Website" 
+        };
+		
+		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+	              R.layout.activity_main_item, android.R.id.text1, values);
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		MenuInflater inflater = getMenuInflater();
-	    inflater.inflate(R.menu.main_activity, menu);
-	    return true;
+        listView.setAdapter(adapter); 
+
+        listView.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view,
+					int position, long id) {
+                      
+				  switch(position) {
+				  case 0:
+					  //Add account
+					  addAccount();
+					  break;
+				  case 1:
+					  //Manage account
+					  showSyncSettings();
+					  break;
+				  case 3:
+					  showWebsite();
+					  //Website
+					  break;
+				  default:
+					  //error
+				  }
+
+				
+			}
+        	
+        });
 	}
 
 	
-	public void addAccount(MenuItem item) {
+	public void addAccount() {
 		Intent intent = new Intent(Settings.ACTION_ADD_ACCOUNT);
 		startActivity(intent);
 	}
 
-	public void showSyncSettings(MenuItem item) {
+	public void showSyncSettings() {
 		Intent intent = new Intent(Settings.ACTION_SYNC_SETTINGS);
 		startActivity(intent);
 	}
 
-	public void showWebsite(MenuItem item) {
+	public void showWebsite() {
 		Intent intent = new Intent(Intent.ACTION_VIEW);
 		intent.setData(Uri.parse(Constants.WEB_URL_HELP + "&pk_kwd=main-activity"));
 		startActivity(intent);
