@@ -1,0 +1,19 @@
+# Keep all Fragments in this package, which are used by reflection.
+
+# Don't warn
+-dontwarn javax.xml.stream.**
+-dontwarn org.codehaus.groovy.**
+-dontwarn groovy.lang.**
+-dontwarn groovy.util.**
+-dontwarn groovy.runtime.**
+-dontwarn org.jsoup.**
+-dontwarn lombok.**
+-dontwarn sun.misc.**
+-dontwarn com.fasterxml.**
+-dontwarn java.lang.**
+-dontwarn freemarker.template.**
+-dontwarn org.apache.log4j.**
+
+-dontskipnonpubliclibraryclasses
+-dontskipnonpubliclibraryclassmembers
+

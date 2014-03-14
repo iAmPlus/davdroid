@@ -23,6 +23,8 @@ LOCAL_PACKAGE_NAME := IamPlusSyncAdapter
 
 LOCAL_CLASSPATH := $(LOCAL_PATH)/libs/lombok.jar
 
+LOCAL_PROGUARD_FLAG_FILES := proguard.flags
+
 include $(BUILD_PACKAGE)
 
 include $(CLEAR_VARS)
