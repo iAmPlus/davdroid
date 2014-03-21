@@ -37,18 +37,18 @@ import ezvcard.VCardException;
 
 public abstract class RemoteCollection<T extends Resource> {
 	private static final String TAG = "davdroid.RemoteCollection";
-	
+
 	@Getter WebDavResource collection;
 
 	abstract protected String memberContentType();
 	abstract protected DavMultiget.Type multiGetType();
 	abstract protected T newResourceSkeleton(String name, String ETag);
-	
+
 	public RemoteCollection(String baseURL, String user, String password, boolean preemptiveAuth) throws URISyntaxException {
 		collection = new WebDavResource(new URI(baseURL), user, password, preemptiveAuth, true);
 	}
 
-	
+
 	/* collection operations */
 
 	public RemoteCollection(String baseURL, String accessToken) throws URISyntaxException {
@@ -63,10 +63,10 @@ public abstract class RemoteCollection<T extends Resource> {
 		}
 		return collection.getCTag();
 	}
-	
+
 	public Resource[] getMemberETags() throws IOException, DavException, HttpException {
 		collection.propfind(HttpPropfind.Mode.MEMBERS_ETAG);
-			
+
 		List<T> resources = new LinkedList<T>();
 		if (collection.getMembers() != null) {
 			for (WebDavResource member : collection.getMembers())
@@ -74,24 +74,24 @@ public abstract class RemoteCollection<T extends Resource> {
 		}
 		return resources.toArray(new Resource[0]);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public Resource[] multiGet(Resource[] resources) throws IOException, DavException, HttpException {
 		try {
 			if (resources.length == 1)
 				return (T[]) new Resource[] { get(resources[0]) };
-			
+
 			Log.i(TAG, "Multi-getting " + resources.length + " remote resource(s)");
-			
+
 			LinkedList<String> names = new LinkedList<String>();
 			for (Resource resource : resources)
 				names.add(resource.getName());
-			
+
 			LinkedList<T> foundResources = new LinkedList<T>();
 			collection.multiGet(multiGetType(), names.toArray(new String[0]));
 			if (collection.getMembers() == null)
 				throw new DavNoContentException();
-			
+
 			for (WebDavResource member : collection.getMembers()) {
 				T resource = newResourceSkeleton(member.getName(), member.getETag());
 				try {
@@ -107,57 +107,57 @@ public abstract class RemoteCollection<T extends Resource> {
 					Log.e(TAG, "Ignoring unparseable vCard in multi-response", ex);
 				}
 			}
-			
+
 			return foundResources.toArray(new Resource[0]);
 		} catch (ParserException ex) {
 			Log.e(TAG, "Couldn't parse iCal from GET", ex);
 		} catch (VCardException ex) {
 			Log.e(TAG, "Couldn't parse vCard from GET", ex);
 		}
-		
+
 		return new Resource[0];
 	}
-	
-	
+
+
 	/* internal member operations */
 
 	public Resource get(Resource resource) throws IOException, HttpException, ParserException, VCardException {
 		WebDavResource member = new WebDavResource(collection, resource.getName());
 		member.get();
-		
+
 		byte[] data = member.getContent();
 		if (data == null)
 			throw new DavNoContentException();
-		
+
 		@Cleanup InputStream is = new ByteArrayInputStream(data);
 		resource.parseEntity(is);
 		return resource;
 	}
-	
+
 	public void add(Resource res) throws IOException, HttpException, ValidationException {
 		WebDavResource member = new WebDavResource(collection, res.getName(), res.getETag());
 		member.setContentType(memberContentType());
-		
+
 		@Cleanup ByteArrayOutputStream os = res.toEntity();
 		member.put(os.toByteArray(), PutMode.ADD_DONT_OVERWRITE);
-		
+
 		collection.invalidateCTag();
 	}
 
 	public void delete(Resource res) throws IOException, HttpException {
 		WebDavResource member = new WebDavResource(collection, res.getName(), res.getETag());
 		member.delete();
-		
+
 		collection.invalidateCTag();
 	}
-	
+
 	public void update(Resource res) throws IOException, HttpException, ValidationException {
 		WebDavResource member = new WebDavResource(collection, res.getName(), res.getETag());
 		member.setContentType(memberContentType());
-		
+
 		@Cleanup ByteArrayOutputStream os = res.toEntity();
 		member.put(os.toByteArray(), PutMode.UPDATE_DONT_OVERWRITE);
-		
+
 		collection.invalidateCTag();
 	}
 }

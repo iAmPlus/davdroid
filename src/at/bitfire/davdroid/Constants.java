@@ -13,18 +13,18 @@ package at.bitfire.davdroid;
 public class Constants {
 	public static final String
 		APP_VERSION = "0.5.7-alpha",
-		
+
 		ACCOUNT_TYPE = "bitfire.at.davdroid",
-		
+
 		ACCOUNT_KEY_USERNAME = "user_name",
 		ACCOUNT_KEY_BASE_URL = "principal_url",
 		ACCOUNT_KEY_CALDAV_URL = "caldav_url",
 		ACCOUNT_KEY_CARDDAV_URL = "carddav_url",
 		ACCOUNT_KEY_AUTH_PREEMPTIVE = "auth_preemptive",
-		
+
 		ACCOUNT_KEY_ADDRESSBOOK_PATH = "addressbook_path",
 		ACCOUNT_KEY_ADDRESSBOOK_CTAG = "addressbook_ctag",
-		
+
 		WEB_URL_HELP = "http://davdroid.bitfire.at/configuration?pk_campaign=davdroid-app";
 	public static final String ACCOUNT_KEY_REFRESH_TOKEN = "google_refresh_token";
 	public static final String ACCOUNT_KEY_ACCESS_TOKEN = "google_access_token";

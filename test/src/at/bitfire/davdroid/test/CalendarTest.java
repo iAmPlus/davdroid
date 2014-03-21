@@ -17,22 +17,22 @@ import at.bitfire.davdroid.resource.Event;
 
 public class CalendarTest extends InstrumentationTestCase {
 	AssetManager assetMgr;
-	
+
 	public void setUp() {
 		assetMgr = getInstrumentation().getContext().getResources().getAssets();
 	}
-	
-	
+
+
 	public void testTimeZonesByEvolution() throws IOException, ParserException {
 		Event e = parseCalendar("vienna-evolution.ics");
-		assertEquals("Test-Ereignis im schönen Wien", e.getSummary());		
-		
+		assertEquals("Test-Ereignis im schönen Wien", e.getSummary());
+
 		//DTSTART;TZID=/freeassociation.sourceforge.net/Tzfile/Europe/Vienna:20131009T170000
 		/*assertEquals(1381330800000L, e.getDtStartInMillis());
 		assertEquals(1381334400000L, (long)e.getDtEndInMillis());*/
 	}
-	
-	
+
+
 	protected Event parseCalendar(String fname) throws IOException, ParserException {
 		InputStream in = assetMgr.open(fname, AssetManager.ACCESS_STREAMING);
 		Event e = new Event(fname, null);

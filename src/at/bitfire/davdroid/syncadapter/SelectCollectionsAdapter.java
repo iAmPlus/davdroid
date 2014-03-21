@@ -25,20 +25,20 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 		TYPE_ADDRESS_BOOKS_ROW = 1,
 		TYPE_CALENDARS_HEADING = 2,
 		TYPE_CALENDARS_ROW = 3;
-	
+
 	protected ServerInfo serverInfo;
 	@Getter protected int nAddressBooks, nCalendars;
-	
-	
+
+
 	public SelectCollectionsAdapter(ServerInfo serverInfo) {
 		this.serverInfo = serverInfo;
 		nAddressBooks = (serverInfo.getAddressBooks() == null) ? 0 : serverInfo.getAddressBooks().size();
 		nCalendars = (serverInfo.getCalendars() == null) ? 0 : serverInfo.getCalendars().size();
 	}
-	
-	
+
+
 	// item data
-	
+
 	@Override
 	public int getCount() {
 		return nAddressBooks + nCalendars + 2;
@@ -52,7 +52,7 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 			return serverInfo.getCalendars().get(position - nAddressBooks - 2);
 		return null;
 	}
-	
+
 	@Override
 	public boolean hasStableIds() {
 		return true;
@@ -62,8 +62,8 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 	public long getItemId(int position) {
 		return position;
 	}
-	
-	
+
+
 	// item views
 
 	@Override
@@ -106,7 +106,7 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 				prepareRowView((CheckedTextView)convertView, R.drawable.calendar);
 			}
 		}
-		
+
 		// step 2: fill view with content
 		switch (getItemViewType(position)) {
 		case TYPE_ADDRESS_BOOKS_ROW:
@@ -115,21 +115,21 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 		case TYPE_CALENDARS_ROW:
 			setContent((CheckedTextView)convertView, (ServerInfo.ResourceInfo)getItem(position));
 		}
-		
+
 		return convertView;
 	}
-	
+
 	protected void prepareRowView(CheckedTextView view, int resIcon) {
 		view.setPadding(10, 10, 10, 10);
 		view.setCompoundDrawablesWithIntrinsicBounds(resIcon, 0, 0, 0);
 		view.setCompoundDrawablePadding(10);
 	}
-	
+
 	protected void setContent(CheckedTextView view, ServerInfo.ResourceInfo info) {
 		String description = info.getDescription();
 		if (description == null)
 			description = info.getPath();
-		
+
 		// FIXME escape HTML
 		view.setText(Html.fromHtml("<b>" + info.getTitle() + "</b><br/>" + description));
 	}

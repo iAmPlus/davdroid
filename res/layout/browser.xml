@@ -4,9 +4,14 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
     
-    <WebView
+    <at.bitfire.davdroid.syncadapter.MyWebView
         android:id="@+id/browser_view"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />
+    <SlidingLayer
+		android:id="@+id/slidinglayout"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+	/>
 
 </LinearLayout>

@@ -23,20 +23,20 @@ public class DavMultiget {
 		ADDRESS_BOOK,
 		CALENDAR
 	}
-	
+
 	@Element
 	DavProp prop;
-	
+
 	@ElementList(inline=true)
 	List<DavHref> hrefs;
-	
-	
+
+
 	public static DavMultiget newRequest(Type type, String names[]) {
 		DavMultiget multiget = (type == Type.ADDRESS_BOOK) ? new DavAddressbookMultiget() : new DavCalendarMultiget(); 
-		
+
 		multiget.prop = new DavProp();
 		multiget.prop.getetag = new DavProp.DavPropGetETag();
-		
+
 		if (type == Type.ADDRESS_BOOK)
 			multiget.prop.addressData = new DavProp.DavPropAddressData();
 		else if (type == Type.CALENDAR)
@@ -45,7 +45,7 @@ public class DavMultiget {
 		multiget.hrefs = new ArrayList<DavHref>(names.length);
 		for (String name : names)
 			multiget.hrefs.add(new DavHref(name));
-		
+
 		return multiget;
 	}
 }

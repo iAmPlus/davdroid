@@ -16,7 +16,7 @@ import at.bitfire.davdroid.webdav.DavMultiget;
 
 public class CalDavCalendar extends RemoteCollection<Event> { 
 	//private final static String TAG = "davdroid.CalDavCalendar";
-	
+
 	@Override
 	protected String memberContentType() {
 		return "text/calendar";
@@ -26,13 +26,13 @@ public class CalDavCalendar extends RemoteCollection<Event> {
 	protected DavMultiget.Type multiGetType() {
 		return DavMultiget.Type.CALENDAR;
 	}
-	
+
 	@Override
 	protected Event newResourceSkeleton(String name, String ETag) {
 		return new Event(name, ETag);
 	}
-	
-	
+
+
 	public CalDavCalendar(String baseURL, String user, String password, boolean preemptiveAuth) throws URISyntaxException {
 		super(baseURL, user, password, preemptiveAuth);
 	}

@@ -51,18 +51,18 @@ public class AccountAuthenticatorService extends Service {
 			return accountAuthenticator;
 		return accountAuthenticator = new AccountAuthenticator(this);
 	}
-	
+
 	@Override
 	public IBinder onBind(Intent intent) {
 		if (intent.getAction().equals(android.accounts.AccountManager.ACTION_AUTHENTICATOR_INTENT))
 			return getAuthenticator().getIBinder();
 		return null;
 	}
-	
-	
+
+
 	private static class AccountAuthenticator extends AbstractAccountAuthenticator {
 		Context context;
-		
+
 		public AccountAuthenticator(Context context) {
 			super(context);
 			this.context = context;
@@ -95,93 +95,91 @@ public class AccountAuthenticatorService extends Service {
 				throws NetworkErrorException {
 			Log.d(TAG, "> getAuthToken");
 
-	        // If the caller requested an authToken type we don't support, then
-	        // return an error
+			// If the caller requested an authToken type we don't support, then
+			// return an error
 			//if (!authTokenType.equals(AccountGeneral.AUTHTOKEN_TYPE_READ_ONLY) && !authTokenType.equals(AccountGeneral.AUTHTOKEN_TYPE_FULL_ACCESS)) {
-	        if (!authTokenType.equals(Constants.ACCOUNT_KEY_ACCESS_TOKEN) && !authTokenType.equals(Constants.ACCOUNT_KEY_REFRESH_TOKEN)) {
-	            final Bundle result = new Bundle();
-	            result.putString(AccountManager.KEY_ERROR_MESSAGE, "invalid authTokenType");
-	            return result;
-	        }
+			if (!authTokenType.equals(Constants.ACCOUNT_KEY_ACCESS_TOKEN) && !authTokenType.equals(Constants.ACCOUNT_KEY_REFRESH_TOKEN)) {
+				final Bundle result = new Bundle();
+				result.putString(AccountManager.KEY_ERROR_MESSAGE, "invalid authTokenType");
+				return result;
+			}
 
-	        // Extract the username and password from the Account Manager, and ask
-	        // the server for an appropriate AuthToken.
-	        final AccountManager am = AccountManager.get(context.getApplicationContext());
+			// Extract the username and password from the Account Manager, and ask
+			// the server for an appropriate AuthToken.
+			final AccountManager am = AccountManager.get(context.getApplicationContext());
 
-	        String authToken = am.peekAuthToken(account, authTokenType);
+			String authToken = am.peekAuthToken(account, authTokenType);
 
-	        Log.d(TAG, "peekAuthToken returned - " + authToken);
+			Log.d(TAG, "peekAuthToken returned - " + authToken);
 
-	        // Lets give another try to authenticate the user
-	        if (TextUtils.isEmpty(authToken)) {
-	        	
-	        	String refreshToken = am.peekAuthToken(account, Constants.ACCOUNT_KEY_REFRESH_TOKEN);
-	        	if (TextUtils.isEmpty(refreshToken)) {
-		        	Log.v("sk", "Have refresh code");
-	    			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-	    			nameValuePairs.add(new BasicNameValuePair("client_id", "240498934020.apps.googleusercontent.com"));
-	    			nameValuePairs.add(new BasicNameValuePair("client_secret", "HuScmc9E5sIp-3epayh7g3ge"));
-	    			nameValuePairs.add(new BasicNameValuePair("refresh_token", refreshToken));
-	    			nameValuePairs.add(new BasicNameValuePair("grant_type", "refresh_token"));
-	    			HttpClient httpclient = new DefaultHttpClient();
-	    			HttpPost httppost = new HttpPost("https://accounts.google.com/o/oauth2/token");
-	    			HttpResponse httpResponse;
-	    			String data = null;
-	    			try {
-	    				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-	    				Log.v("sk", httppost.getURI().toString());
-	    			
-	    				httpResponse = httpclient.execute(httppost);
-	    				try {
-	    					data = new BasicResponseHandler().handleResponse(httpResponse);
-	    				} catch (HttpResponseException e) {
-	    					// TODO Auto-generated catch block
-	    					e.printStackTrace();
-	    				} catch (IOException e) {
-	    					// TODO Auto-generated catch block
-	    					e.printStackTrace();
-	    				}
-	    				/*Gson gSon = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").create();
-	    			    gSon.fromJson(IOUtils.toString(result.getEntity().getContent()), LogonInfo.class).fill(form);*/
-	    			} catch (UnsupportedEncodingException e) {
-	    				e.printStackTrace();
-	    			} catch (HttpResponseException e) {
-	    				e.printStackTrace();
-	    			} catch (IOException e) {
-	    				e.printStackTrace();
-	    			}
-	    			JSONObject responseJson;
-	    			try {
-	    				responseJson = new JSONObject(data);
-	    				authToken = responseJson.getString(authTokenType);
-	    				am.setAuthToken(account, authTokenType, authToken);
-	    			} catch (JSONException e) {
-	    				// TODO Auto-generated catch block
-	    				e.printStackTrace();
-	    			}
-	        	}
-	        }
+			// Lets give another try to authenticate the user
+			if (TextUtils.isEmpty(authToken)) {
 
-	        // If we get an authToken - we return it
-	        if (!TextUtils.isEmpty(authToken)) {
-	            final Bundle result = new Bundle();
-	            result.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
-	            result.putString(AccountManager.KEY_ACCOUNT_TYPE, account.type);
-	            result.putString(AccountManager.KEY_AUTHTOKEN, authToken);
-	            return result;
-	        }
+				String refreshToken = am.peekAuthToken(account, Constants.ACCOUNT_KEY_REFRESH_TOKEN);
+				if (TextUtils.isEmpty(refreshToken)) {
+					List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+					nameValuePairs.add(new BasicNameValuePair("client_id", "240498934020.apps.googleusercontent.com"));
+					nameValuePairs.add(new BasicNameValuePair("client_secret", "HuScmc9E5sIp-3epayh7g3ge"));
+					nameValuePairs.add(new BasicNameValuePair("refresh_token", refreshToken));
+					nameValuePairs.add(new BasicNameValuePair("grant_type", "refresh_token"));
+					HttpClient httpclient = new DefaultHttpClient();
+					HttpPost httppost = new HttpPost("https://accounts.google.com/o/oauth2/token");
+					HttpResponse httpResponse;
+					String data = null;
+					try {
+						httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
-	        // If we get here, then we couldn't access the user's password - so we
-	        // need to re-prompt them for their credentials. We do that by creating
-	        // an intent to display our AuthenticatorActivity.
-	        final Intent intent = new Intent(context, AccountAuthenticatorActivity.class);
-	        intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
-	        intent.putExtra(AddAccountActivity.ARG_ACCOUNT_TYPE, account.type);
-	        intent.putExtra(AddAccountActivity.ARG_AUTH_TYPE, authTokenType);
-	        intent.putExtra(AddAccountActivity.ARG_ACCOUNT_NAME, account.name);
-	        final Bundle bundle = new Bundle();
-	        bundle.putParcelable(AccountManager.KEY_INTENT, intent);
-	        return bundle;
+						httpResponse = httpclient.execute(httppost);
+						try {
+							data = new BasicResponseHandler().handleResponse(httpResponse);
+						} catch (HttpResponseException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						/*Gson gSon = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").create();
+						gSon.fromJson(IOUtils.toString(result.getEntity().getContent()), LogonInfo.class).fill(form);*/
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					} catch (HttpResponseException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					JSONObject responseJson;
+					try {
+						responseJson = new JSONObject(data);
+						authToken = responseJson.getString(authTokenType);
+						am.setAuthToken(account, authTokenType, authToken);
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+
+			// If we get an authToken - we return it
+			if (!TextUtils.isEmpty(authToken)) {
+				final Bundle result = new Bundle();
+				result.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
+				result.putString(AccountManager.KEY_ACCOUNT_TYPE, account.type);
+				result.putString(AccountManager.KEY_AUTHTOKEN, authToken);
+				return result;
+			}
+
+			// If we get here, then we couldn't access the user's password - so we
+			// need to re-prompt them for their credentials. We do that by creating
+			// an intent to display our AuthenticatorActivity.
+			final Intent intent = new Intent(context, AccountAuthenticatorActivity.class);
+			intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
+			intent.putExtra(AddAccountActivity.ARG_ACCOUNT_TYPE, account.type);
+			intent.putExtra(AddAccountActivity.ARG_AUTH_TYPE, authTokenType);
+			intent.putExtra(AddAccountActivity.ARG_ACCOUNT_NAME, account.name);
+			final Bundle bundle = new Bundle();
+			bundle.putParcelable(AccountManager.KEY_INTENT, intent);
+			return bundle;
 		}
 
 		@Override

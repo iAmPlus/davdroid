@@ -12,7 +12,7 @@ package at.bitfire.davdroid.webdav;
 
 public class DavIncapableException extends DavException {
 	private static final long serialVersionUID = -7199786680939975667L;
-	
+
 	public DavIncapableException(String msg) {
 		super(msg);
 	}

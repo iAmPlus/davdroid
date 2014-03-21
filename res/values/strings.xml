@@ -6,8 +6,8 @@
 
     <string-array name="server_names">
         <item>Google</item>
-        <!-- <item>Apple</item>
-        <item>Yahoo</item> -->
+        <!-- <item>Apple</item> -->
+        <item>Yahoo</item>
         <!-- <item>https://</item> -->
     </string-array>
     
@@ -15,6 +15,8 @@
     <string name="token">Token:</string>
     <string name="root_url">Account type:</string>
     <string name="next">Next</string>
+    <string name="next_action">Next</string>
+    <string name="message_cancel_text">Back</string>
     <string name="help">Help</string>
     <string name="invalid_base_url">Invalid base URL: </string>
     <string name="title_select_collections">DAVdroid: Select collections</string>
@@ -36,6 +38,7 @@
     <string name="select_address_book">Select up to one address book (tap again to unselect):</string>
     <string name="select_calendars">Select your calendars:</string>
     <string name="auth_preemptive">Preemptive authentication (recommended, but incompatible with Digest auth)</string>
+    <string name="account_creation_success">Account added successfullt</string>
     
     <string name="davdroid_help">DAVdroid Help</string>
     <string name="show_sync_settings">Manage sync accounts</string>
@@ -91,7 +94,7 @@
     ]]></string>
     <string name="account_details">Account details</string>
     <string name="account_name">Account name:</string>
-    <string name="account_name_hint">My CalDAV/CardDAV Account</string>
+    <string name="account_name_hint">Account Name</string>
     <string name="email_address">Email address:</string>
     <string name="organizer_hint">"ORGANIZER of your events; required if you use attendee info"</string>
     <string name="account_name_info">"Use your email address as account name because Android will use the account name as ORGANIZER field for events you create. You can't have two accounts with the same name.</string>

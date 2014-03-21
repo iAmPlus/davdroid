@@ -61,7 +61,7 @@ public class ContactsSyncAdapterService extends Service {
 			String addressBookPath = accountManager.getUserData(account, Constants.ACCOUNT_KEY_ADDRESSBOOK_PATH);
 			if (addressBookPath == null)
 				return null;
-			
+
 			try {
 				LocalCollection<?> database = new LocalAddressBook(account, provider, accountManager);
 
@@ -77,10 +77,10 @@ public class ContactsSyncAdapterService extends Service {
 				String accessToken = authBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
 
 				RemoteCollection<?> dav = new CardDavAddressBook(uri.toString(), accessToken);
-				
+
 				Map<LocalCollection<?>, RemoteCollection<?>> map = new HashMap<LocalCollection<?>, RemoteCollection<?>>();
 				map.put(database, dav);
-				
+
 				return map;
 			} catch (URISyntaxException ex) {
 				Log.e(TAG, "Couldn't build address book URI", ex);
@@ -94,7 +94,7 @@ public class ContactsSyncAdapterService extends Service {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
+
 			return null;
 		}
 	}

@@ -28,27 +28,27 @@ import at.bitfire.davdroid.webdav.PreconditionFailedException;
 
 public class SyncManager {
 	private static final String TAG = "davdroid.SyncManager";
-	
+
 	private static final int MAX_MULTIGET_RESOURCES = 35;
-	
+
 	protected LocalCollection<? extends Resource> local;
 	protected RemoteCollection<? extends Resource> remote;
-	
-	
+
+
 	public SyncManager(LocalCollection<? extends Resource> local, RemoteCollection<? extends Resource> remote) {
 		this.local = local;
 		this.remote = remote;
 	}
 
-	
+
 	public void synchronize(boolean manualSync, SyncResult syncResult) throws LocalStorageException, IOException, HttpException {
 		// PHASE 1: push local changes to server
 		int	deletedRemotely = pushDeleted(),
 			addedRemotely = pushNew(),
 			updatedRemotely = pushDirty();
-		
+
 		syncResult.stats.numEntries = deletedRemotely + addedRemotely + updatedRemotely;
-		
+
 		// PHASE 2A: check if there's a reason to do a sync with remote (= forced sync or remote CTag changed)
 		boolean fetchCollection = syncResult.stats.numEntries > 0;
 		if (manualSync) {
@@ -62,17 +62,17 @@ public class SyncManager {
 			if (currentCTag == null || !currentCTag.equals(lastCTag))
 				fetchCollection = true;
 		}
-		
+
 		if (!fetchCollection) {
 			Log.i(TAG, "No local changes and CTags match, no need to sync");
 			return;
 		}
-		
+
 		// PHASE 2B: detect details of remote changes
 		Log.i(TAG, "Fetching remote resource list");
 		Set<Resource>	remotelyAdded = new HashSet<Resource>(),
 						remotelyUpdated = new HashSet<Resource>();
-		
+
 		Resource[] remoteResources = remote.getMemberETags();
 		for (Resource remoteResource : remoteResources) {
 			try {
@@ -83,12 +83,12 @@ public class SyncManager {
 				remotelyAdded.add(remoteResource);
 			}
 		}
-		
+
 		// PHASE 3: pull remote changes from server
 		syncResult.stats.numInserts = pullNew(remotelyAdded.toArray(new Resource[0]));
 		syncResult.stats.numUpdates = pullChanged(remotelyUpdated.toArray(new Resource[0]));
 		syncResult.stats.numEntries += syncResult.stats.numInserts + syncResult.stats.numUpdates;
-		
+
 		Log.i(TAG, "Removing non-dirty resources that are not present remotely anymore");
 		local.deleteAllExceptRemoteNames(remoteResources);
 		local.commit();
@@ -98,12 +98,12 @@ public class SyncManager {
 		local.setCTag(remote.getCTag());
 		local.commit();
 	}
-	
-	
+
+
 	private int pushDeleted() throws LocalStorageException, IOException, HttpException {
 		int count = 0;
 		long[] deletedIDs = local.findDeleted();
-		
+
 		try {
 			Log.i(TAG, "Remotely removing " + deletedIDs.length + " deleted resource(s) (if not changed)");
 			for (long id : deletedIDs)
@@ -125,7 +125,7 @@ public class SyncManager {
 		}
 		return count;
 	}
-	
+
 	private int pushNew() throws LocalStorageException, IOException, HttpException {
 		int count = 0;
 		long[] newIDs = local.findNew();
@@ -149,7 +149,7 @@ public class SyncManager {
 		}
 		return count;
 	}
-	
+
 	private int pushDirty() throws LocalStorageException, IOException, HttpException {
 		int count = 0;
 		long[] dirtyIDs = local.findUpdated();
@@ -174,11 +174,11 @@ public class SyncManager {
 		}
 		return count;
 	}
-	
+
 	private int pullNew(Resource[] resourcesToAdd) throws LocalStorageException, IOException, HttpException {
 		int count = 0;
 		Log.i(TAG, "Fetching " + resourcesToAdd.length + " new remote resource(s)");
-		
+
 		for (Resource[] resources : ArrayUtils.partition(resourcesToAdd, MAX_MULTIGET_RESOURCES))
 			for (Resource res : remote.multiGet(resources)) {
 				Log.d(TAG, "Adding " + res.getName());
@@ -188,11 +188,11 @@ public class SyncManager {
 			}
 		return count;
 	}
-	
+
 	private int pullChanged(Resource[] resourcesToUpdate) throws LocalStorageException, IOException, HttpException {
 		int count = 0;
 		Log.i(TAG, "Fetching " + resourcesToUpdate.length + " updated remote resource(s)");
-		
+
 		for (Resource[] resources : ArrayUtils.partition(resourcesToUpdate, MAX_MULTIGET_RESOURCES))
 			for (Resource res : remote.multiGet(resources)) {
 				Log.i(TAG, "Updating " + res.getName());

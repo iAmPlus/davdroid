@@ -19,12 +19,14 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.SlidingFrameLayout;
+import android.widget.SlidingLayer;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 
 public class EnterCredentialsFragment extends Fragment {
 
-	String account_server;
+	SlidingLayer mSlidingLayer;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -38,13 +40,13 @@ public class EnterCredentialsFragment extends Fragment {
 		listView.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				account_server = parent.getAdapter().getItem(position).toString();
+				String account_server = parent.getAdapter().getItem(position).toString();
 				AccountDetailsFragment accountDetails = new AccountDetailsFragment();
 				Bundle arguments = new Bundle();
 				ServerInfo serverInfo = new ServerInfo(account_server);
 				arguments.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
 				accountDetails.setArguments(arguments);
-				
+
 				getFragmentManager().beginTransaction()
 					.replace(R.id.fragment_container, accountDetails)
 					.addToBackStack(null)
@@ -52,7 +54,41 @@ public class EnterCredentialsFragment extends Fragment {
 			}
 
 		});
+		mSlidingLayer = (SlidingLayer) /*(SlidingLayer)getActivity()*/v.findViewById(R.id.slidinglayout);
+		mSlidingLayer.setPositiveText("");
+		mSlidingLayer.setPositiveButtonVisibility(View.INVISIBLE);
+		mSlidingLayer.setNegativeText(this.getString(R.string.message_cancel_text));
+		mSlidingLayer.setOnInteractListener(new SlidingFrameLayout.OnInteractListener(){
+			@Override
+			public void onPositiveAction(){
+			}
+			@Override
+			public void onNegativeAction(){
+				getActivity().onBackPressed();
+				if(mSlidingLayer != null){
+					mSlidingLayer.resetAction();
+				}
+			}
+			@Override
+			public boolean onPositiveActionStart() {
+				return false;
+			}
+
+			@Override
+			public boolean onNegativeActionStart() {
+				return false;
+			}
+
+		});
 
 		return v;
 	}
+
+	@Override
+	public void onViewCreated(View view, Bundle savedInstanceState) {
+		if (mSlidingLayer != null) {
+			mSlidingLayer.resetAction();
+		}
+	}
+
 }

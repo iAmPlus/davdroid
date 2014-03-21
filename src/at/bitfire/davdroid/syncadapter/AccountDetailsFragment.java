@@ -19,53 +19,73 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.SlidingFrameLayout;
+import android.widget.SlidingLayer;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 
 public class AccountDetailsFragment extends Fragment implements TextWatcher {
-	
+
 	ServerInfo serverInfo;
-	
+
 	EditText editAccountName;
-	
-	Button button;
-	
+
+	SlidingLayer mSlidingLayer;
+
 	//String account_server = null;
-	
-	
+
+
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View v = inflater.inflate(R.layout.account_details, container, false);
-		
+
 		serverInfo = (ServerInfo)getArguments().getSerializable(Constants.KEY_SERVER_INFO);
-		
+
 		editAccountName = (EditText)v.findViewById(R.id.account_name);
 		editAccountName.addTextChangedListener(this);
-		
-		button = (Button) v.findViewById(R.id.add_account_next);
-		button.setOnClickListener(new OnClickListener() {
+
+		mSlidingLayer = (SlidingLayer)getActivity().findViewById(R.id.slidinglayout);
+		mSlidingLayer.setPositiveText(this.getString(R.string.next_action));
+		mSlidingLayer.setPositiveButtonVisibility(View.VISIBLE);
+		mSlidingLayer.setNegativeText(this.getString(R.string.message_cancel_text));
+		mSlidingLayer.setOnInteractListener(new SlidingFrameLayout.OnInteractListener(){
+			@Override
+			public void onPositiveAction(){
+				addAccount();
+				if(mSlidingLayer != null){
+					mSlidingLayer.resetAction();
+				}
+			}
+			@Override
+			public void onNegativeAction(){
+				getActivity().onBackPressed();
+				if(mSlidingLayer != null){
+					mSlidingLayer.resetAction();
+				}
+			}
+			@Override
+			public boolean onPositiveActionStart() {
+
+				return false;
+			}
 
 			@Override
-			public void onClick(View arg0) {
-				addAccount();
+			public boolean onNegativeActionStart() {
+				return false;
 			}
-			
+
 		});
-	
-		setHasOptionsMenu(true);
+
 		return v;
 	}
 
 
 	// actions
-	
+
 	@SuppressLint("NewApi")
 	void addAccount() {
 		serverInfo = (ServerInfo)getArguments().getSerializable(Constants.KEY_SERVER_INFO);
@@ -75,16 +95,14 @@ public class AccountDetailsFragment extends Fragment implements TextWatcher {
 		intent.putExtra(Constants.KEY_SERVER_INFO, serverInfo);
 		startActivityForResult(intent, 0);
 	}
-	
+
 	public void onActivityResult(int requestCode, int resultCode,
-            Intent data) {
-		Log.v("sk", "On activity result2");
-        if (resultCode == Activity.RESULT_OK) {
-        	Log.v("sk", "Result OK");
-        	queryServer();
-        }
-    }
-	
+			Intent data) {
+		if (resultCode == Activity.RESULT_OK) {
+			queryServer();
+		}
+	}
+
 	void queryServer() {
 		FragmentTransaction ft = getFragmentManager().beginTransaction();
 
@@ -93,7 +111,7 @@ public class AccountDetailsFragment extends Fragment implements TextWatcher {
 
 		DialogFragment dialog = new QueryServerDialogFragment();
 		dialog.setArguments(arguments);
-	    dialog.show(ft, QueryServerDialogFragment.class.getName());
+		dialog.show(ft, QueryServerDialogFragment.class.getName());
 	}
 
 	@Override

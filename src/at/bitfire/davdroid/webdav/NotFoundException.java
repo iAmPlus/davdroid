@@ -14,7 +14,7 @@ import org.apache.http.HttpException;
 
 public class NotFoundException extends HttpException {
 	private static final long serialVersionUID = 1565961502781880483L;
-	
+
 	public NotFoundException(String reason) {
 		super(reason);
 	}

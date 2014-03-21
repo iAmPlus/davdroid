@@ -17,7 +17,7 @@ import org.simpleframework.xml.Root;
 public class DavPropstat {
 	@Element
 	DavProp prop;
-	
+
 	@Element
 	String status;
 }

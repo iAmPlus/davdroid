@@ -19,13 +19,4 @@
         <requestFocus />
     </EditText>
 
-    <Button
-        android:id="@+id/add_account_next"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/account_name"
-        android:text="@string/add_action" />
-
 </RelativeLayout>

@@ -25,13 +25,13 @@ public class LoggingInputStream extends FilterInputStream {
 	ByteArrayOutputStream log = new ByteArrayOutputStream(MAX_LENGTH);
 	int logSize = 0;
 	boolean overflow = false;
-	
+
 
 	public LoggingInputStream(String tag, InputStream proxy) {
 		super(proxy);
 		this.tag = tag;
 	}
-	
+
 
 	@Override
 	public boolean markSupported() {

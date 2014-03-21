@@ -35,33 +35,33 @@ import at.bitfire.davdroid.webdav.DavException;
 
 public abstract class DavSyncAdapter extends AbstractThreadedSyncAdapter {
 	private final static String TAG = "davdroid.DavSyncAdapter";
-	
+
 	protected AccountManager accountManager;
-	
+
 	@Getter private static String androidID;
 
-	
+
 	public DavSyncAdapter(Context context) {
 		super(context, true);
-		
+
 		synchronized(this) {
 			if (androidID == null)
 				androidID = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
 		}
-		
+
 		accountManager = AccountManager.get(context.getApplicationContext());
 	}
-	
+
 	protected abstract Map<LocalCollection<?>, RemoteCollection<?>> getSyncPairs(Account account, ContentProviderClient provider);
-	
+
 
 	@Override
 	public void onPerformSync(Account account, Bundle extras, String authority,	ContentProviderClient provider, SyncResult syncResult) {
 		Log.i(TAG, "Performing sync for authority " + authority);
-		
+
 		// set class loader for iCal4j ResourceLoader
 		Thread.currentThread().setContextClassLoader(getContext().getClassLoader());
-		
+
 		Map<LocalCollection<?>, RemoteCollection<?>> syncCollections = getSyncPairs(account, provider);
 		if (syncCollections == null)
 			Log.i(TAG, "Nothing to synchronize");
@@ -69,7 +69,7 @@ public abstract class DavSyncAdapter extends AbstractThreadedSyncAdapter {
 			try {
 				for (Map.Entry<LocalCollection<?>, RemoteCollection<?>> entry : syncCollections.entrySet())
 					new SyncManager(entry.getKey(), entry.getValue()).synchronize(extras.containsKey(ContentResolver.SYNC_EXTRAS_MANUAL), syncResult);
-				
+
 			} catch (AuthenticationException ex) {
 				syncResult.stats.numAuthExceptions++;
 				Log.e(TAG, "HTTP authentication failed", ex);

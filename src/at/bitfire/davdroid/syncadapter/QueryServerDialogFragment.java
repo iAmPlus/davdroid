@@ -66,18 +66,14 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 		serverInfo = (ServerInfo)getArguments().getSerializable(Constants.KEY_SERVER_INFO);
 		AccountManager accountManager = AccountManager.get(mContext.getApplicationContext());
 		Account account = new Account(serverInfo.getAccountName(), Constants.ACCOUNT_TYPE);
-		Log.v("sk", "Calling getAuthToken  " + serverInfo.getAccountName() + "  " + Constants.ACCOUNT_TYPE);
 		accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, (Activity) mContext, new AccountManagerCallback<Bundle>(){
 
 			@Override
 			public void run(AccountManagerFuture<Bundle> authBundle) {
 				// TODO Auto-generated method stub
 				try {
-					Log.v("sk", "Calling getToken " + " accounts");
 					Bundle bnd = (Bundle) authBundle.getResult();
 					authCode = bnd.getString(AccountManager.KEY_AUTHTOKEN);
-					Log.d("sk", "GetToken Bundle is " + bnd);
-					Log.d("sk", "access_token " + authCode);
 					createLoader();
 
 				} catch (OperationCanceledException e) {
@@ -160,30 +156,24 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 				//boolean cardDavRedirect = false;
 
 				if(properties.getProperty(Constants.ACCOUNT_KEY_BASE_URL) != null) {
-					Log.v("sk", "Has base URL " + properties.getProperty(Constants.ACCOUNT_KEY_BASE_URL));
 					serverInfo.setBaseURL(properties.getProperty(Constants.ACCOUNT_KEY_BASE_URL));
 					base = new WebDavResource(new URI(serverInfo.getBaseURL()), true, authCode);
 				}
 				String principalPath;
 				try {
 					if(base != null) {
-						Log.v("sk", "EMPTY_PROPFIND on " + properties.getProperty(Constants.ACCOUNT_KEY_BASE_URL));
 						base.propfind(Mode.EMPTY_PROPFIND);
 						// (1/5) detect capabilities
-						Log.v("sk", "options on " + properties.getProperty(Constants.ACCOUNT_KEY_BASE_URL));
 						base.options();
 						serverInfo.setCardDAV(base.supportsDAV("addressbook"));
 						serverInfo.setCalDAV(base.supportsDAV("calendar-access"));
 					} 
 					if (base == null || !serverInfo.isCardDAV()){
-						Log.v("sk", "Has carddav URL " + properties.getProperty(Constants.ACCOUNT_KEY_CARDDAV_URL));
 						serverInfo.setCarddavURL(properties.getProperty(Constants.ACCOUNT_KEY_CARDDAV_URL));
 						base= new WebDavResource(new URI(serverInfo.getCarddavURL()), true, authCode);
 
-						Log.v("sk", "EMPTY_PROPFIND on " + properties.getProperty(Constants.ACCOUNT_KEY_CARDDAV_URL));
 						base.propfind(Mode.EMPTY_PROPFIND);
 						// (1/5) detect capabilities
-						Log.v("sk", "options on " + properties.getProperty(Constants.ACCOUNT_KEY_CARDDAV_URL));
 						base.options();
 						serverInfo.setCardDAV(base.supportsDAV("addressbook"));
 					} else {
@@ -199,8 +189,8 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 							base.options();
 							serverInfo.setCardDAV(base.supportsDAV("addressbook"));
 						}
-					
-							throw new DavIncapableException(getContext().getString(R.string.neither_caldav_nor_carddav));
+
+						throw new DavIncapableException(getContext().getString(R.string.neither_caldav_nor_carddav));
 					}
 
 					// (2/5) get principal URL
@@ -208,7 +198,6 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 					principalPath = base.getCurrentUserPrincipal();
 				} catch(PermanentlyMovedException e) {
 					//cardDavRedirect = true;
-					Log.v("sk", "Caught permanently moved");
 					e.printStackTrace();
 					serverInfo.setCardDAV(true);
 					// Special case for google. Google gives a 301 permenantly moved to addressbook URL.
@@ -217,7 +206,6 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 					int end = principalPath.indexOf((int)'@');
 					end = principalPath.indexOf((int)'/', end);
 					principalPath = principalPath.substring(0, end+1);
-					Log.v("sk", "Principal path " + principalPath);
 				}
 
 				if (principalPath != null)
@@ -227,7 +215,7 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 
 				principal = new WebDavResource(base, principalPath);
 				principal.propfind(Mode.ADDRESS_BOOK_HOME_SETS);
-				
+
 				String pathAddressBooks = null;
 				if (serverInfo.isCardDAV() /*&& !cardDavRedirect*/) {
 					pathAddressBooks = principal.getAddressbookHomeSet();
@@ -282,7 +270,6 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 
 				if(base == null || !serverInfo.isCalDAV()) {
 					if(properties.getProperty(Constants.ACCOUNT_KEY_CALDAV_URL) != null) {
-						Log.v("sk", "Has caldav URL " + properties.getProperty(Constants.ACCOUNT_KEY_CALDAV_URL));
 						serverInfo.setCarddavURL(properties.getProperty(Constants.ACCOUNT_KEY_CALDAV_URL));
 						base= new WebDavResource(new URI(serverInfo.getCarddavURL()), true, authCode);
 					} else {
@@ -298,7 +285,7 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 
 					// (2/5) get principal URL
 					base.propfind(Mode.CURRENT_USER_PRINCIPAL);
-					
+
 					String principalPath = base.getCurrentUserPrincipal();
 					if (principalPath != null)
 						Log.i(TAG, "Found principal path: " + principalPath);
@@ -363,7 +350,6 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 			}
 
 			if (errorMessage != "") {
-				Log.v("sk", "Error message " + errorMessage);
 				serverInfo.setErrorMessage(errorMessage);
 			}
 

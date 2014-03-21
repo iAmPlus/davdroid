@@ -14,7 +14,7 @@ import org.apache.http.HttpException;
 
 public class PreconditionFailedException extends HttpException {
 	private static final long serialVersionUID = 102282229174086113L;
-	
+
 	public PreconditionFailedException(String reason) {
 		super(reason);
 	}

@@ -93,33 +93,33 @@ public class WebDavResource {
 	@Getter protected byte[] content;
 
 	protected DefaultHttpClient client;
-	
+
 	private String authBearer = null;
 	private boolean needBearer = false;
 
 	public WebDavResource(URI baseURL, boolean trailingSlash) throws URISyntaxException {
 		location = baseURL.normalize();
-		
+
 		if (trailingSlash && !location.getRawPath().endsWith("/"))
 			location = new URI(location.getScheme(), location.getSchemeSpecificPart() + "/", null);
-		
+
 		client = DavHttpClient.getDefault();
 	}
-	
+
 	public WebDavResource(URI baseURL, boolean trailingSlash, String bearer) throws URISyntaxException {
 		location = baseURL.normalize();
-		
+
 		if (trailingSlash && !location.getRawPath().endsWith("/"))
 			location = new URI(location.getScheme(), location.getSchemeSpecificPart() + "/", null);
-		
+
 		client = DavHttpClient.getDefault();
 		needBearer = true;
 		authBearer = bearer;
 	}
-	
+
 	public WebDavResource(URI baseURL, String username, String password, boolean preemptive, boolean trailingSlash) throws URISyntaxException {
 		this(baseURL, trailingSlash);
-		
+
 		// authenticate
 		client.getCredentialsProvider().setCredentials(
 			new AuthScope(location.getHost(), location.getPort()),
@@ -136,20 +136,20 @@ public class WebDavResource {
 		client = parent.client;
 		authBearer = parent.authBearer;
 	}
-	
+
 	public WebDavResource(WebDavResource parent, String member) {
 		this(parent, parent.location.resolve(URIUtils.sanitize(member)));
 	}
-	
+
 	public WebDavResource(WebDavResource parent, String member, boolean trailingSlash) {
 		this(parent, (trailingSlash && !member.endsWith("/")) ? (member + "/") : member);
 	}
-	
+
 	public WebDavResource(WebDavResource parent, String member, String ETag) {
 		this(parent, member);
 		properties.put(Property.ETAG, ETag);
 	}
-	
+
 
 	/* feature detection */
 
@@ -165,23 +165,19 @@ public class WebDavResource {
 			options.addHeader("Authorization", "Bearer " + authBearer);
 		HttpResponse response = client.execute(options);
 		checkResponse(response);
-		
+
 		if (response.getEntity() != null)
 			response.getEntity().consumeContent();
-		
+
 		Header[] allowHeaders = response.getHeaders("Allow");
 		for (Header allowHeader : allowHeaders) {
-			Log.v("sk", allowHeader.getName() + "  " + allowHeader.getValue());
 			methods.addAll(Arrays.asList(allowHeader.getValue().split(", ?")));
 		}
-		Log.v("sk", Arrays.toString(methods.toArray()));
 
 		Header[] capHeaders = response.getHeaders("DAV");
 		for (Header capHeader : capHeaders) {
-			Log.v("sk", capHeader.getName() + "  " + capHeader.getValue());
 			capabilities.addAll(Arrays.asList(capHeader.getValue().split(", ?")));
 		}
-		Log.v("sk", Arrays.toString(capabilities.toArray()));
 	}
 
 	public boolean supportsDAV(String capability) {
@@ -191,42 +187,42 @@ public class WebDavResource {
 	public boolean supportsMethod(String method) {
 		return methods.contains(method);
 	}
-	
-	
+
+
 	/* file hierarchy methods */
-	
+
 	public String getName() {
 		String[] names = StringUtils.split(location.getRawPath(), "/");
 		return names[names.length - 1];
 	}
-	
-	
+
+
 	/* property methods */
-	
+
 	public String getCurrentUserPrincipal() {
 		return properties.get(Property.CURRENT_USER_PRINCIPAL);
 	}
-	
+
 	public String getDisplayName() {
 		return properties.get(Property.DISPLAY_NAME);
 	}
-	
+
 	public String getDescription() {
 		return properties.get(Property.DESCRIPTION);
 	}
-	
+
 	public String getColor() {
 		return properties.get(Property.COLOR);
 	}
-	
+
 	public String getTimezone() {
 		return properties.get(Property.TIMEZONE);
 	}
-	
+
 	public String getAddressbookHomeSet() {
 		return properties.get(Property.ADDRESSBOOK_HOMESET);
 	}
-	
+
 	public String getCalendarHomeSet() {
 		return properties.get(Property.CALENDAR_HOMESET);
 	}
@@ -237,55 +233,52 @@ public class WebDavResource {
 	public void invalidateCTag() {
 		properties.remove(Property.CTAG);
 	}
-	
+
 	public String getETag() {
 		return properties.get(Property.ETAG);
 	}
-	
+
 	public String getContentType() {
 		return properties.get(Property.CONTENT_TYPE);
 	}
-	
+
 	public void setContentType(String mimeType) {
 		properties.put(Property.CONTENT_TYPE, mimeType);
 	}
-	
+
 	public boolean isAddressBook() {
 		return properties.containsKey(Property.IS_ADDRESSBOOK);
 	}
-	
+
 	public boolean isCalendar() {
 		return properties.containsKey(Property.IS_CALENDAR);
 	}
-	
+
 	public String getRedirectionURL() {
 		return properties.get(Property.REDIRECTION_URL);
 	}
-	
+
 	public void setRedirectionURL(String redirectionURL) {
 		properties.put(Property.REDIRECTION_URL, redirectionURL);
 	}
-	
-	
+
+
 	/* collection operations */
-	
+
 	public void propfind(HttpPropfind.Mode mode) throws IOException, DavException, HttpException {
 		HttpPropfind propfind = new HttpPropfind(location, mode);
 		if(authBearer != null)
 			propfind.addHeader("Authorization", "Bearer " + authBearer);
 		HttpResponse response = client.execute(propfind);
-		
+
 		checkResponse(response);
-		
+
 		int statusCode = response.getStatusLine().getStatusCode();
-		Log.v("sk", "Status code = " + statusCode);
-		
+
 		if (statusCode == HttpStatus.SC_MOVED_PERMANENTLY) {
 			//TODO properly parse html to get redirection url
-			Log.v("sk", "Moved getting new url");
 			HttpEntity entity = response.getEntity();
 			String responseString = EntityUtils.toString(entity, "UTF-8");
-			Log.v("sk", "Response is: " + responseString);
 			String redirectUrl = "";
 			int urlStart = responseString.indexOf("<A HREF=\"") + "<A HREF=\"".length();
 			if(urlStart > 0) {
@@ -304,12 +297,12 @@ public class WebDavResource {
 		HttpEntity entity = response.getEntity();
 		if (entity == null)
 			throw new DavNoContentException();
-		
+
 		@Cleanup InputStream rawContent = entity.getContent();
 		if (rawContent == null)
 			throw new DavNoContentException();
 		@Cleanup LoggingInputStream content = new LoggingInputStream(TAG, rawContent);
-		
+
 		DavMultistatus multistatus;
 		try {
 			Serializer serializer = new Persister();
@@ -325,7 +318,7 @@ public class WebDavResource {
 		for (String name : names)
 			hrefs.add(location.resolve(name).getRawPath());
 		DavMultiget multiget = DavMultiget.newRequest(type, hrefs.toArray(new String[0]));
-		
+
 		Serializer serializer = new Persister();
 		StringWriter writer = new StringWriter();
 		try {
@@ -340,19 +333,19 @@ public class WebDavResource {
 			report.addHeader("Authorization", "Bearer " + authBearer);
 		HttpResponse response = client.execute(report);
 		checkResponse(response);
-		
+
 		if (response.getStatusLine().getStatusCode() != HttpStatus.SC_MULTI_STATUS)
 			throw new DavNoMultiStatusException();
-		
+
 		HttpEntity entity = response.getEntity();
 		if (entity == null)
 			throw new DavNoContentException();
-		
+
 		@Cleanup InputStream rawContent = entity.getContent();
 		if (rawContent == null)
 			throw new DavNoContentException();
 		@Cleanup LoggingInputStream content = new LoggingInputStream(TAG, rawContent);
-		
+
 		DavMultistatus multiStatus;
 		try {
 			multiStatus = serializer.read(DavMultistatus.class, content, false);
@@ -362,32 +355,32 @@ public class WebDavResource {
 		processMultiStatus(multiStatus);
 	}
 
-	
+
 	/* resource operations */
-	
+
 	public void get() throws IOException, HttpException {
 		HttpGet get = new HttpGet(location);
 		if(authBearer != null)
 			get.addHeader("Authorization", "Bearer " + authBearer);
 		HttpResponse response = client.execute(get);
 		checkResponse(response);
-		
+
 		HttpEntity entity = response.getEntity();
 		if (entity == null)
 			throw new DavNoContentException();
-		
+
 		@Cleanup InputStream rawContent = entity.getContent();
 		if (rawContent == null)
 			throw new DavNoContentException();
 		@Cleanup LoggingInputStream content = new LoggingInputStream(TAG, rawContent);
-		
+
 		this.content = IOUtils.toByteArray(content);
 	}
-	
+
 	public void put(byte[] data, PutMode mode) throws IOException, HttpException {
 		Log.d(TAG, "Sending PUT request:");
 		Log.d(TAG, IOUtils.toString(data, HTTP.UTF_8));
-		
+
 		HttpPut put = new HttpPut(location);
 		put.setEntity(new ByteArrayEntity(data));
 
@@ -399,10 +392,10 @@ public class WebDavResource {
 			put.addHeader("If-Match", (getETag() != null) ? getETag() : "*");
 			break;
 		}
-		
+
 		if (getContentType() != null)
 			put.addHeader("Content-Type", getContentType());
-		
+
 		if(authBearer != null)
 			put.addHeader("Authorization", "Bearer " + authBearer);
 
@@ -410,39 +403,39 @@ public class WebDavResource {
 		@Cleanup("consumeContent") HttpEntity entity = response.getEntity();
 		checkResponse(response);
 	}
-	
+
 	public void delete() throws IOException, HttpException {
 		HttpDelete delete = new HttpDelete(location);
-		
+
 		if (getETag() != null)
 			delete.addHeader("If-Match", getETag());
-		
+
 		if (getContentType() != null)
 			delete.addHeader("Content-Type", getContentType());
-		
+
 		HttpResponse response = client.execute(delete);
 		@Cleanup("consumeContent") HttpEntity entity = response.getEntity();
 		checkResponse(response);
 	}
-	
+
 
 	/* helpers */
-	
+
 	protected static void checkResponse(HttpResponse response) throws HttpException {
 		checkResponse(response.getStatusLine());
 	}
-	
+
 	protected static void checkResponse(StatusLine statusLine) throws HttpException {
 		int code = statusLine.getStatusCode();
-		
+
 		Log.d(TAG, "Received " + statusLine.getProtocolVersion() + " " + code + " " + statusLine.getReasonPhrase());
-		
+
 		if (code/100 == 1 || code/100 == 2)		// everything OK
 			return;
-		
+
 		if (code == 301)		// Moved permanently
 			return;
-		
+
 		String reason = code + " " + statusLine.getReasonPhrase();
 		switch (code) {
 		case HttpStatus.SC_UNAUTHORIZED:
@@ -455,14 +448,14 @@ public class WebDavResource {
 			throw new HttpException(reason);
 		}
 	}
-	
+
 	protected void processMultiStatus(DavMultistatus multistatus) throws HttpException {
 		if (multistatus.response == null)	// empty response
 			throw new DavNoContentException();
-		
+
 		// member list will be built from response
 		List<WebDavResource> members = new LinkedList<WebDavResource>();
-		
+
 		for (DavResponse singleResponse : multistatus.response) {
 			URI href;
 			try {
@@ -472,58 +465,58 @@ public class WebDavResource {
 				continue;
 			}
 			Log.d(TAG, "Processing multi-status element: " + href);
-			
+
 			// about which resource is this response?
 			WebDavResource referenced = null;
 			if (location.equals(href)) {	// -> ourselves
 				referenced = this;
-				
+
 			} else {						// -> about a member
 				referenced = new WebDavResource(this, href);
 				members.add(referenced);
 			}
-			
+
 			for (DavPropstat singlePropstat : singleResponse.getPropstat()) {
 				StatusLine status = BasicLineParser.parseStatusLine(singlePropstat.status, new BasicLineParser());
-				
+
 				// ignore information about missing properties etc.
 				if (status.getStatusCode()/100 != 1 && status.getStatusCode()/100 != 2)
 					continue;
-				
+
 				DavProp prop = singlePropstat.prop;
 				HashMap<Property, String> properties = referenced.properties;
 
 				if (prop.currentUserPrincipal != null && prop.currentUserPrincipal.getHref() != null)
 					properties.put(Property.CURRENT_USER_PRINCIPAL, prop.currentUserPrincipal.getHref().href);
-				
+
 				if (prop.addressbookHomeSet != null && prop.addressbookHomeSet.getHref() != null)
 					properties.put(Property.ADDRESSBOOK_HOMESET, prop.addressbookHomeSet.getHref().href);
-				
+
 				if (singlePropstat.prop.calendarHomeSet != null && prop.calendarHomeSet.getHref() != null)
 					properties.put(Property.CALENDAR_HOMESET, prop.calendarHomeSet.getHref().href);
-				
+
 				if (prop.displayname != null)
 					properties.put(Property.DISPLAY_NAME, prop.displayname.getDisplayName());
-				
+
 				if (prop.resourcetype != null) {
 					if (prop.resourcetype.getAddressbook() != null) {
 						properties.put(Property.IS_ADDRESSBOOK, "1");
-						
+
 						if (prop.addressbookDescription != null)
 							properties.put(Property.DESCRIPTION, prop.addressbookDescription.getDescription());
 					}
 					if (prop.resourcetype.getCalendar() != null) {
 						properties.put(Property.IS_CALENDAR, "1");
-						
+
 						if (prop.calendarDescription != null)
 							properties.put(Property.DESCRIPTION, prop.calendarDescription.getDescription());
-						
+
 						if (prop.calendarColor != null)
 							properties.put(Property.COLOR, prop.calendarColor.getColor());
-						
+
 						if (prop.calendarTimezone != null)
 							properties.put(Property.TIMEZONE, Event.TimezoneDefToTzId(prop.calendarTimezone.getTimezone()));
-						
+
 						if (prop.supportedCalendarComponentSet != null && prop.supportedCalendarComponentSet.components != null) {
 							referenced.supportedComponents = new LinkedList<String>();
 							for (DavPropComp component : prop.supportedCalendarComponentSet.components)
@@ -531,20 +524,20 @@ public class WebDavResource {
 						}
 					}
 				}
-				
+
 				if (prop.getctag != null)
 					properties.put(Property.CTAG, prop.getctag.getCTag());
 
 				if (prop.getetag != null)
 					properties.put(Property.ETAG, prop.getetag.getETag());
-				
+
 				if (prop.calendarData != null && prop.calendarData.ical != null)
 					referenced.content = prop.calendarData.ical.getBytes();
 				else if (prop.addressData != null && prop.addressData.vcard != null)
 					referenced.content = prop.addressData.vcard.getBytes();
 			}
 		}
-		
+
 		this.members = members;
 	}
 

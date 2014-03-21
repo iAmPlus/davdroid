@@ -35,16 +35,16 @@ public class WebDavResourceAdapter extends BaseAdapter {
 	public View getView(int position, View view, ViewGroup parent) {
 		WebDavResource item = items[position];
 		View itemView = (View)inflater.inflate(viewId, null);
-		
+
 		TextView textName = (TextView) itemView.findViewById(android.R.id.text1);
 		textName.setText(item.getDisplayName());
-		
+
 		TextView textDescription = (TextView) itemView.findViewById(android.R.id.text2);
 		String description = item.getDescription();
 		if (description == null)
 			description = item.getLocation().getPath();
 		textDescription.setText(description);
-		
+
 		return itemView;
 	}
 

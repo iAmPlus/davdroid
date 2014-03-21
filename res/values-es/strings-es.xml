@@ -33,13 +33,13 @@
     <string name="select_address_book">Seleciona una agenda (pulsar de nuevo para desmarcar):</string>
     <string name="select_calendars">Selecciona tus calendarios:</string>
     <string name="auth_preemptive">Autentificación preferente (recomendado, pero incompatible con la autentificación de Digest)</string>
-    
+
     <string name="davdroid_help">Ayuda de DAVdroid</string>
     <string name="show_sync_settings">Administrar las cuentas sincronizadas</string>
     <string name="show_website">Sitio web de DAVdroid</string>
     <string name="html_info"><![CDATA[
        <h1>¡Bienvenido a DAVdroid!</h1>
-       
+
        <p>DAVdroid es un adaptador de sincronización entre Android 4+ y CalDAV/CardDAV. Para usarlo, simplemente añade una cuenta en DAVdroid para tu servidor de CalDAV/CardDAV y tus contactos y eventos serán sincronizados en ambas direcciones.</p>
        
        <p>Si has adquirido <a href="https://play.google.com/store/apps/details?id=at.bitfire.davdroid">DAVdroid en

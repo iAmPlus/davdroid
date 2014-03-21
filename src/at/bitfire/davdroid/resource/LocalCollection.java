@@ -28,14 +28,14 @@ import android.util.Log;
 
 public abstract class LocalCollection<T extends Resource> {
 	private static final String TAG = "davdroid.LocalCollection";
-	
+
 	protected Account account;
 	protected ContentProviderClient providerClient;
 	protected ArrayList<ContentProviderOperation> pendingOperations = new ArrayList<ContentProviderOperation>();
 
-	
+
 	// database fields
-	
+
 	abstract protected Uri entriesURI();
 
 	abstract protected String entryColumnAccountType();
@@ -45,26 +45,26 @@ public abstract class LocalCollection<T extends Resource> {
 	abstract protected String entryColumnID();
 	abstract protected String entryColumnRemoteName();
 	abstract protected String entryColumnETag();
-	
+
 	abstract protected String entryColumnDirty();
 	abstract protected String entryColumnDeleted();
-	
+
 	abstract protected String entryColumnUID();
-	
+
 
 	LocalCollection(Account account, ContentProviderClient providerClient) {
 		this.account = account;
 		this.providerClient = providerClient;
 	}
-	
+
 
 	// collection operations
-	
+
 	abstract public long getId();
 	abstract public String getCTag();
 	abstract public void setCTag(String cTag);
 
-	
+
 	// content provider (= database) querying
 
 	public long[] findNew() throws LocalStorageException {
@@ -78,11 +78,11 @@ public abstract class LocalCollection<T extends Resource> {
 					where, null, null);
 			if (cursor == null)
 				throw new LocalStorageException("Couldn't query new records");
-			
+
 			long[] fresh = new long[cursor.getCount()];
 			for (int idx = 0; cursor.moveToNext(); idx++) {
 				long id = cursor.getLong(0);
-				
+
 				// new record: generate UID + remote file name so that we can upload
 				T resource = findById(id, false);
 				resource.generateUID();
@@ -92,7 +92,7 @@ public abstract class LocalCollection<T extends Resource> {
 				values.put(entryColumnUID(), resource.getUid());
 				values.put(entryColumnRemoteName(), resource.getName());
 				providerClient.update(ContentUris.withAppendedId(entriesURI(), id), values, null, null);
-				
+
 				fresh[idx] = id;
 			}
 			return fresh;
@@ -100,7 +100,7 @@ public abstract class LocalCollection<T extends Resource> {
 			throw new LocalStorageException(ex);
 		}
 	}
-	
+
 	public long[] findUpdated() throws LocalStorageException {
 		// updated records are 1) dirty, and 2) already have a remote file name
 		String where = entryColumnDirty() + "=1 AND " + entryColumnRemoteName() + " IS NOT NULL";
@@ -112,7 +112,7 @@ public abstract class LocalCollection<T extends Resource> {
 					where, null, null);
 			if (cursor == null)
 				throw new LocalStorageException("Couldn't query dirty records");
-			
+
 			long[] dirty = new long[cursor.getCount()];
 			for (int idx = 0; cursor.moveToNext(); idx++)
 				dirty[idx] = cursor.getLong(0);
@@ -132,7 +132,7 @@ public abstract class LocalCollection<T extends Resource> {
 					where, null, null);
 			if (cursor == null)
 				throw new LocalStorageException("Couldn't query dirty records");
-			
+
 			long deleted[] = new long[cursor.getCount()];
 			for (int idx = 0; cursor.moveToNext(); idx++)
 				deleted[idx] = cursor.getLong(0);
@@ -141,7 +141,7 @@ public abstract class LocalCollection<T extends Resource> {
 			throw new LocalStorageException(ex);
 		}
 	}
-	
+
 	public T findById(long localID, boolean populate) throws LocalStorageException {
 		try {
 			@Cleanup Cursor cursor = providerClient.query(ContentUris.withAppendedId(entriesURI(), localID),
@@ -157,7 +157,7 @@ public abstract class LocalCollection<T extends Resource> {
 			throw new LocalStorageException(ex);
 		}
 	}
-	
+
 	public T findByRemoteName(String remoteName, boolean populate) throws LocalStorageException {
 		try {
 			@Cleanup Cursor cursor = providerClient.query(entriesURI(),
@@ -177,27 +177,27 @@ public abstract class LocalCollection<T extends Resource> {
 
 
 	public abstract void populate(Resource record) throws LocalStorageException;
-	
+
 	protected void queueOperation(Builder builder) {
 		if (builder != null)
 			pendingOperations.add(builder.build());
 	}
 
-	
+
 	// create/update/delete
-	
+
 	abstract public T newResource(long localID, String resourceName, String eTag);
-	
+
 	public void add(Resource resource) {
 		int idx = pendingOperations.size();
 		pendingOperations.add(
 				buildEntry(ContentProviderOperation.newInsert(entriesURI()), resource)
 				.withYieldAllowed(true)
 				.build());
-		
+
 		addDataRows(resource, -1, idx);
 	}
-	
+
 	public void updateByRemoteName(Resource remoteResource) throws LocalStorageException {
 		T localResource = findByRemoteName(remoteResource.getName(), false);
 		pendingOperations.add(
@@ -205,7 +205,7 @@ public abstract class LocalCollection<T extends Resource> {
 				.withValue(entryColumnETag(), remoteResource.getETag())
 				.withYieldAllowed(true)
 				.build());
-		
+
 		removeDataRows(localResource);
 		addDataRows(remoteResource, localResource.getLocalID(), -1);
 	}
@@ -218,7 +218,7 @@ public abstract class LocalCollection<T extends Resource> {
 	}
 
 	public abstract void deleteAllExceptRemoteNames(Resource[] remoteResources);
-	
+
 	public void clearDirty(Resource resource) {
 		pendingOperations.add(ContentProviderOperation
 				.newUpdate(ContentUris.withAppendedId(entriesURI(), resource.getLocalID()))
@@ -238,9 +238,9 @@ public abstract class LocalCollection<T extends Resource> {
 			}
 	}
 
-	
+
 	// helpers
-	
+
 	protected Uri syncAdapterURI(Uri baseURI) {
 		return baseURI.buildUpon()
 				.appendQueryParameter(entryColumnAccountType(), account.type)
@@ -248,7 +248,7 @@ public abstract class LocalCollection<T extends Resource> {
 				.appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
 				.build();
 	}
-	
+
 	protected Builder newDataInsertBuilder(Uri dataUri, String refFieldName, long raw_ref_id, Integer backrefIdx) {
 		Builder builder = ContentProviderOperation.newInsert(syncAdapterURI(dataUri));
 		if (backrefIdx != -1)
@@ -256,12 +256,12 @@ public abstract class LocalCollection<T extends Resource> {
 		else
 			return builder.withValue(refFieldName, raw_ref_id);
 	}
-	
-	
+
+
 	// content builders
 
 	protected abstract Builder buildEntry(Builder builder, Resource resource);
-	
+
 	protected abstract void addDataRows(Resource resource, long localID, int backrefIdx);
 	protected abstract void removeDataRows(Resource resource);
 }

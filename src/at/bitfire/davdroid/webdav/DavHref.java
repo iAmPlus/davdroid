@@ -19,10 +19,10 @@ import org.simpleframework.xml.Text;
 public class DavHref {
 	@Text
 	String href;
-	
+
 	DavHref() {
 	}
-	
+
 	public DavHref(String href) {
 		this.href = href;
 	}

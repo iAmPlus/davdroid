@@ -12,13 +12,7 @@ package at.bitfire.davdroid.syncadapter;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 
 public class AddAccountActivity extends Activity {
@@ -30,40 +24,21 @@ public class AddAccountActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		setContentView(R.layout.add_account);
-		
+
 		if (savedInstanceState == null) {	// first call
 			getFragmentManager().beginTransaction()
 				.add(R.id.fragment_container, new EnterCredentialsFragment(), "enter_credentials")
 				.commit();
 		}
+
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.add_account, menu);
-		return true;
-	}
-	
 	protected void onActivityResult(int requestCode, int resultCode,
-            Intent data) {
-		
-		super.onActivityResult(requestCode, resultCode, data);
-		
-		Log.v("sk", "On activity result");
-        if (resultCode == Activity.RESULT_OK) {
-        	Log.v("sk", "Result OK");
-            // A contact was picked.  Here we will just display it
-            // to the user.
-        	//queryServer();
-        }
-    }
+			Intent data) {
 
-	public boolean showHelp(MenuItem item) {
-		startActivityForResult(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.WEB_URL_HELP)), 0);
-		return true;
+		super.onActivityResult(requestCode, resultCode, data);
 	}
 
 }

@@ -22,7 +22,7 @@ import android.util.Log;
 
 public class HttpPropfind extends HttpEntityEnclosingRequestBase {
 	private static final String TAG = "davdroid.HttpPropfind";
-	
+
 	public enum Mode {
 		CURRENT_USER_PRINCIPAL,
 		HOME_SETS,
@@ -38,12 +38,12 @@ public class HttpPropfind extends HttpEntityEnclosingRequestBase {
 
 	HttpPropfind(URI uri, Mode mode) {
 		setURI(uri);
-		
+
 		setHeader("Content-Type", "text/xml; charset=\"utf-8\"");
 
 		DavPropfind propfind = new DavPropfind();
 		propfind.prop = new DavProp();
-		
+
 		int depth = 0;
 		switch (mode) {
 		case CURRENT_USER_PRINCIPAL:
@@ -95,11 +95,11 @@ public class HttpPropfind extends HttpEntityEnclosingRequestBase {
 		case EMPTY_PROPFIND:
 			break;
 		}
-		
+
 		try {
 			Serializer serializer = new Persister();
 			StringWriter writer = new StringWriter();
-			
+
 			if(mode != Mode.EMPTY_PROPFIND) {
 				serializer.write(propfind, writer);
 				setEntity(new StringEntity(writer.toString(), "UTF-8"));

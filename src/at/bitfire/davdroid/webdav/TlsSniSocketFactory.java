@@ -24,18 +24,16 @@ import org.apache.http.conn.scheme.LayeredSocketFactory;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.params.HttpParams;
 
-import android.annotation.TargetApi;
 import android.net.SSLCertificateSocketFactory;
-import android.os.Build;
 import android.util.Log;
 
 //@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 public class TlsSniSocketFactory implements LayeredSocketFactory {
 	private static final String TAG = "davdroid.SNISocketFactory";
-	
+
 	final static HostnameVerifier hostnameVerifier = SSLSocketFactory.STRICT_HOSTNAME_VERIFIER;
-	
-	
+
+
 	// Plain TCP/IP (layer below TLS)
 
 	@Override
@@ -55,7 +53,7 @@ public class TlsSniSocketFactory implements LayeredSocketFactory {
 		return false;
 	}
 
-	
+
 	// TLS layer
 
 	@Override
@@ -64,23 +62,23 @@ public class TlsSniSocketFactory implements LayeredSocketFactory {
 			// we don't need the plainSocket
 			plainSocket.close();
 		}
-		
+
 		// create and connect SSL socket, but don't do hostname/certificate verification yet
 		SSLCertificateSocketFactory sslSocketFactory = (SSLCertificateSocketFactory) SSLCertificateSocketFactory.getDefault(0);
 		SSLSocket ssl = (SSLSocket)sslSocketFactory.createSocket(InetAddress.getByName(host), port);
-		
+
 		// set up SNI before the handshake
 		/*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
 			Log.d(TAG, "Setting SNI hostname");
 			sslSocketFactory.setHostname(ssl, host);
 		} else*/
 			Log.i(TAG, "No SNI support below Android 4.2!");
-		
+
 		// verify hostname and certificate
 		SSLSession session = ssl.getSession();
 		if (!hostnameVerifier.verify(host, session))
 			throw new SSLPeerUnverifiedException("Cannot verify hostname: " + host);
-		
+
 		Log.i(TAG, "Established " + session.getProtocol() + " connection with " + session.getPeerHost() +
 				" using " + session.getCipherSuite());
 

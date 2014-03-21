@@ -16,12 +16,12 @@ import at.bitfire.davdroid.webdav.DavMultiget;
 
 public class CardDavAddressBook extends RemoteCollection<Contact> {
 	//private final static String TAG = "davdroid.CardDavAddressBook"; 
-	
+
 	@Override
 	protected String memberContentType() {
 		return "text/vcard";
 	}
-	
+
 	@Override
 	protected DavMultiget.Type multiGetType() {
 		return DavMultiget.Type.ADDRESS_BOOK;
@@ -31,7 +31,7 @@ public class CardDavAddressBook extends RemoteCollection<Contact> {
 	protected Contact newResourceSkeleton(String name, String ETag) {
 		return new Contact(name, ETag);
 	}
-	
+
 
 	public CardDavAddressBook(String baseURL, String user, String password, boolean preemptiveAuth) throws URISyntaxException {
 		super(baseURL, user, password, preemptiveAuth);

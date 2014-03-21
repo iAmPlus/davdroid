@@ -7,11 +7,12 @@
     android:paddingBottom="20dp"
     android:showDividers="end" >
 
-    <Button
-        android:id="@+id/finish_button"
-        android:layout_width="match_parent"
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:text="@string/finish_action" />
+        android:focusable="false"
+        android:paddingBottom="10dp"
+        android:text="@string/account_creation_success"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
 </LinearLayout>

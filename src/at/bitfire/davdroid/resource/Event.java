@@ -69,11 +69,11 @@ import at.bitfire.davdroid.syncadapter.DavSyncAdapter;
 
 public class Event extends Resource {
 	private final static String TAG = "davdroid.Event";
-	
+
 	private final static TimeZoneRegistry tzRegistry = new DefaultTimeZoneRegistryFactory().createRegistry();
-	
+
 	@Getter @Setter private String summary, location, description;
-	
+
 	@Getter private DtStart dtStart;
 	@Getter private DtEnd dtEnd;
 	@Getter @Setter private Duration duration;
@@ -81,39 +81,39 @@ public class Event extends Resource {
 	@Getter @Setter private RRule rrule;
 	@Getter @Setter private ExDate exdate;
 	@Getter @Setter private ExRule exrule;
-	
+
 	@Getter @Setter private Boolean forPublic;
 	@Getter @Setter private Status status;
-	
-	@Getter @Setter private boolean opaque;	
-	
+
+	@Getter @Setter private boolean opaque;
+
 	@Getter @Setter private Organizer organizer;
 	@Getter private List<Attendee> attendees = new LinkedList<Attendee>();
 	public void addAttendee(Attendee attendee) {
 		attendees.add(attendee);
 	}
-	
+
 	@Getter private List<VAlarm> alarms = new LinkedList<VAlarm>();
 	public void addAlarm(VAlarm alarm) {
 		alarms.add(alarm);
 	}
-	
+
 
 	public Event(String name, String ETag) {
 		super(name, ETag);
 	}
-	
+
 	public Event(long localID, String name, String ETag) {
 		super(localID, name, ETag);
 	}
 
-	
+
 	@Override
 	public void generateUID() {
 		UidGenerator generator = new UidGenerator(new SimpleHostInfo(DavSyncAdapter.getAndroidID()), String.valueOf(android.os.Process.myPid()));
 		uid = generator.generateUid().getValue();
 	}
-	
+
 	@Override
 	public void generateName() {
 		name = uid.replace("@", "_") + ".ics";
@@ -127,46 +127,46 @@ public class Event extends Resource {
 		net.fortuna.ical4j.model.Calendar ical = builder.build(entity);
 		if (ical == null)
 			return;
-		
+
 		// event
 		ComponentList events = ical.getComponents(Component.VEVENT);
 		if (events == null || events.isEmpty())
 			return;
 		VEvent event = (VEvent)events.get(0);
-		
+
 		if (event.getUid() != null)
 			uid = event.getUid().getValue();
 		else {
 			Log.w(TAG, "Received VEVENT without UID, generating new one");
 			generateUID();
 		}
-		
+
 		dtStart = event.getStartDate();	validateTimeZone(dtStart);
 		dtEnd = event.getEndDate(); validateTimeZone(dtEnd);
-		
+
 		duration = event.getDuration();
 		rrule = (RRule)event.getProperty(Property.RRULE);
 		rdate = (RDate)event.getProperty(Property.RDATE);
 		exrule = (ExRule)event.getProperty(Property.EXRULE);
 		exdate = (ExDate)event.getProperty(Property.EXDATE);
-		
+
 		if (event.getSummary() != null)
 			summary = event.getSummary().getValue();
 		if (event.getLocation() != null)
 			location = event.getLocation().getValue();
 		if (event.getDescription() != null)
 			description = event.getDescription().getValue();
-		
+
 		status = event.getStatus();
-		
+
 		opaque = true;
 		if (event.getTransparency() == Transp.TRANSPARENT)
 			opaque = false;
-		
+
 		organizer = event.getOrganizer();
 		for (Object o : event.getProperties(Property.ATTENDEE))
 			attendees.add((Attendee)o);
-		
+
 		Clazz classification = event.getClassification();
 		if (classification != null) {
 			if (classification == Clazz.PUBLIC)
@@ -174,7 +174,7 @@ public class Event extends Resource {
 			else if (classification == Clazz.CONFIDENTIAL || classification == Clazz.PRIVATE)
 				forPublic = false;
 		}
-		
+
 		this.alarms = event.getAlarms();
 	}
 
@@ -184,19 +184,19 @@ public class Event extends Resource {
 		net.fortuna.ical4j.model.Calendar ical = new net.fortuna.ical4j.model.Calendar();
 		ical.getProperties().add(Version.VERSION_2_0);
 		ical.getProperties().add(new ProdId("-//bitfire web engineering//DAVdroid " + Constants.APP_VERSION + "//EN"));
-		
+
 		VEvent event = new VEvent();
 		PropertyList props = event.getProperties();
-		
+
 		if (uid != null)
 			props.add(new Uid(uid));
-		
+
 		props.add(dtStart);
 		if (dtEnd != null)
 			props.add(dtEnd);
 		if (duration != null)
 			props.add(duration);
-		
+
 		if (rrule != null)
 			props.add(rrule);
 		if (rdate != null)
@@ -205,28 +205,28 @@ public class Event extends Resource {
 			props.add(exrule);
 		if (exdate != null)
 			props.add(exdate);
-		
+
 		if (summary != null && !summary.isEmpty())
 			props.add(new Summary(summary));
 		if (location != null && !location.isEmpty())
 			props.add(new Location(location));
 		if (description != null && !description.isEmpty())
 			props.add(new Description(description));
-		
+
 		if (status != null)
 			props.add(status);
 		if (!opaque)
 			props.add(Transp.TRANSPARENT);
-		
+
 		if (organizer != null)
 			props.add(organizer);
 		props.addAll(attendees);
-		
+
 		if (forPublic != null)
 			event.getProperties().add(forPublic ? Clazz.PUBLIC : Clazz.PRIVATE);
-		
+
 		event.getAlarms().addAll(alarms);
-		
+
 		props.add(new LastModified());
 		ical.getComponents().add(event);
 
@@ -245,15 +245,15 @@ public class Event extends Resource {
 		return os;
 	}
 
-	
+
 	public long getDtStartInMillis() {
 		return (dtStart != null && dtStart.getDate() != null) ? dtStart.getDate().getTime() : 0;
 	}
-	
+
 	public String getDtStartTzID() {
 		return getTzId(dtStart);
 	}
-	
+
 	public void setDtStart(long tsStart, String tzID) {
 		if (tzID == null) { 	// all-day
 			dtStart = new DtStart(new Date(tsStart));
@@ -263,8 +263,8 @@ public class Event extends Resource {
 			dtStart = new DtStart(start);
 		}
 	}
-	
-	
+
+
 	public Long getDtEndInMillis() {
 		if (hasNoTime(dtStart) && dtEnd == null) {		// "event on that day"
 			// dtEnd = dtStart + 1 day
@@ -272,18 +272,18 @@ public class Event extends Resource {
 			c.setTime(dtStart.getDate());
 			c.add(Calendar.DATE, 1);
 			return c.getTimeInMillis();
-			
+
 		} else if (dtEnd == null || dtEnd.getDate() == null) {	// no DTEND provided (maybe DURATION instead)
 			return null;
 		}
-		
+
 		return dtEnd.getDate().getTime();
 	}
-	
+
 	public String getDtEndTzID() {
 		return getTzId(dtEnd);
 	}
-	
+
 	public void setDtEnd(long tsEnd, String tzID) {
 		if (tzID == null) { 	// all-day
 			dtEnd = new DtEnd(new Date(tsEnd));
@@ -293,16 +293,16 @@ public class Event extends Resource {
 			dtEnd = new DtEnd(end);
 		}
 	}
-	
-	
+
+
 	// helpers
-	
+
 	public boolean isAllDay() {
 		if (hasNoTime(dtStart)) {
 			// events on that day
 			if (dtEnd == null)
 				return true;
-			
+
 			// all-day events
 			if (hasNoTime(dtEnd))
 				return true;
@@ -319,7 +319,7 @@ public class Event extends Resource {
 	protected static String getTzId(DateProperty date) {
 		if (date == null)
 			return null;
-		
+
 		if (hasNoTime(date) || date.isUtc())
 			return Time.TIMEZONE_UTC;
 		else if (date.getTimeZone() != null)
@@ -333,20 +333,20 @@ public class Event extends Resource {
 	protected static void validateTimeZone(DateProperty date) {
 		if (date == null || date.isUtc() || hasNoTime(date))
 			return;
-		
+
 		String tzID = getTzId(date);
 		if (tzID == null)
 			return;
-		
+
 		String localTZ = Time.TIMEZONE_UTC;
-		
+
 		String availableTZs[] = SimpleTimeZone.getAvailableIDs();
 		for (String availableTZ : availableTZs)
 			if (tzID.indexOf(availableTZ, 0) != -1) {
 				localTZ = availableTZ;
 				break;
 			}
-		
+
 		Log.d(TAG, "Assuming time zone " + localTZ + " for " + tzID);
 		date.setTimeZone(tzRegistry.getTimeZone(localTZ));
 	}
