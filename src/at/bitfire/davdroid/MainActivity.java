@@ -11,8 +11,8 @@
 package at.bitfire.davdroid;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.View;
@@ -22,26 +22,27 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SlidingFrameLayout;
 import android.widget.SlidingLayer;
+import at.bitfire.davdroid.syncadapter.AddAccountActivity;
 
 public class MainActivity extends Activity {
 
-	SlidingLayer mSlidingLayer;
+	SlidingLayer mSlidingLayer = null;
+	Context mContext;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		ListView listView;
 
+		mContext = this.getApplicationContext();
+
 		setContentView(R.layout.activity_main);
 
 		listView = (ListView) findViewById(R.id.main_activity_list);
 
-		setTitle("DAVdroid " + Constants.APP_VERSION);
+		setTitle( this.getString(R.string.app_title) + " " + Constants.APP_VERSION);
 
-		String[] values = new String[] { "Add Account", 
-				"Manage accounts",
-				"Website"
-		};
+		String[] values = getResources().getStringArray(R.array.main_activity_actions);
 
 		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
 				R.layout.activity_main_item, android.R.id.text1, values);
@@ -58,21 +59,18 @@ public class MainActivity extends Activity {
 	
 				switch(position) {
 				case 0:
-					intent = new Intent(Settings.ACTION_ADD_ACCOUNT);
+					intent = new Intent(mContext, AddAccountActivity.class);
 					break;
 				case 1:
 					intent = new Intent(Settings.ACTION_SYNC_SETTINGS);
 					break;
-				case 3:
-					intent = new Intent(Intent.ACTION_VIEW);
-					intent.setData(Uri.parse(Constants.WEB_URL_HELP + "&pk_kwd=main-activity"));
-					break;
 				default:
 					//error
 				}
-				
-				if (intent != null )
+
+				if (intent != null ) {
 					startActivity(intent);
+				}
 
 			}
 
@@ -102,6 +100,13 @@ public class MainActivity extends Activity {
 			}
 
 		});
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		if(mSlidingLayer != null)
+			mSlidingLayer.resetAction();
 	}
 
 }

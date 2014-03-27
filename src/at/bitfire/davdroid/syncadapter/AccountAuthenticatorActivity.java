@@ -400,23 +400,20 @@ public class AccountAuthenticatorActivity extends Activity {
 		browser.getSettings().setBuiltInZoomControls(true);
 		browser.setInitialScale(1);
 		browser.setPadding(0, 0, 0, 0);
-		browser.getSettings().setUseWideViewPort(true);mSlidingLayer = (SlidingLayer)findViewById(R.id.slidinglayout);
-		//mSlidingLayer.setPositiveText(this.getString(R.string.next_action));
+		browser.getSettings().setUseWideViewPort(true);
+		mSlidingLayer = (SlidingLayer)findViewById(R.id.slidinglayout);
+		mSlidingLayer.setPositiveText("");
+		mSlidingLayer.setPositiveButtonVisibility(View.INVISIBLE);
 		mSlidingLayer.setNegativeText(this.getString(R.string.message_cancel_text));
 		mSlidingLayer.setOnInteractListener(new SlidingFrameLayout.OnInteractListener(){
 			@Override
 			public void onPositiveAction(){
-//				log("......onReachedArea () ..");
-				//mFragment.onNext();
-				//addAccount();
 				if(mSlidingLayer != null){
 					mSlidingLayer.resetAction();
 				}
 			}
 			@Override
 			public void onNegativeAction(){
-//				log("......onReachedArea () ..");
-				//Cancel
 				onBackPressed();
 				if(mSlidingLayer != null){
 					mSlidingLayer.resetAction();
