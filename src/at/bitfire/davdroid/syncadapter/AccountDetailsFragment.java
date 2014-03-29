@@ -33,13 +33,21 @@ import android.widget.SlidingLayer;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 
-public class AccountDetailsFragment extends Fragment implements TextWatcher {
+public class AccountDetailsFragment extends Fragment {
+
+	@Override
+	public void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+		if(mSlidingLayer != null)
+			mSlidingLayer.resetAction();
+	}
 
 	ServerInfo serverInfo;
 
 	EditText editAccountName;
 
-	SlidingLayer mSlidingLayer;
+	SlidingLayer mSlidingLayer = null;
 
 	//String account_server = null;
 
@@ -51,9 +59,8 @@ public class AccountDetailsFragment extends Fragment implements TextWatcher {
 		serverInfo = (ServerInfo)getArguments().getSerializable(Constants.KEY_SERVER_INFO);
 
 		editAccountName = (EditText)v.findViewById(R.id.account_name);
-		editAccountName.addTextChangedListener(this);
 
-		mSlidingLayer = (SlidingLayer)getActivity().findViewById(R.id.slidinglayout);
+		mSlidingLayer = (SlidingLayer)v.findViewById(R.id.slidinglayout);
 		mSlidingLayer.setPositiveText(this.getString(R.string.next_action));
 		mSlidingLayer.setPositiveButtonVisibility(View.VISIBLE);
 		mSlidingLayer.setNegativeText(this.getString(R.string.message_cancel_text));
@@ -75,7 +82,8 @@ public class AccountDetailsFragment extends Fragment implements TextWatcher {
 			@Override
 			public boolean onPositiveActionStart() {
 
-				return false;
+				//return false;
+				return (editAccountName.getText().equals(""));
 			}
 
 			@Override
@@ -134,19 +142,6 @@ public class AccountDetailsFragment extends Fragment implements TextWatcher {
 		DialogFragment dialog = new QueryServerDialogFragment();
 		dialog.setArguments(arguments);
 		dialog.show(ft, QueryServerDialogFragment.class.getName());
-	}
-
-	@Override
-	public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-	}
-
-	@Override
-	public void onTextChanged(CharSequence s, int start, int before, int count) {
-		getActivity().invalidateOptionsMenu();
-	}
-
-	@Override
-	public void afterTextChanged(Editable s) {
 	}
 
 	private boolean isOnline() {

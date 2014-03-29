@@ -26,6 +26,7 @@ import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.AsyncTaskLoader;
@@ -36,7 +37,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
@@ -55,6 +58,7 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 	boolean hasCalendar = true;
 
 	ProgressBar progressBar;
+	private AlertDialog mProgressDialog;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -100,12 +104,15 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View v = inflater.inflate(R.layout.query_server, container, false);
+
 		return v;
 	}
 
 	@Override
 	public Loader<ServerInfo> onCreateLoader(int id, Bundle args) {
 		Log.i(TAG, "onCreateLoader");
+		mProgressDialog = createDialog();
+		mProgressDialog.show();
 		return new ServerInfoLoader(getActivity(), args);
 	}
 
@@ -113,6 +120,7 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 	public void onLoadFinished(Loader<ServerInfo> loader, ServerInfo serverInfo) {
 		if (serverInfo.getErrorMessage() != null)
 			Toast.makeText(getActivity(), serverInfo.getErrorMessage(), Toast.LENGTH_LONG).show();
+		mProgressDialog.dismiss();
 		if (hasAddressBook || hasCalendar) {
 			SelectCollectionsFragment selectCollections = new SelectCollectionsFragment();
 			Bundle arguments = new Bundle();
@@ -125,7 +133,6 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 				.commitAllowingStateLoss();
 		}
 
-		getDialog().dismiss();
 	}
 
 	@Override
@@ -355,6 +362,22 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 
 			return serverInfo;
 		}
+	}
+
+	private AlertDialog  createDialog() {
+
+		View progressview;
+		progressview = LayoutInflater.from(getActivity()).inflate(
+				R.layout.progress_dialog, null);
+		TextView progresstext = (TextView)progressview.findViewById(R.id.querying_server);
+		AlertDialog dialog;
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		builder.setView(progressview);
+
+		dialog = builder.create();
+		dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		progresstext.setText(R.string.querying_server);
+		return dialog;
 	}
 
 }

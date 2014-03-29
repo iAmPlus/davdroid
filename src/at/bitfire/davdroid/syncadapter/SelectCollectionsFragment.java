@@ -33,8 +33,9 @@ public class SelectCollectionsFragment extends Fragment {
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		View v = super.onCreateView(inflater, container, savedInstanceState);
-		mSlidingLayer = (SlidingLayer)getActivity().findViewById(R.id.slidinglayout);
+		
+		View v = inflater.inflate(R.layout.select_collections, container, false);
+		mSlidingLayer = (SlidingLayer)v.findViewById(R.id.slidinglayout);
 		mSlidingLayer.setPositiveText(this.getString(R.string.next_action));
 		mSlidingLayer.setNegativeText("");
 		mSlidingLayer.setNegativeButtonVisibility(View.INVISIBLE);
