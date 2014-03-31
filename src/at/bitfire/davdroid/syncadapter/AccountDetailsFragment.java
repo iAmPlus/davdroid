@@ -12,10 +12,15 @@ package at.bitfire.davdroid.syncadapter;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -88,12 +93,29 @@ public class AccountDetailsFragment extends Fragment implements TextWatcher {
 
 	@SuppressLint("NewApi")
 	void addAccount() {
-		serverInfo = (ServerInfo)getArguments().getSerializable(Constants.KEY_SERVER_INFO);
-		String accountName = editAccountName.getText().toString();
-		serverInfo.setAccountName(accountName);
-		Intent intent = new Intent(getActivity(), AccountAuthenticatorActivity.class);
-		intent.putExtra(Constants.KEY_SERVER_INFO, serverInfo);
-		startActivityForResult(intent, 0);
+		if(isOnline()) {
+			serverInfo = (ServerInfo)getArguments().getSerializable(Constants.KEY_SERVER_INFO);
+			String accountName = editAccountName.getText().toString();
+			serverInfo.setAccountName(accountName);
+			Intent intent = new Intent(getActivity(), AccountAuthenticatorActivity.class);
+			intent.putExtra(Constants.KEY_SERVER_INFO, serverInfo);
+			startActivityForResult(intent, 0);
+		} else {
+			AlertDialog dialog;
+			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+			builder.setTitle(getActivity().getResources().getString(R.string.no_network))
+				.setMessage(getActivity().getResources().getString(R.string.connect_to_network))
+				.setCancelable(false)
+				.setNegativeButton(R.string.network_dialog_back,new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog,int id) {
+						// if this button is clicked, just close
+						// the dialog box and do nothing
+						dialog.cancel();
+					}
+				});
+			dialog = builder.create();
+			dialog.show();
+		}
 	}
 
 	public void onActivityResult(int requestCode, int resultCode,
@@ -125,5 +147,15 @@ public class AccountDetailsFragment extends Fragment implements TextWatcher {
 
 	@Override
 	public void afterTextChanged(Editable s) {
+	}
+
+	private boolean isOnline() {
+		ConnectivityManager cm =
+			(ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo netInfo = cm.getActiveNetworkInfo();
+		if (netInfo != null && netInfo.isConnectedOrConnecting()) {
+			return true;
+		}
+		return false;
 	}
 }
