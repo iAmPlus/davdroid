@@ -68,7 +68,7 @@ public class LocalCalendar extends LocalCollection<Event> {
 	private static final String TAG = "davdroid.LocalCalendar";
 
 	@Getter protected long id;
-	@Getter protected String path, cTag;
+	@Getter protected String url, cTag;
 
 	protected static String COLLECTION_COLUMN_CTAG = Calendars.CAL_SYNC1;
 
@@ -90,7 +90,6 @@ public class LocalCalendar extends LocalCollection<Event> {
 	protected String entryColumnDirty()			{ return Events.DIRTY; }
 	protected String entryColumnDeleted()		{ return Events.DELETED; }
 
-	//@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	protected String entryColumnUID() {
 		return Events.SYNC_DATA2;
 	}
@@ -116,16 +115,21 @@ public class LocalCalendar extends LocalCollection<Event> {
 		ContentValues values = new ContentValues();
 		values.put(Calendars.ACCOUNT_NAME, account.name);
 		values.put(Calendars.ACCOUNT_TYPE, account.type);
-		values.put(Calendars.NAME, info.getPath());
+		values.put(Calendars.NAME, info.getURL());
 		values.put(Calendars.CALENDAR_DISPLAY_NAME, info.getTitle());
 		values.put(Calendars.CALENDAR_COLOR, color);
-		values.put(Calendars.CALENDAR_ACCESS_LEVEL, Calendars.CAL_ACCESS_OWNER);
-		values.put(Calendars.ALLOWED_REMINDERS, Reminders.METHOD_ALERT);
-		values.put(Calendars.CAN_ORGANIZER_RESPOND, 1);
-		values.put(Calendars.CAN_MODIFY_TIME_ZONE, 1);
 		values.put(Calendars.OWNER_ACCOUNT, account.name);
 		values.put(Calendars.SYNC_EVENTS, 1);
 		values.put(Calendars.VISIBLE, 1);
+		values.put(Calendars.ALLOWED_REMINDERS, Reminders.METHOD_ALERT);
+
+		if (info.isReadOnly())
+			values.put(Calendars.CALENDAR_ACCESS_LEVEL, Calendars.CAL_ACCESS_READ);
+		else {
+			values.put(Calendars.CALENDAR_ACCESS_LEVEL, Calendars.CAL_ACCESS_OWNER);
+			values.put(Calendars.CAN_ORGANIZER_RESPOND, 1);
+			values.put(Calendars.CAN_MODIFY_TIME_ZONE, 1);
+		}
 
 		if (android.os.Build.VERSION.SDK_INT >= 15) {
 			values.put(Calendars.ALLOWED_AVAILABILITY, Events.AVAILABILITY_BUSY + "," + Events.AVAILABILITY_FREE + "," + Events.AVAILABILITY_TENTATIVE);
@@ -150,10 +154,10 @@ public class LocalCalendar extends LocalCollection<Event> {
 		return calendars.toArray(new LocalCalendar[0]);
 	}
 
-	public LocalCalendar(Account account, ContentProviderClient providerClient, int id, String path, String cTag) throws RemoteException {
+	public LocalCalendar(Account account, ContentProviderClient providerClient, int id, String url, String cTag) throws RemoteException {
 		super(account, providerClient);
 		this.id = id;
-		this.path = path;
+		this.url = url;
 		this.cTag = cTag;
 	}
 
@@ -217,29 +221,35 @@ public class LocalCalendar extends LocalCollection<Event> {
 				e.setLocation(cursor.getString(1));
 				e.setDescription(cursor.getString(2));
 
+				boolean allDay = cursor.getInt(7) != 0;
 				long tsStart = cursor.getLong(3),
 					 tsEnd = cursor.getLong(4);
+				String duration = cursor.getString(18);
 
-				String tzId;
-				if (cursor.getInt(7) != 0) {	// ALL_DAY != 0
-					tzId = null;				// -> use UTC
+				String tzId = null;
+				if (allDay) {
+					e.setDtStart(tsStart, null);
+					// provide only DTEND and not DURATION for all-day events
+					if (tsEnd == 0) {
+						Dur dur = new Dur(duration);
+						java.util.Date dEnd = dur.getTime(new java.util.Date(tsStart));
+						tsEnd = dEnd.getTime();
+					}
+					e.setDtEnd(tsEnd, null);
+
 				} else {
 					// use the start time zone for the end time, too
-					// because the Samsung Planner UI allows the user to change the time zone
-					// but it will change the start time zone only
+					// because apps like Samsung Planner allow the user to change "the" time zone but change the start time zone only
 					tzId = cursor.getString(5);
-					//tzIdEnd = cursor.getString(6);
+					e.setDtStart(tsStart, tzId);
+					if (tsEnd != 0)
+						e.setDtEnd(tsEnd, tzId);
+					else if (!StringUtils.isEmpty(duration))
+						e.setDuration(new Duration(new Dur(duration)));
 				}
-				e.setDtStart(tsStart, tzId);
-				if (tsEnd != 0)
-					e.setDtEnd(tsEnd, tzId);
 
 				// recurrence
 				try {
-					String duration = cursor.getString(18);
-					if (!StringUtils.isEmpty(duration))
-						e.setDuration(new Duration(new Dur(duration)));
-
 					String strRRule = cursor.getString(10);
 					if (!StringUtils.isEmpty(strRRule))
 						e.setRrule(new RRule(strRRule));
@@ -432,30 +442,16 @@ public class LocalCalendar extends LocalCollection<Event> {
 		if (event.getExdate() != null)
 			builder = builder.withValue(Events.EXDATE, event.getExdate().getValue());
 
-		// set DTEND for single-time events or DURATION for recurring events
-		// because that's the way Android likes it
-		if (!recurring) {
-			// not recurring: set DTEND
-			long dtEnd = 0;
-			String tzEnd = null;
-			if (event.getDtEndInMillis() != null) {
-				dtEnd = event.getDtEndInMillis();
-				tzEnd = event.getDtEndTzID();
-			} else if (event.getDuration() != null) {
-				Date dateEnd = event.getDuration().getDuration().getTime(event.getDtStart().getDate());
-				dtEnd = dateEnd.getTime();
-			}
-			builder = builder
-					.withValue(Events.DTEND, dtEnd)
-					.withValue(Events.EVENT_END_TIMEZONE, tzEnd);
+		// set either DTEND for single-time events or DURATION for recurring events
+		// because that's the way Android likes it (see docs)
+		if (recurring) {
+			// calculate DURATION from start and end date
+			Duration duration = new Duration(event.getDtStart().getDate(), event.getDtEnd().getDate());
+			builder = builder.withValue(Events.DURATION, duration.getValue());
 		} else {
-			// recurring: set DURATION
-			String duration = null;
-			if (event.getDuration() != null)
-				duration = event.getDuration().getValue();
-			else if (event.getDtEnd() != null)
-				duration = new Duration(event.getDtStart().getDate(), event.getDtEnd().getDate()).getValue();
-			builder = builder.withValue(Events.DURATION, duration);
+			builder = builder
+					.withValue(Events.DTEND, event.getDtEndInMillis())
+					.withValue(Events.EVENT_END_TIMEZONE, event.getDtEndTzID());
 		}
 
 		if (event.getSummary() != null)

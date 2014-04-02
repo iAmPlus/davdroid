@@ -13,6 +13,7 @@ package at.bitfire.davdroid.resource;
 import java.net.URISyntaxException;
 
 import at.bitfire.davdroid.webdav.DavMultiget;
+import ch.boye.httpclientandroidlib.impl.client.CloseableHttpClient;
 
 public class CalDavCalendar extends RemoteCollection<Event> { 
 	//private final static String TAG = "davdroid.CalDavCalendar";
@@ -33,11 +34,11 @@ public class CalDavCalendar extends RemoteCollection<Event> {
 	}
 
 
-	public CalDavCalendar(String baseURL, String user, String password, boolean preemptiveAuth) throws URISyntaxException {
-		super(baseURL, user, password, preemptiveAuth);
+	public CalDavCalendar(CloseableHttpClient httpClient, String baseURL, String user, String password, boolean preemptiveAuth) throws URISyntaxException {
+		super(httpClient, baseURL, user, password, preemptiveAuth);
 	}
 
-	public CalDavCalendar(String baseURL, String accessToken) throws URISyntaxException {
-		super(baseURL, accessToken);
+	public CalDavCalendar(CloseableHttpClient httpClient, String baseURL, String accessToken) throws URISyntaxException {
+		super(httpClient, baseURL, accessToken);
 	}
 }

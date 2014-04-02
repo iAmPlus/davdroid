@@ -9,12 +9,6 @@ import android.webkit.WebView;
 
 public class MyWebView extends WebView {
 
-	public MyWebView(Context context, AttributeSet attrs, int defStyle,
-			boolean privateBrowsing) {
-		super(context, attrs, defStyle, privateBrowsing);
-		// TODO Auto-generated constructor stub
-	}
-
 	public MyWebView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		// TODO Auto-generated constructor stub

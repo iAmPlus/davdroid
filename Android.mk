@@ -13,6 +13,7 @@ LOCAL_STATIC_JAVA_LIBRARIES := android-common \
 		liblombok-api \
 		libcommons-io \
 		libez-vcard \
+		libhttpclientandroid \
 		libsimple-xml
 
 LOCAL_SRC_FILES := $(call all-java-files-under, src)
@@ -37,7 +38,8 @@ LOCAL_PREBUILT_STATIC_JAVA_LIBRARIES := \
 		libcommons-logging:libs/commons-logging-1.1.3.jar \
 		liblombok-api:libs/lombok-api.jar \
 		libcommons-io:libs/commons-io-2.4.jar \
-		libez-vcard:libs/ez-vcard-0.9.1.jar \
+		libez-vcard:libs/ez-vcard-0.9.2.jar \
+		libhttpclientandroid:libs/httpclientandroidlib-1.2.1.jar \
 		libsimple-xml:libs/simple-xml-2.7.jar
 
 #LOCAL_PREBUILT_JAVA_LIBRARIES := liblombok:libs/lombok.jar

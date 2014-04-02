@@ -6,7 +6,7 @@
  * http://www.gnu.org/licenses/gpl.html
  * 
  * Contributors:
- *     Richard Hirner (bitfire web engineering) - initial API and implementation
+ *	 Richard Hirner (bitfire web engineering) - initial API and implementation
  ******************************************************************************/
 package at.bitfire.davdroid.syncadapter;
 
@@ -22,8 +22,6 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,7 +35,6 @@ public class AccountDetailsFragment extends Fragment {
 
 	@Override
 	public void onResume() {
-		// TODO Auto-generated method stub
 		super.onResume();
 		if(mSlidingLayer != null)
 			mSlidingLayer.resetAction();

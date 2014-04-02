@@ -12,16 +12,19 @@ package at.bitfire.davdroid.webdav;
 
 import java.io.StringWriter;
 import java.net.URI;
+import java.util.LinkedList;
 
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.entity.StringEntity;
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
 import android.util.Log;
+import ch.boye.httpclientandroidlib.client.methods.HttpEntityEnclosingRequestBase;
+import ch.boye.httpclientandroidlib.entity.StringEntity;
 
 public class HttpPropfind extends HttpEntityEnclosingRequestBase {
 	private static final String TAG = "davdroid.HttpPropfind";
+
+	public final static String METHOD_NAME = "PROPFIND";
 
 	public enum Mode {
 		CURRENT_USER_PRINCIPAL,
@@ -36,10 +39,15 @@ public class HttpPropfind extends HttpEntityEnclosingRequestBase {
 		EMPTY_PROPFIND
 	}
 
-	HttpPropfind(URI uri, Mode mode) {
-		setURI(uri);
 
-		setHeader("Content-Type", "text/xml; charset=\"utf-8\"");
+	HttpPropfind(URI uri) {
+		setURI(uri);
+	}
+
+	HttpPropfind(URI uri, Mode mode) {
+		this(uri);
+
+		setHeader("Content-Type", "text/xml; charset=UTF-8");
 
 		DavPropfind propfind = new DavPropfind();
 		propfind.prop = new DavProp();
@@ -63,11 +71,12 @@ public class HttpPropfind extends HttpEntityEnclosingRequestBase {
 			depth = 1;
 			propfind.prop.displayname = new DavProp.DavPropDisplayName();
 			propfind.prop.resourcetype = new DavProp.DavPropResourceType();
+			propfind.prop.currentUserPrivilegeSet = new LinkedList<DavProp.DavPropPrivilege>();
 			propfind.prop.addressbookDescription = new DavProp.DavPropAddressbookDescription();
 			propfind.prop.calendarDescription = new DavProp.DavPropCalendarDescription();
 			propfind.prop.calendarColor = new DavProp.DavPropCalendarColor();
 			propfind.prop.calendarTimezone = new DavProp.DavPropCalendarTimezone();
-			propfind.prop.supportedCalendarComponentSet = new DavProp.DavPropSupportedCalendarComponentSet();
+			propfind.prop.supportedCalendarComponentSet = new LinkedList<DavProp.DavPropComp>();
 			break;
 		case ADDRESS_BOOK_MEMBERS_COLLECTIONS:
 			depth = 1;
@@ -82,7 +91,7 @@ public class HttpPropfind extends HttpEntityEnclosingRequestBase {
 			propfind.prop.calendarDescription = new DavProp.DavPropCalendarDescription();
 			propfind.prop.calendarColor = new DavProp.DavPropCalendarColor();
 			propfind.prop.calendarTimezone = new DavProp.DavPropCalendarTimezone();
-			propfind.prop.supportedCalendarComponentSet = new DavProp.DavPropSupportedCalendarComponentSet();
+			propfind.prop.supportedCalendarComponentSet = new LinkedList<DavProp.DavPropComp>();
 			break;
 		case COLLECTION_CTAG:
 			propfind.prop.getctag = new DavProp.DavPropGetCTag(); 
@@ -114,6 +123,6 @@ public class HttpPropfind extends HttpEntityEnclosingRequestBase {
 
 	@Override
 	public String getMethod() {
-		return "PROPFIND";
+		return METHOD_NAME;
 	}
 }

@@ -29,7 +29,7 @@ import at.bitfire.davdroid.resource.LocalCalendar;
 
 public class SelectCollectionsFragment extends Fragment {
 
-	SlidingLayer mSlidingLayer;
+	SlidingLayer mSlidingLayer = null;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -45,9 +45,6 @@ public class SelectCollectionsFragment extends Fragment {
 
 				getActivity().finish();
 
-				if(mSlidingLayer != null){
-					mSlidingLayer.resetAction();
-				}
 			}
 			@Override
 			public void onNegativeAction(){
@@ -100,7 +97,7 @@ public class SelectCollectionsFragment extends Fragment {
 			boolean syncContacts = false;
 			for (ServerInfo.ResourceInfo addressBook : serverInfo.getAddressBooks())
 				if (addressBook.isEnabled()) {
-					accountManager.setUserData(account, Constants.ACCOUNT_KEY_ADDRESSBOOK_PATH, addressBook.getPath());
+					accountManager.setUserData(account, Constants.ACCOUNT_KEY_ADDRESSBOOK_PATH, addressBook.getURL());
 					ContentResolver.setIsSyncable(account, ContactsContract.AUTHORITY, 1);
 					syncContacts = true;
 					continue;
@@ -125,6 +122,7 @@ public class SelectCollectionsFragment extends Fragment {
 
 
 		} catch (RemoteException e) {
+			e.printStackTrace();
 		}
 
 

@@ -17,9 +17,6 @@ import java.io.InputStream;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import net.fortuna.ical4j.data.ParserException;
-import net.fortuna.ical4j.model.ValidationException;
-import ezvcard.VCardException;
 
 @ToString
 public abstract class Resource {
@@ -40,7 +37,7 @@ public abstract class Resource {
 	// sets UID and resource name (= remote file name)
 	public abstract void generateUID();
 	public abstract void generateName();
-
-	public abstract void parseEntity(InputStream entity) throws IOException, ParserException, VCardException;
-	public abstract ByteArrayOutputStream toEntity() throws IOException, ValidationException;
+	
+	public abstract void parseEntity(InputStream entity) throws IOException, InvalidResourceException;
+	public abstract ByteArrayOutputStream toEntity() throws IOException;
 }

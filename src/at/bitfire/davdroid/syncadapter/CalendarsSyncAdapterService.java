@@ -45,6 +45,12 @@ public class CalendarsSyncAdapterService extends Service {
 			syncAdapter = new SyncAdapter(getApplicationContext());
 	}
 
+	@Override @Synchronized
+	public void onDestroy() {
+		syncAdapter.close();
+		syncAdapter = null;
+	}
+
 	@Override
 	public IBinder onBind(Intent intent) {
 		return syncAdapter.getSyncAdapterBinder(); 
@@ -53,12 +59,15 @@ public class CalendarsSyncAdapterService extends Service {
 	private static class SyncAdapter extends DavSyncAdapter {
 		private final static String TAG = "davdroid.CalendarsSyncAdapter";
 
-		public SyncAdapter(Context context) {
+
+		private SyncAdapter(Context context) {
 			super(context);
 		}
 
 		@Override
 		protected Map<LocalCollection<?>, RemoteCollection<?>> getSyncPairs(Account account, ContentProviderClient provider) {
+			//AccountSettings settings = new AccountSettings(getContext(), account);
+
 			try {
 				Map<LocalCollection<?>, RemoteCollection<?>> map = new HashMap<LocalCollection<?>, RemoteCollection<?>>();
 
@@ -66,16 +75,16 @@ public class CalendarsSyncAdapterService extends Service {
 
 					URI uri = null;
 					if(accountManager.getUserData(account, Constants.ACCOUNT_KEY_BASE_URL) != null)
-						uri = new URI(accountManager.getUserData(account, Constants.ACCOUNT_KEY_BASE_URL)).resolve(calendar.getPath());
+						uri = new URI(accountManager.getUserData(account, Constants.ACCOUNT_KEY_BASE_URL)).resolve(calendar.getUrl());
 					else if(accountManager.getUserData(account, Constants.ACCOUNT_KEY_CALDAV_URL) != null)
-						uri = new URI(accountManager.getUserData(account, Constants.ACCOUNT_KEY_CALDAV_URL)).resolve(calendar.getPath());
+						uri = new URI(accountManager.getUserData(account, Constants.ACCOUNT_KEY_CALDAV_URL)).resolve(calendar.getUrl());
 					else
 						return null;
 					accountManager.invalidateAuthToken(Constants.ACCOUNT_TYPE, Constants.ACCOUNT_KEY_ACCESS_TOKEN);
 					AccountManagerFuture<Bundle> authBundle = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, null, null, null);
 					String accessToken = authBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
 
-					RemoteCollection<?> dav = new CalDavCalendar(uri.toString(), accessToken);
+					RemoteCollection<?> dav = new CalDavCalendar(httpClient, uri.toString(), accessToken);
 					map.put(calendar, dav);
 				}
 				return map;

@@ -56,7 +56,8 @@ public class ServerInfo implements Serializable {
 		boolean enabled = false;
 
 		final Type type;
-		final String path, title, description, color;
+		final boolean readOnly;
+		final String URL, title, description, color;
 
 		String timezone;
 	}

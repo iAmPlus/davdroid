@@ -17,8 +17,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.http.HttpException;
-
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
@@ -26,7 +24,6 @@ import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.AsyncTaskLoader;
@@ -37,16 +34,19 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
+import at.bitfire.davdroid.webdav.DavException;
+import at.bitfire.davdroid.webdav.DavHttpClient;
 import at.bitfire.davdroid.webdav.HttpPropfind.Mode;
 import at.bitfire.davdroid.webdav.DavIncapableException;
 import at.bitfire.davdroid.webdav.PermanentlyMovedException;
 import at.bitfire.davdroid.webdav.WebDavResource;
+import ch.boye.httpclientandroidlib.HttpException;
+import ch.boye.httpclientandroidlib.impl.client.CloseableHttpClient;
 
 public class QueryServerDialogFragment extends DialogFragment implements LoaderCallbacks<ServerInfo> {
 	private static final String TAG = "davdroid.QueryServerDialogFragment";
@@ -58,13 +58,25 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 	boolean hasCalendar = true;
 
 	ProgressBar progressBar;
-	private AlertDialog mProgressDialog;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setStyle(DialogFragment.STYLE_NO_TITLE, android.R.style.Theme_Holo_Light_Dialog);
 		setCancelable(false);
+	}
+
+	public void createLoader() {
+
+		Loader<ServerInfo> loader = getLoaderManager().initLoader(0, getArguments(), this);
+		loader.forceLoad();
+	}
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		View v = inflater.inflate(R.layout.progress_dialog, container, false);
+
+		TextView progresstext = (TextView)v.findViewById(R.id.querying_server);
+		progresstext.setText(R.string.querying_server);
 
 		mContext = getActivity();
 		serverInfo = (ServerInfo)getArguments().getSerializable(Constants.KEY_SERVER_INFO);
@@ -94,16 +106,6 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 			}
 
 		}, null);
-	}
-
-	public void createLoader() {
-		Loader<ServerInfo> loader = getLoaderManager().initLoader(0, getArguments(), this);
-		loader.forceLoad();
-	}
-
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		View v = inflater.inflate(R.layout.query_server, container, false);
 
 		return v;
 	}
@@ -111,8 +113,6 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 	@Override
 	public Loader<ServerInfo> onCreateLoader(int id, Bundle args) {
 		Log.i(TAG, "onCreateLoader");
-		mProgressDialog = createDialog();
-		mProgressDialog.show();
 		return new ServerInfoLoader(getActivity(), args);
 	}
 
@@ -120,7 +120,6 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 	public void onLoadFinished(Loader<ServerInfo> loader, ServerInfo serverInfo) {
 		if (serverInfo.getErrorMessage() != null)
 			Toast.makeText(getActivity(), serverInfo.getErrorMessage(), Toast.LENGTH_LONG).show();
-		mProgressDialog.dismiss();
 		if (hasAddressBook || hasCalendar) {
 			SelectCollectionsFragment selectCollections = new SelectCollectionsFragment();
 			Bundle arguments = new Bundle();
@@ -132,6 +131,7 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 				.addToBackStack(null)
 				.commitAllowingStateLoss();
 		}
+		getDialog().dismiss();
 
 	}
 
@@ -157,6 +157,7 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 			WebDavResource principal = null;
 			String errorMessage = "";
 
+			CloseableHttpClient httpClient = DavHttpClient.create();
 			try {
 
 				//WebDavResource cardDavPrincipal = null;
@@ -164,7 +165,7 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 
 				if(properties.getProperty(Constants.ACCOUNT_KEY_BASE_URL) != null) {
 					serverInfo.setBaseURL(properties.getProperty(Constants.ACCOUNT_KEY_BASE_URL));
-					base = new WebDavResource(new URI(serverInfo.getBaseURL()), true, authCode);
+					base = new WebDavResource(httpClient, new URI(serverInfo.getBaseURL()), authCode);
 				}
 				String principalPath;
 				try {
@@ -177,7 +178,7 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 					} 
 					if (base == null || !serverInfo.isCardDAV()){
 						serverInfo.setCarddavURL(properties.getProperty(Constants.ACCOUNT_KEY_CARDDAV_URL));
-						base= new WebDavResource(new URI(serverInfo.getCarddavURL()), true, authCode);
+						base= new WebDavResource(httpClient, new URI(serverInfo.getCarddavURL()), authCode);
 
 						base.propfind(Mode.EMPTY_PROPFIND);
 						// (1/5) detect capabilities
@@ -246,7 +247,7 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 								Log.i(TAG, "Found address book: " + resource.getLocation().getRawPath());
 								ServerInfo.ResourceInfo info = new ServerInfo.ResourceInfo(
 									ServerInfo.ResourceInfo.Type.ADDRESS_BOOK,
-									resource.getLocation().getRawPath(),
+									resource.isReadOnly(), resource.getLocation().getRawPath(),
 									resource.getDisplayName(),
 									resource.getDescription(), resource.getColor()
 								);
@@ -258,15 +259,21 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 			} catch (URISyntaxException e) {
 				e.printStackTrace();
 				errorMessage.concat(getContext().getString(R.string.exception_uri_syntax, e.getMessage()));
-			}  catch (IOException e) {
-				e.printStackTrace();
-				errorMessage.concat(getContext().getString(R.string.exception_io, e.getLocalizedMessage()));
 			} catch (DavIncapableException e) {
 				e.printStackTrace();
 				errorMessage.concat(getContext().getString(R.string.exception_incapable_resource, e.getLocalizedMessage()));
+			} catch (DavException e) {
+				e.printStackTrace();
+				errorMessage.concat(getContext().getString(R.string.exception_io, e.getLocalizedMessage()));
 			} catch (HttpException e) {
 				e.printStackTrace();
 				errorMessage.concat(getContext().getString(R.string.exception_http, e.getLocalizedMessage()));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (PermanentlyMovedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 
 			if(errorMessage != "") {
@@ -278,7 +285,7 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 				if(base == null || !serverInfo.isCalDAV()) {
 					if(properties.getProperty(Constants.ACCOUNT_KEY_CALDAV_URL) != null) {
 						serverInfo.setCarddavURL(properties.getProperty(Constants.ACCOUNT_KEY_CALDAV_URL));
-						base= new WebDavResource(new URI(serverInfo.getCarddavURL()), true, authCode);
+						base= new WebDavResource(httpClient, new URI(serverInfo.getCarddavURL()), authCode);
 					} else {
 						throw new DavIncapableException(getContext().getString(R.string.neither_caldav_nor_carddav));
 					}
@@ -335,7 +342,7 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 								}
 								ServerInfo.ResourceInfo info = new ServerInfo.ResourceInfo(
 									ServerInfo.ResourceInfo.Type.CALENDAR,
-									resource.getLocation().getRawPath(),
+									resource.isReadOnly(), resource.getLocation().getRawPath(),
 									resource.getDisplayName(),
 									resource.getDescription(), resource.getColor()
 								);
@@ -354,6 +361,10 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 				errorMessage.concat(getContext().getString(R.string.exception_incapable_resource, e.getLocalizedMessage()));
 			} catch (HttpException e) {
 				errorMessage.concat(getContext().getString(R.string.exception_http, e.getLocalizedMessage()));
+			} catch (DavException e) {
+				e.printStackTrace();
+			} catch (PermanentlyMovedException e) {
+				e.printStackTrace();
 			}
 
 			if (errorMessage != "") {
@@ -362,22 +373,6 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 
 			return serverInfo;
 		}
-	}
-
-	private AlertDialog  createDialog() {
-
-		View progressview;
-		progressview = LayoutInflater.from(getActivity()).inflate(
-				R.layout.progress_dialog, null);
-		TextView progresstext = (TextView)progressview.findViewById(R.id.querying_server);
-		AlertDialog dialog;
-		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-		builder.setView(progressview);
-
-		dialog = builder.create();
-		dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-		progresstext.setText(R.string.querying_server);
-		return dialog;
 	}
 
 }

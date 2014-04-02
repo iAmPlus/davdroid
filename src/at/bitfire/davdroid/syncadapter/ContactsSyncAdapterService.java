@@ -45,6 +45,12 @@ public class ContactsSyncAdapterService extends Service {
 	}
 
 	@Override
+	public void onDestroy() {
+		syncAdapter.close();
+		syncAdapter = null;
+	}
+
+	@Override
 	public IBinder onBind(Intent intent) {
 		return syncAdapter.getSyncAdapterBinder();
 	}
@@ -52,18 +58,21 @@ public class ContactsSyncAdapterService extends Service {
 	private static class ContactsSyncAdapter extends DavSyncAdapter {
 		private final static String TAG = "davdroid.ContactsSyncAdapter";
 
-		public ContactsSyncAdapter(Context context) {
+
+		private ContactsSyncAdapter(Context context) {
 			super(context);
+			Log.i(TAG, "httpClient = " + httpClient);
 		}
 
 		@Override
 		protected Map<LocalCollection<?>, RemoteCollection<?>> getSyncPairs(Account account, ContentProviderClient provider) {
+			AccountSettings settings = new AccountSettings(getContext(), account);
 			String addressBookPath = accountManager.getUserData(account, Constants.ACCOUNT_KEY_ADDRESSBOOK_PATH);
 			if (addressBookPath == null)
 				return null;
 
 			try {
-				LocalCollection<?> database = new LocalAddressBook(account, provider, accountManager);
+				LocalCollection<?> database = new LocalAddressBook(account, provider, settings);
 
 				URI uri = null;
 				if(accountManager.getUserData(account, Constants.ACCOUNT_KEY_BASE_URL) != null)
@@ -76,7 +85,7 @@ public class ContactsSyncAdapterService extends Service {
 				AccountManagerFuture<Bundle> authBundle = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, null, null, null);
 				String accessToken = authBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
 
-				RemoteCollection<?> dav = new CardDavAddressBook(uri.toString(), accessToken);
+				RemoteCollection<?> dav = new CardDavAddressBook(httpClient, uri.toString(), accessToken);
 
 				Map<LocalCollection<?>, RemoteCollection<?>> map = new HashMap<LocalCollection<?>, RemoteCollection<?>>();
 				map.put(database, dav);

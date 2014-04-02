@@ -17,3 +17,12 @@
 -dontskipnonpubliclibraryclasses
 -dontskipnonpubliclibraryclassmembers
 
+-dontusemixedcaseclassnames
+-dontskipnonpubliclibraryclassmembers
+
+-dontwarn edu.emory.mathcs.backport.**
+-dontwarn ezvcard.**
+-dontwarn net.fortuna.**
+-dontwarn org.apache.**
+-dontwarn org.simpleframework.xml.**
+

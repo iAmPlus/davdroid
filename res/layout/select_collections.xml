@@ -16,9 +16,10 @@
         android:layout_alignParentTop="true"
         android:layout_gravity="center"
         android:gravity="center"
-        android:textColor="#FF000000"
+        android:textColor="#FFFFFFFF"
         android:textSize="@dimen/font_size_normal"
         android:paddingBottom="10dp"
+        android:paddingTop="20dp"
         android:text="@string/account_creation_success" />
 
     <SlidingLayer
