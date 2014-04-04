@@ -10,6 +10,8 @@
  ******************************************************************************/
 package at.bitfire.davdroid.syncadapter;
 
+import android.accounts.AccountAuthenticatorResponse;
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -39,6 +41,15 @@ public class AddAccountActivity extends Activity {
 			Intent data) {
 
 		super.onActivityResult(requestCode, resultCode, data);
+	}
+	
+	@Override
+	public void finish() {
+		AccountAuthenticatorResponse response = getIntent().getParcelableExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
+		if (response != null) {
+			response.onError(AccountManager.ERROR_CODE_CANCELED, "canceled");
+		}
+		super.finish();
 	}
 
 }

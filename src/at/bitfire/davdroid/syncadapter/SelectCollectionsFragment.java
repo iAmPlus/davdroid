@@ -11,9 +11,11 @@
 package at.bitfire.davdroid.syncadapter;
 
 import android.accounts.Account;
+import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;
 import android.app.Fragment;
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.provider.CalendarContract;
@@ -43,6 +45,14 @@ public class SelectCollectionsFragment extends Fragment {
 			@Override
 			public void onPositiveAction(){
 
+				Intent intent = getActivity().getIntent();
+				AccountAuthenticatorResponse response = intent.getParcelableExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
+				if (response != null) {
+					response.onResult(null);
+				}
+				intent.removeExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
+
+				getActivity().setIntent(intent);
 				getActivity().finish();
 
 			}
