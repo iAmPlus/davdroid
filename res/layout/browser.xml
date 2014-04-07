@@ -1,17 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.iamplus.aware.AwareSlidingLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:id="@+id/slidinglayout"
+    android:negativeButtonText="@string/message_cancel_text"
+    android:negativeButtonVisibility="visible" >
 
     <at.bitfire.davdroid.syncadapter.MyWebView
         android:id="@+id/browser_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-    <SlidingLayer
-        android:id="@+id/slidinglayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-    />
 
-</FrameLayout>
+</com.iamplus.aware.AwareSlidingLayout>

@@ -1,7 +1,10 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.iamplus.aware.AwareSlidingLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/message_black_color" >
+    android:id="@+id/slidinglayout"
+    android:background="@color/message_black_color" 
+    android:negativeButtonText="@string/message_cancel_text"
+    android:negativeButtonVisibility="visible">
 
     <ListView
         android:id="@+id/main_activity_list"
@@ -22,11 +25,6 @@
         app:bottomCommand="Cancel"
         app:topCommand="" />
 -->
-    <SlidingLayer
-		android:id="@+id/slidinglayout"
-		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-	/>
  <!--   
     <FrameLayout
         android:id="@+id/cancel_button_container"
@@ -63,4 +61,4 @@
         </FrameLayout>
     </FrameLayout>
 -->
-</RelativeLayout>
+</com.iamplus.aware.AwareSlidingLayout>

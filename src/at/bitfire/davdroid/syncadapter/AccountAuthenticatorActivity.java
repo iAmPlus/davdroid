@@ -34,8 +34,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.SlidingFrameLayout;
-import android.widget.SlidingLayer;
+import com.iamplus.aware.AwareSlidingLayout;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 
@@ -45,7 +44,7 @@ public class AccountAuthenticatorActivity extends Activity {
 	MyWebView browser;
 	Account account = null;
 	Properties properties;
-	SlidingLayer mSlidingLayer;
+	AwareSlidingLayout mSlidingLayer;
 
 	static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	static Random rnd = new Random();
@@ -263,35 +262,17 @@ public class AccountAuthenticatorActivity extends Activity {
 			account = new Account(account_name, account_type);
 			properties = reader.getProperties(serverInfo.getAccountServer());
 			setContentView(R.layout.authenticator);
-			mSlidingLayer = (SlidingLayer)findViewById(R.id.slidinglayout);
-			mSlidingLayer.setPositiveText("");
-			mSlidingLayer.setNegativeText(this.getString(R.string.message_cancel_text));
-			mSlidingLayer.setOnInteractListener(new SlidingFrameLayout.OnInteractListener(){
+			mSlidingLayer = (AwareSlidingLayout)findViewById(R.id.slidinglayout);
+			mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
 				@Override
-				public void onPositiveAction(){
-					if(mSlidingLayer != null){
-						mSlidingLayer.resetAction();
+				public void onAction(int type){
+					if(type == AwareSlidingLayout.NEGATIVE) {
+						onBackPressed();
+						if(mSlidingLayer != null){
+							mSlidingLayer.reset();
+						}
 					}
 				}
-				@Override
-				public void onNegativeAction(){
-					//Cancel
-					onBackPressed();
-					if(mSlidingLayer != null){
-						mSlidingLayer.resetAction();
-					}
-				}
-				@Override
-				public boolean onPositiveActionStart() {
-
-					return false;
-				}
-
-				@Override
-				public boolean onNegativeActionStart() {
-					return false;
-				}
-
 			});
 		} else {
 			setResult(RESULT_CANCELED);
@@ -402,35 +383,22 @@ public class AccountAuthenticatorActivity extends Activity {
 		browser.setInitialScale(1);
 		browser.setPadding(0, 0, 0, 0);
 		browser.getSettings().setUseWideViewPort(true);
-		mSlidingLayer = (SlidingLayer)findViewById(R.id.slidinglayout);
-		mSlidingLayer.setPositiveText("");
-		mSlidingLayer.setPositiveButtonVisibility(View.INVISIBLE);
-		mSlidingLayer.setNegativeText(this.getString(R.string.message_cancel_text));
-		mSlidingLayer.setOnInteractListener(new SlidingFrameLayout.OnInteractListener(){
+		mSlidingLayer = (AwareSlidingLayout)findViewById(R.id.slidinglayout);
+		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
 			@Override
-			public void onPositiveAction(){
-				if(mSlidingLayer != null){
-					mSlidingLayer.resetAction();
+			public void onAction(int type){
+				if(type == AwareSlidingLayout.POSITIVE) {
+					if(mSlidingLayer != null){
+						mSlidingLayer.reset();
+					}
+				}
+				else if(type == AwareSlidingLayout.NEGATIVE) {
+					onBackPressed();
+					if(mSlidingLayer != null){
+						mSlidingLayer.reset();
+					}
 				}
 			}
-			@Override
-			public void onNegativeAction(){
-				onBackPressed();
-				if(mSlidingLayer != null){
-					mSlidingLayer.resetAction();
-				}
-			}
-			@Override
-			public boolean onPositiveActionStart() {
-
-				return false;
-			}
-
-			@Override
-			public boolean onNegativeActionStart() {
-				return false;
-			}
-
 		});
 	}
 

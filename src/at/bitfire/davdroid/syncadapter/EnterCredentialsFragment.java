@@ -19,14 +19,13 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.SlidingFrameLayout;
-import android.widget.SlidingLayer;
+import com.iamplus.aware.AwareSlidingLayout;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 
 public class EnterCredentialsFragment extends Fragment {
 
-	SlidingLayer mSlidingLayer;
+	AwareSlidingLayout mSlidingLayer;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -54,31 +53,18 @@ public class EnterCredentialsFragment extends Fragment {
 			}
 
 		});
-		mSlidingLayer = (SlidingLayer) /*(SlidingLayer)getActivity()*/v.findViewById(R.id.slidinglayout);
-		mSlidingLayer.setPositiveText("");
-		mSlidingLayer.setPositiveButtonVisibility(View.INVISIBLE);
-		mSlidingLayer.setNegativeText(this.getString(R.string.message_cancel_text));
-		mSlidingLayer.setOnInteractListener(new SlidingFrameLayout.OnInteractListener(){
+		mSlidingLayer = (AwareSlidingLayout) /*(SlidingLayer)getActivity()*/v.findViewById(R.id.slidinglayout);
+		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
+			
 			@Override
-			public void onPositiveAction(){
-			}
-			@Override
-			public void onNegativeAction(){
-				getActivity().onBackPressed();
-				if(mSlidingLayer != null){
-					mSlidingLayer.resetAction();
+			public void onAction(int type){
+				if(type == AwareSlidingLayout.NEGATIVE) {
+					getActivity().onBackPressed();
+					if(mSlidingLayer != null){
+						mSlidingLayer.reset();
+					}
 				}
 			}
-			@Override
-			public boolean onPositiveActionStart() {
-				return false;
-			}
-
-			@Override
-			public boolean onNegativeActionStart() {
-				return false;
-			}
-
 		});
 
 		return v;
@@ -87,7 +73,7 @@ public class EnterCredentialsFragment extends Fragment {
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		if (mSlidingLayer != null) {
-			mSlidingLayer.resetAction();
+			mSlidingLayer.reset();
 		}
 	}
 

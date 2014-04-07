@@ -23,53 +23,35 @@ import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.SlidingFrameLayout;
-import android.widget.SlidingLayer;
+import com.iamplus.aware.AwareSlidingLayout;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 import at.bitfire.davdroid.resource.LocalCalendar;
 
 public class SelectCollectionsFragment extends Fragment {
 
-	SlidingLayer mSlidingLayer = null;
+	AwareSlidingLayout mSlidingLayer;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		
 		View v = inflater.inflate(R.layout.select_collections, container, false);
-		mSlidingLayer = (SlidingLayer)v.findViewById(R.id.slidinglayout);
-		mSlidingLayer.setPositiveText(this.getString(R.string.next_action));
-		mSlidingLayer.setNegativeText("");
-		mSlidingLayer.setNegativeButtonVisibility(View.INVISIBLE);
-		mSlidingLayer.setOnInteractListener(new SlidingFrameLayout.OnInteractListener(){
+		mSlidingLayer = (AwareSlidingLayout)v.findViewById(R.id.slidinglayout);
+		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
 			@Override
-			public void onPositiveAction(){
+			public void onAction(int type){
+				if(type == AwareSlidingLayout.POSITIVE) {
+					Intent intent = getActivity().getIntent();
+					AccountAuthenticatorResponse response = intent.getParcelableExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
+					if (response != null) {
+						response.onResult(null);
+					}
+					intent.removeExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
 
-				Intent intent = getActivity().getIntent();
-				AccountAuthenticatorResponse response = intent.getParcelableExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
-				if (response != null) {
-					response.onResult(null);
+					getActivity().setIntent(intent);
+					getActivity().finish();
 				}
-				intent.removeExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
-
-				getActivity().setIntent(intent);
-				getActivity().finish();
-
 			}
-			@Override
-			public void onNegativeAction(){
-			}
-			@Override
-			public boolean onPositiveActionStart() {
-
-				return false;
-			}
-
-			@Override
-			public boolean onNegativeActionStart() {
-				return false;
-			}
-
 		});
 		return v;
 	}

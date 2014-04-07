@@ -26,8 +26,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.SlidingFrameLayout;
-import android.widget.SlidingLayer;
+import com.iamplus.aware.AwareSlidingLayout;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 
@@ -37,14 +36,14 @@ public class AccountDetailsFragment extends Fragment {
 	public void onResume() {
 		super.onResume();
 		if(mSlidingLayer != null)
-			mSlidingLayer.resetAction();
+			mSlidingLayer.reset();
 	}
 
 	ServerInfo serverInfo;
 
 	EditText editAccountName;
 
-	SlidingLayer mSlidingLayer = null;
+	AwareSlidingLayout mSlidingLayer = null;
 
 	//String account_server = null;
 
@@ -57,37 +56,26 @@ public class AccountDetailsFragment extends Fragment {
 
 		editAccountName = (EditText)v.findViewById(R.id.account_name);
 
-		mSlidingLayer = (SlidingLayer)v.findViewById(R.id.slidinglayout);
-		mSlidingLayer.setPositiveText(this.getString(R.string.next_action));
-		mSlidingLayer.setPositiveButtonVisibility(View.VISIBLE);
-		mSlidingLayer.setNegativeText(this.getString(R.string.message_cancel_text));
-		mSlidingLayer.setOnInteractListener(new SlidingFrameLayout.OnInteractListener(){
+		mSlidingLayer = (AwareSlidingLayout)v.findViewById(R.id.slidinglayout);
+		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
 			@Override
-			public void onPositiveAction(){
-				addAccount();
-				if(mSlidingLayer != null){
-					mSlidingLayer.resetAction();
+			public void onAction(int type){
+				switch(type) {
+				case AwareSlidingLayout.POSITIVE:
+					addAccount();
+					if(mSlidingLayer != null){
+						mSlidingLayer.reset();
+					}
+					break;
+					
+				case AwareSlidingLayout.NEGATIVE:
+					getActivity().onBackPressed();
+					if(mSlidingLayer != null){
+						mSlidingLayer.reset();
+					}
+					break;
 				}
 			}
-			@Override
-			public void onNegativeAction(){
-				getActivity().onBackPressed();
-				if(mSlidingLayer != null){
-					mSlidingLayer.resetAction();
-				}
-			}
-			@Override
-			public boolean onPositiveActionStart() {
-
-				//return false;
-				return (editAccountName.getText().equals(""));
-			}
-
-			@Override
-			public boolean onNegativeActionStart() {
-				return false;
-			}
-
 		});
 
 		return v;

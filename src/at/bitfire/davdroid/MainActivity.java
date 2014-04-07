@@ -20,13 +20,12 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.SlidingFrameLayout;
-import android.widget.SlidingLayer;
+import com.iamplus.aware.AwareSlidingLayout;
 import at.bitfire.davdroid.syncadapter.AddAccountActivity;
 
 public class MainActivity extends Activity {
 
-	SlidingLayer mSlidingLayer = null;
+	AwareSlidingLayout mSlidingLayer = null;
 	Context mContext;
 
 	@Override
@@ -76,29 +75,14 @@ public class MainActivity extends Activity {
 
 		});
 
-		mSlidingLayer = (SlidingLayer)findViewById(R.id.slidinglayout_main);
-		mSlidingLayer.setPositiveText(" ");
-		mSlidingLayer.setPositiveButtonVisibility(View.INVISIBLE);
-		mSlidingLayer.setNegativeText(getResources().getString(R.string.message_cancel_text));
-		mSlidingLayer.setOnInteractListener(new SlidingFrameLayout.OnInteractListener(){
+		mSlidingLayer = (AwareSlidingLayout)findViewById(R.id.slidinglayout_main);
+		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
 			@Override
-			public void onPositiveAction(){
+			public void onAction(int type){
+				if(type == AwareSlidingLayout.NEGATIVE) {
+					finish();
+				}
 			}
-			@Override
-			public void onNegativeAction(){
-				//Cancel
-				finish();
-			}
-			@Override
-			public boolean onPositiveActionStart() {
-				return false;
-			}
-
-			@Override
-			public boolean onNegativeActionStart() {
-				return false;
-			}
-
 		});
 	}
 	
@@ -106,7 +90,7 @@ public class MainActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		if(mSlidingLayer != null)
-			mSlidingLayer.resetAction();
+			mSlidingLayer.reset();
 	}
 
 }

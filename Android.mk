@@ -3,6 +3,8 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE_TAGS := optional
 
+LOCAL_JAVA_LIBRARIES := com.iamplus
+
 LOCAL_STATIC_JAVA_LIBRARIES := android-common \
 		android-support-v4 \
 		libbackport-util-concurrent \
