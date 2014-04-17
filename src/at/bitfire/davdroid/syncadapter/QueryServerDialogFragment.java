@@ -190,13 +190,6 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 
 					/*Removed since google doesn't support !base.supportsMethod("REPORT") on base but only on principal url ||*/
 					if (!base.supportsMethod("PROPFIND") || !serverInfo.isCardDAV() ) {
-						if (serverInfo.getCarddavURL() == null) {
-
-							base.propfind(Mode.EMPTY_PROPFIND);
-							// (1/5) detect capabilities
-							base.options();
-							serverInfo.setCardDAV(base.supportsDAV("addressbook"));
-						}
 
 						throw new DavIncapableException(getContext().getString(R.string.neither_caldav_nor_carddav));
 					}
@@ -211,6 +204,12 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 					// Special case for google. Google gives a 301 permenantly moved to addressbook URL.
 					// Parsing and taking the principal URL instead.
 					principalPath = base.getRedirectionURL();
+					URI carddavBase = null;
+					if(serverInfo.getCarddavURL() != null)
+						carddavBase = new URI(serverInfo.getCarddavURL()).resolve(principalPath);
+					else
+						carddavBase = new URI(serverInfo.getBaseURL()).resolve(principalPath);
+					serverInfo.setCarddavURL(carddavBase.toString());
 					int end = principalPath.indexOf((int)'@');
 					end = principalPath.indexOf((int)'/', end);
 					principalPath = principalPath.substring(0, end+1);
@@ -284,8 +283,8 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 
 				if(base == null || !serverInfo.isCalDAV()) {
 					if(properties.getProperty(Constants.ACCOUNT_KEY_CALDAV_URL) != null) {
-						serverInfo.setCarddavURL(properties.getProperty(Constants.ACCOUNT_KEY_CALDAV_URL));
-						base= new WebDavResource(httpClient, new URI(serverInfo.getCarddavURL()), authCode);
+						serverInfo.setCaldavURL(properties.getProperty(Constants.ACCOUNT_KEY_CALDAV_URL));
+						base= new WebDavResource(httpClient, new URI(serverInfo.getCaldavURL()), authCode);
 					} else {
 						throw new DavIncapableException(getContext().getString(R.string.neither_caldav_nor_carddav));
 					}

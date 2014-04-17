@@ -118,7 +118,7 @@ public class AccountSettings {
 	}
 	
 	private void update_0_1() throws URISyntaxException {
-		String	v0_principalURL = accountManager.getUserData(account, "principal_url"),
+		/*String	v0_principalURL = accountManager.getUserData(account, "principal_url"),
 				v0_addressBookPath = accountManager.getUserData(account, "addressbook_path");
 		Log.d(TAG, "Old principal URL = " + v0_principalURL);
 		Log.d(TAG, "Old address book path = " + v0_addressBookPath);
@@ -156,7 +156,7 @@ public class AccountSettings {
 		
 		Log.d(TAG, "Cleaning old principal URL and address book path");
 		accountManager.setUserData(account, "principal_url", null);
-		accountManager.setUserData(account, "addressbook_path", null);
+		accountManager.setUserData(account, "addressbook_path", null);*/
 		
 		Log.d(TAG, "Updated settings successfully!");
 		accountManager.setUserData(account, KEY_SETTINGS_VERSION, "1");

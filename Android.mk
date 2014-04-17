@@ -35,12 +35,12 @@ include $(CLEAR_VARS)
 LOCAL_PREBUILT_STATIC_JAVA_LIBRARIES := \
 		libbackport-util-concurrent:libs/backport-util-concurrent-3.1.jar \
 		libcommons-lang:libs/commons-lang-2.6.jar \
-		libical4j:libs/ical4j-1.0.5.2.jar \
+		libical4j:libs/ical4j-1.0.5.jar \
 		libcommons-codec:libs/commons-codec-1.8.jar \
 		libcommons-logging:libs/commons-logging-1.1.3.jar \
 		liblombok-api:libs/lombok-api.jar \
 		libcommons-io:libs/commons-io-2.4.jar \
-		libez-vcard:libs/ez-vcard-0.9.2.jar \
+		libez-vcard:libs/ez-vcard-0.9.4-SNAPSHOT.jar \
 		libhttpclientandroid:libs/httpclientandroidlib-1.2.1.jar \
 		libsimple-xml:libs/simple-xml-2.7.jar
 

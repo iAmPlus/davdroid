@@ -142,15 +142,18 @@ public class WebDavResource {
 	public WebDavResource(WebDavResource parent, String member) {
 		this(parent);
 		location = parent.location.resolve(URIUtils.sanitize(member));
+		authBearer = parent.authBearer;
 	}
 
 	public WebDavResource(WebDavResource parent, String member, boolean trailingSlash) {
 		this(parent, (trailingSlash && !member.endsWith("/")) ? (member + "/") : member);
+		authBearer = parent.authBearer;
 	}
 
 	public WebDavResource(WebDavResource parent, String member, String ETag) {
 		this(parent, member);
 		properties.put(Property.ETAG, ETag);
+		authBearer = parent.authBearer;
 	}
 
 
@@ -164,6 +167,9 @@ public class WebDavResource {
 
 	public void options() throws IOException, HttpException {
 		HttpOptions options = new HttpOptions(location);
+		if(authBearer != null)
+			options.addHeader("Authorization", "Bearer " + authBearer);
+
 		CloseableHttpResponse response = httpClient.execute(options, context);
 		try {
 			checkResponse(response);
@@ -271,9 +277,28 @@ public class WebDavResource {
 
 	public void propfind(HttpPropfind.Mode mode) throws IOException, DavException, HttpException, PermanentlyMovedException {
 		HttpPropfind propfind = new HttpPropfind(location, mode);
+		if(authBearer != null)
+			propfind.addHeader("Authorization", "Bearer " + authBearer);
+
 		CloseableHttpResponse response = httpClient.execute(propfind, context);
 		try {
 			checkResponse(response);
+
+			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_MOVED_PERMANENTLY) {
+				//TODO properly parse html to get redirection url
+				HttpEntity entity = response.getEntity();
+				String responseString = EntityUtils.toString(entity, "UTF-8");
+				String redirectUrl = "";
+				int urlStart = responseString.indexOf("<A HREF=\"") + "<A HREF=\"".length();
+				if(urlStart > 0) {
+					int urlEnd = responseString.indexOf("\">", urlStart);
+					if(urlEnd > 0) {
+						redirectUrl = responseString.substring(urlStart, urlEnd);
+						setRedirectionURL(redirectUrl);
+					}
+				}
+				throw new PermanentlyMovedException(redirectUrl);
+			}
 
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_MULTI_STATUS)
 				throw new DavNoMultiStatusException();
@@ -312,6 +337,9 @@ public class WebDavResource {
 		}
 
 		HttpReport report = new HttpReport(location, writer.toString());
+		if(authBearer != null)
+			report.addHeader("Authorization", "Bearer " + authBearer);
+
 		CloseableHttpResponse response = httpClient.execute(report, context);
 		try {
 			checkResponse(response);
@@ -341,6 +369,8 @@ public class WebDavResource {
 
 	public void get() throws IOException, HttpException, DavException {
 		HttpGet get = new HttpGet(location);
+		if(authBearer != null)
+			get.addHeader("Authorization", "Bearer " + authBearer);
 		CloseableHttpResponse response = httpClient.execute(get, context);
 		try {
 			checkResponse(response);
@@ -370,6 +400,8 @@ public class WebDavResource {
 
 		if (getContentType() != null)
 			put.addHeader("Content-Type", getContentType());
+		if(authBearer != null)
+			put.addHeader("Authorization", "Bearer " + authBearer);
 
 		CloseableHttpResponse response = httpClient.execute(put, context);
 		try {

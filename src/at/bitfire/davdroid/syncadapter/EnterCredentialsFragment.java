@@ -53,7 +53,7 @@ public class EnterCredentialsFragment extends Fragment {
 			}
 
 		});
-		mSlidingLayer = (AwareSlidingLayout) /*(SlidingLayer)getActivity()*/v.findViewById(R.id.slidinglayout);
+		mSlidingLayer = (AwareSlidingLayout) v.findViewById(R.id.slidinglayout);
 		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
 			
 			@Override

@@ -79,12 +79,12 @@ public class SelectCollectionsFragment extends Fragment {
 			Account account = new Account(serverInfo.getAccountName(), Constants.ACCOUNT_TYPE);
 			if(serverInfo.getBaseURL() != null)
 				accountManager.setUserData(account, Constants.ACCOUNT_KEY_BASE_URL, serverInfo.getBaseURL());
-			else {
-				if(serverInfo.getCaldavURL() != null)
-					accountManager.setUserData(account, Constants.ACCOUNT_KEY_CALDAV_URL, serverInfo.getCaldavURL());
-				if(serverInfo.getCarddavURL() != null)
-					accountManager.setUserData(account, Constants.ACCOUNT_KEY_CARDDAV_URL, serverInfo.getCarddavURL());
-			}
+
+			if(serverInfo.getCaldavURL() != null)
+				accountManager.setUserData(account, Constants.ACCOUNT_KEY_CALDAV_URL, serverInfo.getCaldavURL());
+
+			if(serverInfo.getCarddavURL() != null)
+				accountManager.setUserData(account, Constants.ACCOUNT_KEY_CARDDAV_URL, serverInfo.getCarddavURL());
 
 			boolean syncContacts = false;
 			for (ServerInfo.ResourceInfo addressBook : serverInfo.getAddressBooks())

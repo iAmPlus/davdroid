@@ -51,10 +51,10 @@ public class AccountAuthenticatorActivity extends Activity {
 
 	String randomString( int len ) 
 	{
-	   StringBuilder sb = new StringBuilder( len );
-	   for( int i = 0; i < len; i++ ) 
-		  sb.append( AB.charAt( rnd.nextInt(AB.length()) ) );
-	   return sb.toString();
+		StringBuilder sb = new StringBuilder( len );
+		for( int i = 0; i < len; i++ ) 
+			sb.append( AB.charAt( rnd.nextInt(AB.length()) ) );
+		return sb.toString();
 	}
 
 	class GetAuthCode extends AsyncTask<String, Integer, HttpResponse>{
@@ -110,9 +110,6 @@ public class AccountAuthenticatorActivity extends Activity {
 		@Override
 		protected void onPostExecute(HttpResponse result) {
 			super.onPostExecute(result);
-			JSONObject responseJson;
-			String authCode = null;
-			String refreshCode = null;
 			if(properties.getProperty("type") != null && properties.getProperty("type").equals("Yahoo")) {
 				Boolean complete = false;
 				StringTokenizer st = new StringTokenizer(data, "&");
@@ -217,6 +214,9 @@ public class AccountAuthenticatorActivity extends Activity {
 			}
 			if(properties.getProperty("type") != null && properties.getProperty("type").equals("Google")) {
 
+				JSONObject responseJson;
+				String authCode = null;
+				String refreshCode = null;
 				try {
 					responseJson = new JSONObject(data);
 	
@@ -284,7 +284,7 @@ public class AccountAuthenticatorActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		
+
 		if(properties.getProperty("type") != null && properties.getProperty("type").equals("Yahoo")) {
 			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
 			if(properties.getProperty("random_string") != null) {
@@ -321,11 +321,12 @@ public class AccountAuthenticatorActivity extends Activity {
 			initWebView();
 
 			browser.setWebViewClient(new WebViewClient() {
+
 				@Override
-				public void onPageFinished(WebView view, String url)
-				{
+				public boolean shouldOverrideUrlLoading(WebView webView, String url) {
 					/* This call inject JavaScript into the page which just finished loading. */
 					if(url.startsWith("http://localhost")) {
+						browser.stopLoading();
 						StringTokenizer st = new StringTokenizer (url.substring(url.indexOf("?")+1), "&");
 						String code = null;
 						while(st.hasMoreTokens()) {
@@ -345,6 +346,8 @@ public class AccountAuthenticatorActivity extends Activity {
 						String html="<html><head></head><body> Please wait</body></html>";
 						browser.loadData(html, "text/html", "utf-8");
 					}
+
+					return super.shouldOverrideUrlLoading(webView, url);
 				}
 			});
 			String query = "";
