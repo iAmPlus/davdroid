@@ -70,6 +70,9 @@ public class CalendarsSyncAdapterService extends Service {
 
 			try {
 				Map<LocalCollection<?>, RemoteCollection<?>> map = new HashMap<LocalCollection<?>, RemoteCollection<?>>();
+				accountManager.invalidateAuthToken(Constants.ACCOUNT_TYPE, Constants.ACCOUNT_KEY_ACCESS_TOKEN);
+				AccountManagerFuture<Bundle> authBundle = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, null, null, null);
+				String accessToken = authBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
 
 				for (LocalCalendar calendar : LocalCalendar.findAll(account, provider)) {
 
@@ -80,9 +83,6 @@ public class CalendarsSyncAdapterService extends Service {
 						uri = new URI(accountManager.getUserData(account, Constants.ACCOUNT_KEY_CALDAV_URL)).resolve(calendar.getUrl());
 					else
 						return null;
-					accountManager.invalidateAuthToken(Constants.ACCOUNT_TYPE, Constants.ACCOUNT_KEY_ACCESS_TOKEN);
-					AccountManagerFuture<Bundle> authBundle = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, null, null, null);
-					String accessToken = authBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
 
 					RemoteCollection<?> dav = new CalDavCalendar(httpClient, uri.toString(), accessToken);
 					map.put(calendar, dav);
