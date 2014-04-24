@@ -34,6 +34,8 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.CookieManager;
+
 import com.iamplus.aware.AwareSlidingLayout;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
@@ -379,6 +381,21 @@ public class AccountAuthenticatorActivity extends Activity {
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setContentView(R.layout.browser);
 		browser = (MyWebView) findViewById(R.id.browser_view);
+
+		//Make sure No cookies are created
+        CookieManager.getInstance().removeAllCookie();
+
+        //Make sure no caching is done
+        browser.getSettings().setCacheMode(browser.getSettings().LOAD_NO_CACHE);
+        browser.getSettings().setAppCacheEnabled(false);
+        browser.clearHistory();
+        browser.clearCache(true);
+
+        //Make sure no autofill for Forms/ user-name password happens for the app
+        browser.clearFormData();
+        browser.getSettings().setSavePassword(false);
+        browser.getSettings().setSaveFormData(false);
+
 		browser.setWebViewClient(new WebViewClient());
 		browser.getSettings().setJavaScriptEnabled(true);
 		browser.getSettings().setLoadWithOverviewMode(true);
@@ -386,6 +403,7 @@ public class AccountAuthenticatorActivity extends Activity {
 		browser.setInitialScale(1);
 		browser.setPadding(0, 0, 0, 0);
 		browser.getSettings().setUseWideViewPort(true);
+
 		mSlidingLayer = (AwareSlidingLayout)findViewById(R.id.slidinglayout);
 		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
 			@Override
