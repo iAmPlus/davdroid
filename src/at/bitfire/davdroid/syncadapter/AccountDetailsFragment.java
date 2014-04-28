@@ -16,6 +16,8 @@ import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -25,7 +27,13 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+import android.text.TextUtils;
+import android.util.Log;
 import com.iamplus.aware.AwareSlidingLayout;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
@@ -47,14 +55,30 @@ public class AccountDetailsFragment extends Fragment {
 
 	//String account_server = null;
 
-
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+	public View onCreateView(LayoutInflater inflater,
+			ViewGroup container, Bundle savedInstanceState) {
 		View v = inflater.inflate(R.layout.account_details, container, false);
 
-		serverInfo = (ServerInfo)getArguments().getSerializable(Constants.KEY_SERVER_INFO);
+		serverInfo = (ServerInfo)getArguments().getSerializable(
+			Constants.KEY_SERVER_INFO);
 
 		editAccountName = (EditText)v.findViewById(R.id.account_name);
+		editAccountName.setImeOptions(EditorInfo.IME_ACTION_DONE);
+		editAccountName.setOnEditorActionListener(
+				new TextView.OnEditorActionListener () {
+				@Override
+				public boolean onEditorAction(TextView v,
+						int actionId, KeyEvent event) {
+					if(actionId == EditorInfo.IME_ACTION_DONE 
+					|| actionId == EditorInfo.IME_NULL
+					|| event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+						addAccount();
+						return true;
+					}
+					return false;
+				}
+			});
 
 		mSlidingLayer = (AwareSlidingLayout)v.findViewById(R.id.slidinglayout);
 		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
@@ -67,7 +91,7 @@ public class AccountDetailsFragment extends Fragment {
 						mSlidingLayer.reset();
 					}
 					break;
-					
+
 				case AwareSlidingLayout.NEGATIVE:
 					getActivity().onBackPressed();
 					if(mSlidingLayer != null){
@@ -86,6 +110,26 @@ public class AccountDetailsFragment extends Fragment {
 
 	@SuppressLint("NewApi")
 	void addAccount() {
+		if(TextUtils.isEmpty(editAccountName.getText().toString())) {
+			Toast.makeText(getActivity().getBaseContext(),R.string.error_empty_account_name,
+						Toast.LENGTH_SHORT).show();
+			return;
+		}
+		String account_name = editAccountName.getText().toString();
+		AccountManager mAccountManager = AccountManager.get(getActivity().getApplicationContext());
+		Account []accounts = mAccountManager.getAccountsByType(Constants.ACCOUNT_TYPE);
+		Boolean already_exist = false;
+		for (Account acc : accounts) {
+			if(acc.name.equals(account_name)) {
+				already_exist = true;
+				break;
+			}
+		}
+		if(already_exist) {
+			Toast.makeText(getActivity().getBaseContext(),R.string.error_account_name_exist,
+						Toast.LENGTH_SHORT).show();
+			return;
+		}
 		if(isOnline()) {
 			serverInfo = (ServerInfo)getArguments().getSerializable(Constants.KEY_SERVER_INFO);
 			String accountName = editAccountName.getText().toString();

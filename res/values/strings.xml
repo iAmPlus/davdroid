@@ -22,6 +22,7 @@
     <string name="root_url">Account type:</string>
     <string name="next">Next</string>
     <string name="next_action">Next</string>
+    <string name="done_action">Done</string>
     <string name="message_cancel_text">Back</string>
     <string name="help">Help</string>
     <string name="invalid_base_url">Invalid base URL: </string>
@@ -125,5 +126,7 @@
     <string name="connect_to_network">Please connect to internet to add an account</string>
     <string name="no_network">Network error</string>
     <string name="network_dialog_back">Back</string>
+    <string name="error_empty_account_name">Account name cannot be blank</string>
+    <string name="error_account_name_exist">Account with same name already added</string>
 
 </resources>
