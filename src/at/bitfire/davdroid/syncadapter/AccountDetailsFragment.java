@@ -130,56 +130,16 @@ public class AccountDetailsFragment extends Fragment {
 						Toast.LENGTH_SHORT).show();
 			return;
 		}
-		if(isOnline()) {
-			serverInfo = (ServerInfo)getArguments().getSerializable(Constants.KEY_SERVER_INFO);
-			String accountName = editAccountName.getText().toString();
-			serverInfo.setAccountName(accountName);
-			Intent intent = new Intent(getActivity(), AccountAuthenticatorActivity.class);
-			intent.putExtra(Constants.KEY_SERVER_INFO, serverInfo);
-			startActivityForResult(intent, 0);
-		} else {
-			AlertDialog dialog;
-			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-			builder.setTitle(getActivity().getResources().getString(R.string.no_network))
-				.setMessage(getActivity().getResources().getString(R.string.connect_to_network))
-				.setCancelable(false)
-				.setNegativeButton(R.string.network_dialog_back,new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog,int id) {
-						// if this button is clicked, just close
-						// the dialog box and do nothing
-						dialog.cancel();
-					}
-				});
-			dialog = builder.create();
-			dialog.show();
-		}
-	}
-
-	public void onActivityResult(int requestCode, int resultCode,
-			Intent data) {
-		if (resultCode == Activity.RESULT_OK) {
-			queryServer();
-		}
 	}
 
 	void queryServer() {
-		FragmentTransaction ft = getFragmentManager().beginTransaction();
+		/*FragmentTransaction ft = getFragmentManager().beginTransaction();
 
 		Bundle arguments = new Bundle();
 		arguments.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
 
 		DialogFragment dialog = new QueryServerDialogFragment();
 		dialog.setArguments(arguments);
-		dialog.show(ft, QueryServerDialogFragment.class.getName());
-	}
-
-	private boolean isOnline() {
-		ConnectivityManager cm =
-			(ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo netInfo = cm.getActiveNetworkInfo();
-		if (netInfo != null && netInfo.isConnectedOrConnecting()) {
-			return true;
-		}
-		return false;
+		dialog.show(ft, QueryServerDialogFragment.class.getName());*/
 	}
 }

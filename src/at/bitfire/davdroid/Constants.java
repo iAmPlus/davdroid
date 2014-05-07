@@ -24,6 +24,7 @@ public class Constants {
 
 		ACCOUNT_KEY_ADDRESSBOOK_PATH = "addressbook_path",
 		ACCOUNT_KEY_ADDRESSBOOK_CTAG = "addressbook_ctag",
+		ACCOUNT_SERVER = "account_server",
 
 		WEB_URL_HELP = "http://davdroid.bitfire.at/configuration?pk_campaign=davdroid-app";
 	public static final String ACCOUNT_KEY_REFRESH_TOKEN = "google_refresh_token";

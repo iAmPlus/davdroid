@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -108,22 +109,30 @@ public class AccountAuthenticatorService extends Service {
 			// the server for an appropriate AuthToken.
 			final AccountManager am = AccountManager.get(context.getApplicationContext());
 
+			String account_type = am.getUserData(account, Constants.ACCOUNT_SERVER);
 			String authToken = am.peekAuthToken(account, authTokenType);
-
 			Log.d(TAG, "peekAuthToken returned - " + authToken);
+			long expiry = 0;
+			if(am.getUserData(account, "oauth_expires_in") != null) {
+				expiry = Long.parseLong(am.getUserData(account, "oauth_expires_in"));
+			}
 
-			// Lets give another try to authenticate the user
-			if (TextUtils.isEmpty(authToken)) {
+			if( (TextUtils.isEmpty(authToken) || (expiry < (System.currentTimeMillis()/1000)))
+					&& (account_type != null) && account_type.equals("Google")) {
+
+				// Lets give another try to authenticate the user
+				//if (TextUtils.isEmpty(authToken)) {
 
 				String refreshToken = am.peekAuthToken(account, Constants.ACCOUNT_KEY_REFRESH_TOKEN);
-				if (TextUtils.isEmpty(refreshToken)) {
+				if (!TextUtils.isEmpty(refreshToken)) {
 					List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-					nameValuePairs.add(new BasicNameValuePair("client_id", "240498934020.apps.googleusercontent.com"));
-					nameValuePairs.add(new BasicNameValuePair("client_secret", "HuScmc9E5sIp-3epayh7g3ge"));
-					nameValuePairs.add(new BasicNameValuePair("refresh_token", refreshToken));
+					nameValuePairs.add(new BasicNameValuePair("client_id", am.getUserData(account, "client_id")));
+					nameValuePairs.add(new BasicNameValuePair("client_secret", am.getUserData(account, "client_secret")));
 					nameValuePairs.add(new BasicNameValuePair("grant_type", "refresh_token"));
+					nameValuePairs.add(new BasicNameValuePair("refresh_token", refreshToken));
+					//nameValuePairs.add(new BasicNameValuePair("grant_type", "refresh_token"));
 					HttpClient httpclient = new DefaultHttpClient();
-					HttpPost httppost = new HttpPost("https://accounts.google.com/o/oauth2/token");
+					HttpPost httppost = new HttpPost(am.getUserData(account, "token_url"));
 					HttpResponse httpResponse;
 					String data = null;
 					try {
@@ -151,8 +160,11 @@ public class AccountAuthenticatorService extends Service {
 					JSONObject responseJson;
 					try {
 						responseJson = new JSONObject(data);
-						authToken = responseJson.getString(authTokenType);
+						authToken = responseJson.getString("access_token");
 						am.setAuthToken(account, authTokenType, authToken);
+						expiry = Long.parseLong(responseJson.getString("expires_in"));
+						expiry += System.currentTimeMillis();
+						am.setUserData(account, "oauth_expires_in", Long.valueOf(expiry).toString());
 					} catch (JSONException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

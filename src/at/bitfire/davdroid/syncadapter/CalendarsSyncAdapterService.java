@@ -70,9 +70,19 @@ public class CalendarsSyncAdapterService extends Service {
 
 			try {
 				Map<LocalCollection<?>, RemoteCollection<?>> map = new HashMap<LocalCollection<?>, RemoteCollection<?>>();
-				accountManager.invalidateAuthToken(Constants.ACCOUNT_TYPE, Constants.ACCOUNT_KEY_ACCESS_TOKEN);
-				AccountManagerFuture<Bundle> authBundle = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, null, null, null);
-				String accessToken = authBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
+				AccountSettings settings = new AccountSettings(getContext(), account);
+				String	userName = null,
+						password = null;
+				String accessToken = null;
+				if(accountManager.getUserData(account, Constants.ACCOUNT_SERVER).equals("Google")) {
+					AccountManagerFuture<Bundle> authBundle = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, null, null, null);
+					accessToken = authBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
+					accessToken = "Bearer " + accessToken;
+				}
+				if(accountManager.getUserData(account, Constants.ACCOUNT_SERVER).equals("Yahoo")) {
+					userName = settings.getUserName();
+					password = settings.getPassword();
+				}
 
 				for (LocalCalendar calendar : LocalCalendar.findAll(account, provider)) {
 
@@ -83,8 +93,13 @@ public class CalendarsSyncAdapterService extends Service {
 						uri = new URI(accountManager.getUserData(account, Constants.ACCOUNT_KEY_CALDAV_URL)).resolve(calendar.getUrl());
 					else
 						return null;
-
-					RemoteCollection<?> dav = new CalDavCalendar(httpClient, uri.toString(), accessToken);
+					RemoteCollection<?> dav = null;
+					if(accountManager.getUserData(account, Constants.ACCOUNT_SERVER).equals("Google")) {
+						dav = new CalDavCalendar(httpClient, uri.toString(), accessToken);
+					}
+					if(accountManager.getUserData(account, Constants.ACCOUNT_SERVER).equals("Yahoo")) {
+						dav = new CalDavCalendar(httpClient, uri.toString(), userName, password, true);
+					}
 					map.put(calendar, dav);
 				}
 				return map;
@@ -92,15 +107,12 @@ public class CalendarsSyncAdapterService extends Service {
 				Log.e(TAG, "Couldn't find local calendars", ex);
 			} catch (URISyntaxException ex) {
 				Log.e(TAG, "Couldn't build calendar URI", ex);
-			} catch (OperationCanceledException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (AuthenticatorException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (OperationCanceledException ex) {
+				Log.e(TAG, "OAuth canceled", ex);
+			} catch (AuthenticatorException ex) {
+				Log.e(TAG, "OAuth authentication error", ex);
+			} catch (IOException ex) {
+				Log.e(TAG, "OAuth failed, network error", ex);
 			}
 
 			return null;

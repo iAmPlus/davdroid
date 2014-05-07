@@ -20,6 +20,9 @@ import ch.boye.httpclientandroidlib.impl.client.CloseableHttpClient;
 import lombok.Getter;
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentResolver;
@@ -29,6 +32,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
+import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.resource.LocalCollection;
 import at.bitfire.davdroid.resource.LocalStorageException;
 import at.bitfire.davdroid.resource.RemoteCollection;
@@ -98,6 +102,20 @@ public abstract class DavSyncAdapter extends AbstractThreadedSyncAdapter impleme
 			} catch (HttpException ex) {
 				if (ex.getCode() == HttpStatus.SC_UNAUTHORIZED) {
 					Log.e(TAG, "HTTP Unauthorized " + ex.getCode(), ex);
+					try {
+						long expiry = Long.parseLong(accountManager.getUserData(account, "oauth_expires_in"));
+						if(expiry < (System.currentTimeMillis()/1000)) {
+							AccountManagerFuture<Bundle> authBundle = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, null, null, null);
+							String accessToken = authBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
+							accountManager.invalidateAuthToken(Constants.ACCOUNT_TYPE, accessToken);
+						}
+					} catch (OperationCanceledException e) {
+						Log.e(TAG, "OAuth canceled", e);
+					} catch (AuthenticatorException e) {
+						Log.e(TAG, "OAuth authentication error", e);
+					} catch (IOException e) {
+						Log.e(TAG, "OAuth failed, network error", e);
+					}
 					syncResult.stats.numAuthExceptions++;
 				} else if (ex.isClientError()) {
 					Log.e(TAG, "Hard HTTP error " + ex.getCode(), ex);

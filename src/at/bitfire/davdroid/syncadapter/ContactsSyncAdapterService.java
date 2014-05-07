@@ -72,6 +72,19 @@ public class ContactsSyncAdapterService extends Service {
 				return null;
 
 			try {
+				String	userName = null,
+						password = null;
+				String accessToken = null;
+				if(accountManager.getUserData(account, Constants.ACCOUNT_SERVER).equals("Google")) {
+					AccountManagerFuture<Bundle> authBundle = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, null, null, null);
+					accessToken = authBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
+					accessToken = "Bearer " + accessToken;
+				}
+				if(accountManager.getUserData(account, Constants.ACCOUNT_SERVER).equals("Yahoo")) {
+					userName = settings.getUserName();
+					password = settings.getPassword();
+				}
+
 				LocalCollection<?> database = new LocalAddressBook(account, provider, settings);
 
 				URI uri = null;
@@ -81,11 +94,14 @@ public class ContactsSyncAdapterService extends Service {
 					uri = new URI(accountManager.getUserData(account, Constants.ACCOUNT_KEY_CARDDAV_URL)).resolve(addressBookPath);
 				else
 					return null;
-				accountManager.invalidateAuthToken(Constants.ACCOUNT_TYPE, Constants.ACCOUNT_KEY_ACCESS_TOKEN);
-				AccountManagerFuture<Bundle> authBundle = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, null, null, null);
-				String accessToken = authBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
 
-				RemoteCollection<?> dav = new CardDavAddressBook(httpClient, uri.toString(), accessToken);
+				RemoteCollection<?> dav = null;
+				if(accountManager.getUserData(account, Constants.ACCOUNT_SERVER).equals("Google")) {
+					dav = new CardDavAddressBook(httpClient, uri.toString(), accessToken);
+				}
+				if(accountManager.getUserData(account, Constants.ACCOUNT_SERVER).equals("Yahoo")) {
+					dav = new CardDavAddressBook(httpClient, uri.toString(), userName, password, true);
+				}
 
 				Map<LocalCollection<?>, RemoteCollection<?>> map = new HashMap<LocalCollection<?>, RemoteCollection<?>>();
 				map.put(database, dav);
@@ -93,15 +109,12 @@ public class ContactsSyncAdapterService extends Service {
 				return map;
 			} catch (URISyntaxException ex) {
 				Log.e(TAG, "Couldn't build address book URI", ex);
-			} catch (OperationCanceledException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (AuthenticatorException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (OperationCanceledException ex) {
+				Log.e(TAG, "OAuth canceled", ex);
+			} catch (AuthenticatorException ex) {
+				Log.e(TAG, "OAuth authentication error", ex);
+			} catch (IOException ex) {
+				Log.e(TAG, "OAuth failed, network error", ex);
 			}
 
 			return null;

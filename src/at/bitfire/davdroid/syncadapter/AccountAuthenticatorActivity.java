@@ -32,6 +32,7 @@ import android.content.Context;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.CookieManager;
@@ -108,123 +109,146 @@ public class AccountAuthenticatorActivity extends Activity {
 			return null;
 		}
 
+		private void yahooOauth(String request_auth_url) {
+
+			initWebView();
+			browser.setWebViewClient(new WebViewClient() {
+				@Override
+				public boolean shouldOverrideUrlLoading(WebView webView, String url) {
+
+					/* This call inject JavaScript into the page which just finished loading. */
+					String auth_token = null;
+					String auth_verifier = null;
+					if(url.startsWith("http://localhost")) {
+						StringTokenizer st = new StringTokenizer (url.substring(url.indexOf("?")+1), "&");
+						while(st.hasMoreTokens()) {
+							String tmp = st.nextToken();
+							if(tmp.startsWith("oauth_token=")) {
+								auth_token = tmp.substring(tmp.indexOf("=")+1);
+							}
+							if(tmp.startsWith("oauth_verifier=")) {
+								auth_verifier = tmp.substring(tmp.indexOf("=")+1);
+							}
+						}
+
+						List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+						if(properties.getProperty("random_string") != null) {
+							nameValuePairs.add(
+									new BasicNameValuePair(properties.getProperty("random_string"), randomString(rnd.nextInt(32))));
+						}
+						if(properties.getProperty("timestamp_name") != null) {
+							nameValuePairs.add(
+									new BasicNameValuePair(properties.getProperty("timestamp_name"), "" + System.currentTimeMillis()));
+
+						}
+						if ((properties.getProperty("client_id_name") != null) && (properties.getProperty("client_id_value") != null)) {
+							nameValuePairs.add(
+									new BasicNameValuePair(properties.getProperty("client_id_name"), properties.getProperty("client_id_value")));
+							if ((properties.getProperty("signature_method_name") != null) && (properties.getProperty("signature_method_value") != null)) {
+								nameValuePairs.add(
+										new BasicNameValuePair(properties.getProperty("signature_method_name"), properties.getProperty("signature_method_value")));
+								if ((properties.getProperty("signature_name") != null)) {
+									nameValuePairs.add(
+											new BasicNameValuePair(properties.getProperty("signature_name"), properties.getProperty("client_secret_value") + "&" + token_secret));
+								}
+							}
+						}
+						nameValuePairs.add(
+								new BasicNameValuePair("oauth_version", properties.getProperty("oauth_version")));
+						nameValuePairs.add(new BasicNameValuePair("oauth_token", auth_token));
+						nameValuePairs.add(new BasicNameValuePair("oauth_verifier", auth_verifier));
+						new GetAuthCode(nameValuePairs).execute("token");
+						String html="<html><head></head><body> Please wait</body></html>";
+						browser.loadData(html, "text/html", "utf-8");
+					}
+					return super.shouldOverrideUrlLoading(webView, url);
+
+				}
+			});
+			browser.loadUrl(request_auth_url);
+		}
+
 		@SuppressLint("SetJavaScriptEnabled")
 		@Override
 		protected void onPostExecute(HttpResponse result) {
 			super.onPostExecute(result);
 			if(properties.getProperty("type") != null && properties.getProperty("type").equals("Yahoo")) {
-				Boolean complete = false;
+
+				Bundle userData = new Bundle();
+				String request_auth_url = null;
+				String user_name = null;
+				String oauth_token = null;
+				AccountManager mAccountManager = AccountManager.get(myApp.getApplicationContext());
 				StringTokenizer st = new StringTokenizer(data, "&");
 				while (st.hasMoreTokens()) {
 					StringTokenizer st2 = new StringTokenizer(st.nextToken(), "=");
 					if(st2.hasMoreTokens()) {
 						String key = st2.nextToken();
-						if(key.equals("xoauth_yahoo_guid")) {
-							complete = true;
-						}
 						if(st2.hasMoreTokens()) {
 							String value = st2.nextToken();
 							if( key.equals("oauth_token_secret") ) {
 								token_secret = value;
 							}
-							if(key.equals("oauth_token") || key.equals("oauth_token_secret") || key.equals("oauth_session_handle")) {
-								AccountManager mAccountManager = AccountManager.get(myApp.getApplicationContext());
-								Account []accounts = mAccountManager.getAccountsByType(Constants.ACCOUNT_TYPE);
-								Boolean found = false;
-								for (Account acc : accounts) {
-									if(acc.name.equals(account.name))
-										break;
-								}
-								if(!found) {
-									Bundle userData = new Bundle();
-									mAccountManager.addAccountExplicitly(account, "", userData);
-								}
-								if(key.equals("oauth_token"))
-									mAccountManager.setAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, value);
-								else
-									mAccountManager.setAuthToken(account, key, value);
+							if(key.equals("oauth_token")) {
+								oauth_token = value;
 							}
 							if(key.equals("xoauth_request_auth_url")) {
 								try {
-									String request_auth_url = URLDecoder.decode(value, "UTF-8");
-
-									initWebView();
-									browser.setWebViewClient(new WebViewClient() {
-										@Override
-										public void onPageFinished(WebView view, String url)
-										{
-											/* This call inject JavaScript into the page which just finished loading. */
-											String auth_token = null;
-											String auth_verifier = null;
-											if(url.startsWith("http://localhost")) {
-												StringTokenizer st = new StringTokenizer (url.substring(url.indexOf("?")+1), "&");
-												while(st.hasMoreTokens()) {
-													String tmp = st.nextToken();
-													if(tmp.startsWith("oauth_token=")) {
-														auth_token = tmp.substring(tmp.indexOf("=")+1);
-													}
-													if(tmp.startsWith("oauth_verifier=")) {
-														auth_verifier = tmp.substring(tmp.indexOf("=")+1);
-													}
-												}
-
-												List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-												if(properties.getProperty("random_string") != null) {
-													nameValuePairs.add(
-															new BasicNameValuePair(properties.getProperty("random_string"), randomString(rnd.nextInt(32))));
-												}
-												if(properties.getProperty("timestamp_name") != null) {
-													nameValuePairs.add(
-															new BasicNameValuePair(properties.getProperty("timestamp_name"), "" + System.currentTimeMillis()));
-
-												}
-												if ((properties.getProperty("client_id_name") != null) && (properties.getProperty("client_id_value") != null)) {
-													nameValuePairs.add(
-															new BasicNameValuePair(properties.getProperty("client_id_name"), properties.getProperty("client_id_value")));
-													if ((properties.getProperty("signature_method_name") != null) && (properties.getProperty("signature_method_value") != null)) {
-														nameValuePairs.add(
-																new BasicNameValuePair(properties.getProperty("signature_method_name"), properties.getProperty("signature_method_value")));
-														if ((properties.getProperty("signature_name") != null)) {
-															nameValuePairs.add(
-																	new BasicNameValuePair(properties.getProperty("signature_name"), properties.getProperty("client_secret_value") + "&" + token_secret));
-														}
-													}
-												}
-												nameValuePairs.add(
-														new BasicNameValuePair("oauth_version", properties.getProperty("oauth_version")));
-												nameValuePairs.add(new BasicNameValuePair("oauth_token", auth_token));
-												nameValuePairs.add(new BasicNameValuePair("oauth_verifier", auth_verifier));
-												new GetAuthCode(nameValuePairs).execute("token");
-												String html="<html><head></head><body> Please wait</body></html>";
-												browser.loadData(html, "text/html", "utf-8");
-											}
-											
-										}
-									});
-									browser.loadUrl(request_auth_url);
+									request_auth_url = URLDecoder.decode(value, "UTF-8");
 								} catch (UnsupportedEncodingException e) {
 									e.printStackTrace();
+									request_auth_url = null;
 								}
 							}
+							if(key.equals("xoauth_yahoo_guid")) {
+								user_name = value;
+							}
+							if(key.equals("oauth_expires_in")) {
+								long expiry = Long.parseLong(value);
+								expiry += System.currentTimeMillis();
+								value = (new Long(expiry)).toString();
+							}
+							userData.putString(key, value);
 						}
 					}
 				}
-				if (complete) {
-					setResult(RESULT_OK);
-					finish();
+
+				if(request_auth_url != null)
+					yahooOauth(request_auth_url);
+
+				if(user_name != null && oauth_token != null) {
+					if(mAccountManager.addAccountExplicitly(account, "", userData)) {
+						mAccountManager.setAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, oauth_token);
+						mAccountManager.setUserData(account, Constants.ACCOUNT_SERVER, properties.getProperty("type"));
+						mAccountManager.setUserData(account, properties.getProperty("client_id_name"), properties.getProperty("client_id_value"));
+						mAccountManager.setUserData(account, "oauth_consumer_secret", properties.getProperty("client_secret_value"));
+						mAccountManager.setUserData(account, "token_url", properties.getProperty("token_url"));
+						setResult(RESULT_OK);
+						finish();
+					} else {
+						setResult(RESULT_CANCELED);
+						Toast.makeText(getBaseContext(), "Couldn't add account", Toast.LENGTH_LONG).show();
+						finish();
+					}
 				}
+
 			}
 			if(properties.getProperty("type") != null && properties.getProperty("type").equals("Google")) {
 
 				JSONObject responseJson;
 				String authCode = null;
 				String refreshCode = null;
+				String expires_in = null;
 				try {
 					responseJson = new JSONObject(data);
-	
+
 					authCode = responseJson.getString("access_token");
 					refreshCode = responseJson.getString("refresh_token");
-	
+					expires_in = responseJson.getString("expires_in");
+					long expiry = Long.parseLong(expires_in);
+					expiry += System.currentTimeMillis();
+					expires_in = (new Long(expiry)).toString();
+
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -239,9 +263,16 @@ public class AccountAuthenticatorActivity extends Activity {
 						if(refreshCode != null) {
 							mAccountManager.setAuthToken(account, Constants.ACCOUNT_KEY_REFRESH_TOKEN, refreshCode);
 						}
-					}
+						mAccountManager.setUserData(account, "client_id", properties.getProperty("client_id_value"));
+						mAccountManager.setUserData(account, properties.getProperty("client_secret_name"), properties.getProperty("client_secret_value"));
+						mAccountManager.setUserData(account, "token_url", properties.getProperty("token_url"));
+						mAccountManager.setUserData(account, Constants.ACCOUNT_SERVER, properties.getProperty("type"));
+						if(expires_in != null)
+							mAccountManager.setUserData(account, "oauth_expires_in", expires_in);
+					} else
+						Toast.makeText(getBaseContext(), "Couldn't add account", Toast.LENGTH_LONG).show();
 				}
-	
+
 				finish();
 			}
 
@@ -374,7 +405,7 @@ public class AccountAuthenticatorActivity extends Activity {
 			browser.loadUrl( auth_url);
 		}
 	}
-	
+
 	@SuppressLint("SetJavaScriptEnabled")
 	public void initWebView() {
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
@@ -383,20 +414,19 @@ public class AccountAuthenticatorActivity extends Activity {
 		browser = (MyWebView) findViewById(R.id.browser_view);
 
 		//Make sure No cookies are created
-        CookieManager.getInstance().removeAllCookie();
+		CookieManager.getInstance().removeAllCookie();
 
-        //Make sure no caching is done
-        browser.getSettings().setCacheMode(browser.getSettings().LOAD_NO_CACHE);
-        browser.getSettings().setAppCacheEnabled(false);
-        browser.clearHistory();
-        browser.clearCache(true);
+		//Make sure no caching is done
+		browser.getSettings().setCacheMode(browser.getSettings().LOAD_NO_CACHE);
+		browser.getSettings().setAppCacheEnabled(false);
+		browser.clearHistory();
+		browser.clearCache(true);
 
-        //Make sure no autofill for Forms/ user-name password happens for the app
-        browser.clearFormData();
-        browser.getSettings().setSavePassword(false);
-        browser.getSettings().setSaveFormData(false);
+		//Make sure no autofill for Forms/ user-name password happens for the app
+		browser.clearFormData();
+		browser.getSettings().setSavePassword(false);
+		browser.getSettings().setSaveFormData(false);
 
-		browser.setWebViewClient(new WebViewClient());
 		browser.getSettings().setJavaScriptEnabled(true);
 		browser.getSettings().setLoadWithOverviewMode(true);
 		browser.getSettings().setBuiltInZoomControls(true);
@@ -414,7 +444,11 @@ public class AccountAuthenticatorActivity extends Activity {
 					}
 				}
 				else if(type == AwareSlidingLayout.NEGATIVE) {
-					onBackPressed();
+					if(browser.canGoBack()) {
+						browser.goBack();
+					} else {
+						onBackPressed();
+					}
 					if(mSlidingLayer != null){
 						mSlidingLayer.reset();
 					}

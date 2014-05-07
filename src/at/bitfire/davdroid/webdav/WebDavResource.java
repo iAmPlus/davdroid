@@ -168,7 +168,7 @@ public class WebDavResource {
 	public void options() throws IOException, HttpException {
 		HttpOptions options = new HttpOptions(location);
 		if(authBearer != null)
-			options.addHeader("Authorization", "Bearer " + authBearer);
+			options.addHeader("Authorization", authBearer);
 
 		CloseableHttpResponse response = httpClient.execute(options, context);
 		try {
@@ -278,7 +278,7 @@ public class WebDavResource {
 	public void propfind(HttpPropfind.Mode mode) throws IOException, DavException, HttpException, PermanentlyMovedException {
 		HttpPropfind propfind = new HttpPropfind(location, mode);
 		if(authBearer != null)
-			propfind.addHeader("Authorization", "Bearer " + authBearer);
+			propfind.addHeader("Authorization", authBearer);
 
 		CloseableHttpResponse response = httpClient.execute(propfind, context);
 		try {
@@ -338,7 +338,7 @@ public class WebDavResource {
 
 		HttpReport report = new HttpReport(location, writer.toString());
 		if(authBearer != null)
-			report.addHeader("Authorization", "Bearer " + authBearer);
+			report.addHeader("Authorization", authBearer);
 
 		CloseableHttpResponse response = httpClient.execute(report, context);
 		try {
@@ -370,7 +370,7 @@ public class WebDavResource {
 	public void get() throws IOException, HttpException, DavException {
 		HttpGet get = new HttpGet(location);
 		if(authBearer != null)
-			get.addHeader("Authorization", "Bearer " + authBearer);
+			get.addHeader("Authorization", authBearer);
 		CloseableHttpResponse response = httpClient.execute(get, context);
 		try {
 			checkResponse(response);
@@ -401,7 +401,7 @@ public class WebDavResource {
 		if (getContentType() != null)
 			put.addHeader("Content-Type", getContentType());
 		if(authBearer != null)
-			put.addHeader("Authorization", "Bearer " + authBearer);
+			put.addHeader("Authorization", authBearer);
 
 		CloseableHttpResponse response = httpClient.execute(put, context);
 		try {

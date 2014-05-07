@@ -21,7 +21,6 @@ public class MyWebView extends WebView {
 
 	@Override
 	public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
-		Log.v("sk", "In onCreateInputConnection");
 		InputConnection connection = super.onCreateInputConnection(outAttrs);
 
 		outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_ENTER_ACTION | EditorInfo.IME_FLAG_NO_EXTRACT_UI
