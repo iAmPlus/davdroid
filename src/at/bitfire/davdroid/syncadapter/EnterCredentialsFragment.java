@@ -62,7 +62,7 @@ public class EnterCredentialsFragment extends Fragment {
 						//String accountName = editAccountName.getText().toString();
 						serverInfo = new ServerInfo(account_server);
 						//serverInfo.setAccountName(accountName);
-						Intent intent = new Intent(getActivity(), AccountAuthenticatorActivity.class);
+						Intent intent = new Intent(getActivity(), AuthenticatorActivity.class);
 						intent.putExtra(Constants.KEY_SERVER_INFO, serverInfo);
 						startActivityForResult(intent, 0);
 					}

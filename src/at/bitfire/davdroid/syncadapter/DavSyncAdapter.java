@@ -87,50 +87,59 @@ public abstract class DavSyncAdapter extends AbstractThreadedSyncAdapter impleme
 
 		// set class loader for iCal4j ResourceLoader
 		Thread.currentThread().setContextClassLoader(getContext().getClassLoader());
+		Boolean retry = false;
+		String accessToken = null;
 
-		Map<LocalCollection<?>, RemoteCollection<?>> syncCollections = getSyncPairs(account, provider);
-		if (syncCollections == null)
-			Log.i(TAG, "Nothing to synchronize");
-		else
+		do {
 			try {
-				for (Map.Entry<LocalCollection<?>, RemoteCollection<?>> entry : syncCollections.entrySet())
-					new SyncManager(entry.getKey(), entry.getValue()).synchronize(extras.containsKey(ContentResolver.SYNC_EXTRAS_MANUAL), syncResult);
-
-			} catch (DavException ex) {
-				syncResult.stats.numParseExceptions++;
-				Log.e(TAG, "Invalid DAV response", ex);
-			} catch (HttpException ex) {
-				if (ex.getCode() == HttpStatus.SC_UNAUTHORIZED) {
-					Log.e(TAG, "HTTP Unauthorized " + ex.getCode(), ex);
-					try {
-						long expiry = Long.parseLong(accountManager.getUserData(account, "oauth_expires_in"));
-						if(expiry < (System.currentTimeMillis()/1000)) {
-							AccountManagerFuture<Bundle> authBundle = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, null, null, null);
-							String accessToken = authBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
-							accountManager.invalidateAuthToken(Constants.ACCOUNT_TYPE, accessToken);
-						}
-					} catch (OperationCanceledException e) {
-						Log.e(TAG, "OAuth canceled", e);
-					} catch (AuthenticatorException e) {
-						Log.e(TAG, "OAuth authentication error", e);
-					} catch (IOException e) {
-						Log.e(TAG, "OAuth failed, network error", e);
-					}
-					syncResult.stats.numAuthExceptions++;
-				} else if (ex.isClientError()) {
-					Log.e(TAG, "Hard HTTP error " + ex.getCode(), ex);
-					syncResult.stats.numParseExceptions++;
-				} else {
-					Log.w(TAG, "Soft HTTP error" + ex.getCode(), ex);
-					syncResult.stats.numIoExceptions++;
-				}
-
-			} catch (LocalStorageException ex) {
-				syncResult.databaseError = true;
-				Log.e(TAG, "Local storage (content provider) exception", ex);
-			} catch (IOException ex) {
-				syncResult.stats.numIoExceptions++;
-				Log.e(TAG, "I/O error", ex);
+				AccountManagerFuture<Bundle> authBundle = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, true, null, null);
+				accessToken = authBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
+			} catch (OperationCanceledException e) {
+				Log.e(TAG, "OAuth canceled", e);
+			} catch (AuthenticatorException e) {
+				Log.e(TAG, "OAuth authentication error", e);
+			} catch (IOException e) {
+				Log.e(TAG, "OAuth failed, network error", e);
 			}
+
+			Map<LocalCollection<?>, RemoteCollection<?>> syncCollections = getSyncPairs(account, provider);
+			if (syncCollections == null && accessToken != null)
+				Log.i(TAG, "Nothing to synchronize");
+			else
+				try {
+					for (Map.Entry<LocalCollection<?>, RemoteCollection<?>> entry : syncCollections.entrySet())
+						new SyncManager(entry.getKey(), entry.getValue()).synchronize(extras.containsKey(ContentResolver.SYNC_EXTRAS_MANUAL), syncResult);
+	
+				} catch (DavException ex) {
+					retry = false;
+					syncResult.stats.numParseExceptions++;
+					Log.e(TAG, "Invalid DAV response", ex);
+				} catch (HttpException ex) {
+					retry = false;
+					if (ex.getCode() == HttpStatus.SC_UNAUTHORIZED) {
+						Log.e(TAG, "HTTP Unauthorized " + ex.getCode(), ex);
+						if(accessToken != null) {
+							accountManager.invalidateAuthToken(Constants.ACCOUNT_TYPE, accessToken);
+							retry = true;
+						}
+						syncResult.stats.numAuthExceptions++;
+					} else if (ex.isClientError()) {
+						Log.e(TAG, "Hard HTTP error " + ex.getCode(), ex);
+						syncResult.stats.numParseExceptions++;
+					} else {
+						Log.w(TAG, "Soft HTTP error" + ex.getCode(), ex);
+						syncResult.stats.numIoExceptions++;
+					}
+	
+				} catch (LocalStorageException ex) {
+					retry = false;
+					syncResult.databaseError = true;
+					Log.e(TAG, "Local storage (content provider) exception", ex);
+				} catch (IOException ex) {
+					retry = false;
+					syncResult.stats.numIoExceptions++;
+					Log.e(TAG, "I/O error", ex);
+				}
+		} while(retry);
 	}
 }

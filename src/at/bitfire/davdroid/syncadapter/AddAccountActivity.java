@@ -10,14 +10,15 @@
  ******************************************************************************/
 package at.bitfire.davdroid.syncadapter;
 
-import android.accounts.AccountAuthenticatorResponse;
+import android.accounts.Account;
+import android.accounts.AccountAuthenticatorActivity;
 import android.accounts.AccountManager;
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 
-public class AddAccountActivity extends Activity {
+public class AddAccountActivity extends AccountAuthenticatorActivity {
 
 	public static final String ARG_ACCOUNT_TYPE = null;
 	public static final String ARG_AUTH_TYPE = null;
@@ -28,7 +29,12 @@ public class AddAccountActivity extends Activity {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.add_account);
-
+		
+		if(getIntent().hasExtra(Constants.ACCOUNT_KEY_ACCESS_TOKEN)) {
+			getFragmentManager().beginTransaction()
+			.add(R.id.fragment_container, new UserCredentialsFragment(), "enter_credentials")
+			.commit();
+		}
 		if (savedInstanceState == null) {	// first call
 			getFragmentManager().beginTransaction()
 				.add(R.id.fragment_container, new EnterCredentialsFragment(), "enter_credentials")
@@ -41,15 +47,6 @@ public class AddAccountActivity extends Activity {
 			Intent data) {
 
 		super.onActivityResult(requestCode, resultCode, data);
-	}
-	
-	@Override
-	public void finish() {
-		AccountAuthenticatorResponse response = getIntent().getParcelableExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
-		if (response != null) {
-			response.onError(AccountManager.ERROR_CODE_CANCELED, "canceled");
-		}
-		super.finish();
 	}
 
 }

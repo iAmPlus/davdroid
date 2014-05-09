@@ -100,7 +100,6 @@ public class WebDavResource {
 	private String authBearer = null;
 	private boolean needBearer = false;
 
-
 	public WebDavResource(CloseableHttpClient httpClient, URI baseURL, boolean trailingSlash) throws URISyntaxException {
 		this.httpClient = httpClient;
 		location = baseURL.normalize();

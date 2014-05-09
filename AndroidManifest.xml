@@ -70,7 +70,7 @@
             android:excludeFromRecents="true" >
         </activity>
         <activity
-            android:name=".syncadapter.AccountAuthenticatorActivity"
+            android:name=".syncadapter.AuthenticatorActivity"
             android:excludeFromRecents="true"
             android:noHistory="true" />
     </application>

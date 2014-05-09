@@ -15,20 +15,24 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import ch.boye.httpclientandroidlib.util.TextUtils;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.accounts.Account;
+import android.accounts.AccountAuthenticatorActivity;
 import android.accounts.AccountManager;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -41,13 +45,16 @@ import com.iamplus.aware.AwareSlidingLayout;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 
-public class AccountAuthenticatorActivity extends Activity {
+public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 
 	final Context myApp = this;
 	MyWebView browser;
-	Account account = null;
+	Account reauth_account = null;
 	Properties properties;
 	AwareSlidingLayout mSlidingLayer;
+	private String authCode;
+	private String refreshCode;
+	private String expires;
 
 	static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	static Random rnd = new Random();
@@ -75,6 +82,7 @@ public class AccountAuthenticatorActivity extends Activity {
 
 			HttpClient httpclient = new DefaultHttpClient();
 			HttpPost httppost = null;
+			HttpGet httpget = null;
 			if(properties.getProperty("type") != null && properties.getProperty("type").equals("Yahoo")) {
 				if(params[0] != "")
 					httppost = new HttpPost(properties.getProperty("token_url"));
@@ -82,13 +90,21 @@ public class AccountAuthenticatorActivity extends Activity {
 					httppost = new HttpPost(properties.getProperty("auth_url"));
 			} 
 			if(properties.getProperty("type") != null && properties.getProperty("type").equals("Google")) {
-				httppost = new HttpPost(properties.getProperty("token_url"));
+				if(params[0] != "") {
+					httpget = new HttpGet(properties.getProperty("get_email_url"));
+					httpget.addHeader("Authorization", "Bearer " + authCode);
+				} else
+					httppost = new HttpPost(properties.getProperty("token_url"));
 			}
-			HttpResponse response;
+			HttpResponse response = null;
 			try {
-				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+				if(httppost != null) {
+					httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+					response = httpclient.execute(httppost);
+				} else if(httpget != null) {
+					response = httpclient.execute(httpget);
+				}
 
-				response = httpclient.execute(httppost);
 				try {
 					data = new BasicResponseHandler().handleResponse(response);
 				} catch (HttpResponseException e) {
@@ -98,7 +114,6 @@ public class AccountAuthenticatorActivity extends Activity {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				return response;
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 			} catch (HttpResponseException e) {
@@ -106,7 +121,7 @@ public class AccountAuthenticatorActivity extends Activity {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			return null;
+			return response;
 		}
 
 		private void yahooOauth(String request_auth_url) {
@@ -217,6 +232,7 @@ public class AccountAuthenticatorActivity extends Activity {
 					yahooOauth(request_auth_url);
 
 				if(user_name != null && oauth_token != null) {
+					Account account = new Account(user_name, Constants.ACCOUNT_TYPE);
 					if(mAccountManager.addAccountExplicitly(account, "", userData)) {
 						mAccountManager.setAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, oauth_token);
 						mAccountManager.setUserData(account, Constants.ACCOUNT_SERVER, properties.getProperty("type"));
@@ -236,44 +252,72 @@ public class AccountAuthenticatorActivity extends Activity {
 			if(properties.getProperty("type") != null && properties.getProperty("type").equals("Google")) {
 
 				JSONObject responseJson;
-				String authCode = null;
+				/*String authCode = null;
 				String refreshCode = null;
-				String expires_in = null;
-				try {
-					responseJson = new JSONObject(data);
-
-					authCode = responseJson.getString("access_token");
-					refreshCode = responseJson.getString("refresh_token");
-					expires_in = responseJson.getString("expires_in");
-					long expiry = Long.parseLong(expires_in);
-					expiry += System.currentTimeMillis();
-					expires_in = (new Long(expiry)).toString();
-
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				String expires_in = null;*/
+				String email = null;
+				String tokenData = data;
+				StringTokenizer st = new StringTokenizer(tokenData, "&");
+				while(st.hasMoreTokens()) {
+					String token = st.nextToken();
+					if(token.startsWith("email")) {
+						email = token.substring(token.indexOf("=") + 1);
+					}
 				}
-				AccountManager mAccountManager = AccountManager.get(myApp.getApplicationContext());
-				setResult(RESULT_CANCELED);
-				if(authCode != null) {
-					Bundle userData = new Bundle();
-					if (mAccountManager.addAccountExplicitly(account, "", userData)) {
-						mAccountManager.setAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, authCode);
-						setResult(RESULT_OK);
-						if(refreshCode != null) {
-							mAccountManager.setAuthToken(account, Constants.ACCOUNT_KEY_REFRESH_TOKEN, refreshCode);
+
+				if( email == null) {
+					if(!TextUtils.isEmpty(data)) {
+						try {
+							responseJson = new JSONObject(data);
+		
+							authCode = responseJson.getString("access_token");
+							refreshCode = responseJson.getString("refresh_token");
+							expires = responseJson.getString("expires_in");
+							long expiry = Long.parseLong(expires);
+							expiry += (System.currentTimeMillis()/1000);
+							expires = Long.valueOf(expiry).toString();
+		
+						} catch (JSONException e) {
+							e.printStackTrace();
 						}
-						mAccountManager.setUserData(account, "client_id", properties.getProperty("client_id_value"));
-						mAccountManager.setUserData(account, properties.getProperty("client_secret_name"), properties.getProperty("client_secret_value"));
-						mAccountManager.setUserData(account, "token_url", properties.getProperty("token_url"));
-						mAccountManager.setUserData(account, Constants.ACCOUNT_SERVER, properties.getProperty("type"));
-						if(expires_in != null)
-							mAccountManager.setUserData(account, "oauth_expires_in", expires_in);
-					} else
-						Toast.makeText(getBaseContext(), "Couldn't add account", Toast.LENGTH_LONG).show();
+						new GetAuthCode(nameValuePairs).execute("get_email");
+					}
+				} else {
+					AccountManager mAccountManager = AccountManager.get(myApp.getApplicationContext());
+					setResult(RESULT_CANCELED);
+					if(authCode != null) {
+						Bundle userData = new Bundle();
+						if(reauth_account != null) {
+							mAccountManager.setAuthToken(reauth_account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, authCode);
+							if(refreshCode != null) {
+								mAccountManager.setAuthToken(reauth_account, Constants.ACCOUNT_KEY_REFRESH_TOKEN, refreshCode);
+								if(expires != null)
+									mAccountManager.setUserData(reauth_account, "oauth_expires_in", expires);
+							}
+						} else {
+							Account account = new Account(email, Constants.ACCOUNT_TYPE);
+							if (mAccountManager.addAccountExplicitly(account, "", userData)) {
+								mAccountManager.setAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, authCode);
+								Intent intent = new Intent();
+								intent.putExtra("account_name", email);
+								setResult(RESULT_OK, intent);
+								if(refreshCode != null) {
+									mAccountManager.setAuthToken(account, Constants.ACCOUNT_KEY_REFRESH_TOKEN, refreshCode);
+								}
+								mAccountManager.setUserData(account, "client_id", properties.getProperty("client_id_value"));
+								mAccountManager.setUserData(account, properties.getProperty("client_secret_name"), properties.getProperty("client_secret_value"));
+								mAccountManager.setUserData(account, "token_url", properties.getProperty("token_url"));
+								mAccountManager.setUserData(account, Constants.ACCOUNT_SERVER, properties.getProperty("type"));
+								if(expires != null)
+									mAccountManager.setUserData(account, "oauth_expires_in", expires);
+							} else {
+								Toast.makeText(getBaseContext(), "Couldn't add account", Toast.LENGTH_LONG).show();
+							}
+						}
+					}
+					finish();
 				}
 
-				finish();
 			}
 
 		}
@@ -286,13 +330,17 @@ public class AccountAuthenticatorActivity extends Activity {
 		AccountDeatilsReader reader = new AccountDeatilsReader(this);
 		Bundle bnd = getIntent().getExtras();
 		ServerInfo serverInfo = null;
-		String account_name;
-		String account_type;
-		if(bnd != null) {
+		//Check for re-authentication intent
+		if(getIntent().hasExtra(Constants.ACCOUNT_KEY_ACCESS_TOKEN)) {
+			AccountManager mgr = AccountManager.get(getApplicationContext());
+			Account []accounts = mgr.getAccountsByType(getIntent().getStringExtra(Constants.ACCOUNT_TYPE));
+			for (Account account: accounts) {
+				reauth_account = account;
+				if(reauth_account.name.equals(getIntent().getStringExtra(Constants.ACCOUNT_KEY_ACCOUNT_NAME)))
+					properties = reader.getProperties(mgr.getUserData(reauth_account, Constants.ACCOUNT_SERVER));
+			}
+		} else if(bnd != null) {
 			serverInfo = (ServerInfo) bnd.getSerializable(Constants.KEY_SERVER_INFO);
-			account_name = serverInfo.getAccountName();
-			account_type = Constants.ACCOUNT_TYPE;
-			account = new Account(account_name, account_type);
 			properties = reader.getProperties(serverInfo.getAccountServer());
 			setContentView(R.layout.authenticator);
 			mSlidingLayer = (AwareSlidingLayout)findViewById(R.id.slidinglayout);

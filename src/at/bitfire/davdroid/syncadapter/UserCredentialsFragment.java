@@ -102,27 +102,40 @@ public class UserCredentialsFragment extends Fragment implements TextWatcher {
 
 	void queryServer() {
 		FragmentTransaction ft = getFragmentManager().beginTransaction();
-		
+
+		AccountManager mAccountManager = AccountManager.get(getActivity().getApplicationContext());
+		Account reauth_account = null;
 		Bundle args = new Bundle();
+		if(getActivity().getIntent().hasExtra(Constants.ACCOUNT_KEY_ACCESS_TOKEN)) {
+			Account []accounts = mAccountManager.getAccountsByType(getActivity().getIntent().getStringExtra(Constants.ACCOUNT_TYPE));
+			for (Account account: accounts) {
+				reauth_account = account;
+			}
+		}
 		
 		serverInfo = new ServerInfo("Yahoo");
 		serverInfo.setAccountName(editUserName.getText().toString());
 		
-		AccountManager mAccountManager = AccountManager.get(getActivity().getApplicationContext());
-		Account account = new Account(editUserName.getText().toString(), Constants.ACCOUNT_TYPE);
-		Bundle userData = AccountSettings.createBundle(serverInfo);
-		args.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
+		if(reauth_account != null) {
+			mAccountManager.setPassword(reauth_account, editPassword.getText().toString());
+			getActivity().finish();
+		} else {
 
-		if (mAccountManager.addAccountExplicitly(account, editPassword.getText().toString(), userData)) {
-			mAccountManager.setUserData(account, "user_name", editUserName.getText().toString());
-			mAccountManager.setUserData(account, Constants.ACCOUNT_SERVER, "Yahoo");
-			// account created, now create calendars
-
-			DialogFragment dialog = new QueryServerDialogFragment();
-			dialog.setArguments(args);
-		    dialog.show(ft, QueryServerDialogFragment.class.getName());
-		} else
-			Toast.makeText(getActivity(), "Couldn't create account (account with this name already existing?)", Toast.LENGTH_LONG).show();
+			Account account = new Account(editUserName.getText().toString(), Constants.ACCOUNT_TYPE);
+			Bundle userData = AccountSettings.createBundle(serverInfo);
+			args.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
+	
+			if (mAccountManager.addAccountExplicitly(account, editPassword.getText().toString(), userData)) {
+				mAccountManager.setUserData(account, "user_name", editUserName.getText().toString());
+				mAccountManager.setUserData(account, Constants.ACCOUNT_SERVER, "Yahoo");
+				// account created, now create calendars
+	
+				DialogFragment dialog = new QueryServerDialogFragment();
+				dialog.setArguments(args);
+			    dialog.show(ft, QueryServerDialogFragment.class.getName());
+			} else
+				Toast.makeText(getActivity(), "Couldn't create account (account with this name already existing?)", Toast.LENGTH_LONG).show();
+		}
 	}
 
 	@Override
