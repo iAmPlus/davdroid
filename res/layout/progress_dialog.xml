@@ -1,23 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#ff000000" >
-    
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+    <LinearLayout
+        android:id="@+id/linearLayout1"
         android:layout_width="45dp"
         android:layout_height="45dp"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true" >
 
         <at.bitfire.davdroid.activity.iamwatch.ProcessingView
-
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true" />
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
     </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:text="@string/querying_server" />
 
 </RelativeLayout>

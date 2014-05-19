@@ -16,19 +16,14 @@ import android.os.Bundle;
 import android.provider.CalendarContract;
 import android.provider.CalendarContract.Calendars;
 import android.util.Log;
+import at.bitfire.davdroid.Constants;
 
 public class AccountSettings {
 	private final static String TAG = "davdroid.AccountSettings";
 	
 	private final static int CURRENT_VERSION = 1;
 	private final static String
-		KEY_SETTINGS_VERSION = "version",
-		
-		KEY_USERNAME = "user_name",
-		KEY_AUTH_PREEMPTIVE = "auth_preemptive",
-		
-		KEY_ADDRESSBOOK_URL = "addressbook_url",
-		KEY_ADDRESSBOOK_CTAG = "addressbook_ctag";
+		KEY_SETTINGS_VERSION = "version";
 	
 	Context context;
 	AccountManager accountManager;
@@ -56,11 +51,21 @@ public class AccountSettings {
 	public static Bundle createBundle(ServerInfo serverInfo) {
 		Bundle bundle = new Bundle();
 		bundle.putString(KEY_SETTINGS_VERSION, String.valueOf(CURRENT_VERSION));
-		/*bundle.putString(KEY_USERNAME, serverInfo.getUserName());
-		bundle.putString(KEY_AUTH_PREEMPTIVE, Boolean.toString(serverInfo.isAuthPreemptive()));*/
+		if(serverInfo.getUserName() != null)
+			bundle.putString(Constants.ACCOUNT_KEY_USERNAME, serverInfo.getUserName());
+		bundle.putString(Constants.ACCOUNT_KEY_AUTH_PREEMPTIVE, Boolean.toString(serverInfo.isAuthPreemptive()));
+		if(serverInfo.getAccountServer() != null) {
+			bundle.putString(Constants.ACCOUNT_SERVER, serverInfo.getAccountServer());
+		}
+		if(serverInfo.getBaseURL() != null)
+			bundle.putString(Constants.ACCOUNT_KEY_BASE_URL, serverInfo.getBaseURL());
+		if(serverInfo.getCarddavURL() != null)
+			bundle.putString(Constants.ACCOUNT_KEY_CARDDAV_URL, serverInfo.getCarddavURL());
+		if(serverInfo.getCaldavURL() != null)
+			bundle.putString(Constants.ACCOUNT_KEY_CALDAV_URL, serverInfo.getCaldavURL());
 		for (ServerInfo.ResourceInfo addressBook : serverInfo.getAddressBooks())
 			if (addressBook.isEnabled()) {
-				bundle.putString(KEY_ADDRESSBOOK_URL, addressBook.getURL());
+				bundle.putString(Constants.ACCOUNT_KEY_ADDRESSBOOK_PATH, addressBook.getURL());
 				continue;
 			}
 		return bundle;
@@ -70,7 +75,7 @@ public class AccountSettings {
 	// general settings
 	
 	public String getUserName() {
-		return accountManager.getUserData(account, KEY_USERNAME);		
+		return accountManager.getUserData(account, Constants.ACCOUNT_KEY_USERNAME);		
 	}
 	
 	public String getPassword() {
@@ -78,22 +83,22 @@ public class AccountSettings {
 	}
 	
 	public boolean getPreemptiveAuth() {
-		return Boolean.parseBoolean(accountManager.getUserData(account, KEY_AUTH_PREEMPTIVE));
+		return Boolean.parseBoolean(accountManager.getUserData(account, Constants.ACCOUNT_KEY_AUTH_PREEMPTIVE));
 	}
 	
 	
 	// address book (CardDAV) settings
 	
 	public String getAddressBookURL() {
-		return accountManager.getUserData(account, KEY_ADDRESSBOOK_URL);
+		return accountManager.getUserData(account, Constants.ACCOUNT_KEY_ADDRESSBOOK_PATH);
 	}
 	
 	public String getAddressBookCTag() {
-		return accountManager.getUserData(account, KEY_ADDRESSBOOK_CTAG);
+		return accountManager.getUserData(account, Constants.ACCOUNT_KEY_ADDRESSBOOK_CTAG);
 	}
 	
 	public void setAddressBookCTag(String cTag) {
-		accountManager.setUserData(account, KEY_ADDRESSBOOK_CTAG, cTag);
+		accountManager.setUserData(account, Constants.ACCOUNT_KEY_ADDRESSBOOK_CTAG, cTag);
 	}
 	
 	
@@ -109,7 +114,8 @@ public class AccountSettings {
 		Log.i(TAG, "Updating account settings from v" + fromVersion + " to " + toVersion);
 		try {
 			if (fromVersion == 0 && toVersion == 1)
-				update_0_1();
+				accountManager.setUserData(account, KEY_SETTINGS_VERSION, "1");
+				//update_0_1();
 			else
 				Log.wtf(TAG, "Don't know how to update settings from v" + fromVersion + " to v" + toVersion);
 		} catch(Exception e) {
@@ -118,7 +124,7 @@ public class AccountSettings {
 	}
 	
 	private void update_0_1() throws URISyntaxException {
-		/*String	v0_principalURL = accountManager.getUserData(account, "principal_url"),
+		String	v0_principalURL = accountManager.getUserData(account, "principal_url"),
 				v0_addressBookPath = accountManager.getUserData(account, "addressbook_path");
 		Log.d(TAG, "Old principal URL = " + v0_principalURL);
 		Log.d(TAG, "Old address book path = " + v0_addressBookPath);
@@ -156,7 +162,7 @@ public class AccountSettings {
 		
 		Log.d(TAG, "Cleaning old principal URL and address book path");
 		accountManager.setUserData(account, "principal_url", null);
-		accountManager.setUserData(account, "addressbook_path", null);*/
+		accountManager.setUserData(account, "addressbook_path", null);
 		
 		Log.d(TAG, "Updated settings successfully!");
 		accountManager.setUserData(account, KEY_SETTINGS_VERSION, "1");

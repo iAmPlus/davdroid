@@ -42,7 +42,7 @@ public abstract class RemoteCollection<T extends Resource> {
 	abstract protected String memberContentType();
 	abstract protected DavMultiget.Type multiGetType();
 	abstract protected T newResourceSkeleton(String name, String ETag);
-	
+
 	public RemoteCollection(CloseableHttpClient httpClient, String baseURL, String user, String password, boolean preemptiveAuth) throws URISyntaxException {
 		this.httpClient = httpClient;
 
@@ -62,7 +62,6 @@ public abstract class RemoteCollection<T extends Resource> {
 		} catch (DavException e) {
 			return null;
 		} catch (PermanentlyMovedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return collection.getCTag();
@@ -72,7 +71,6 @@ public abstract class RemoteCollection<T extends Resource> {
 		try {
 			collection.propfind(HttpPropfind.Mode.MEMBERS_ETAG);
 		} catch (PermanentlyMovedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

@@ -15,6 +15,7 @@ public class DavException extends Exception {
 
 	final private static String prefix = "Invalid DAV response: ";
 
+	/* used to indiciate DAV protocol errors */
 
 	public DavException(String message) {
 		super(prefix + message);

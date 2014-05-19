@@ -109,14 +109,14 @@ public class Event extends Resource {
 
 
 	@Override
-	public void generateUID() {
-		UidGenerator generator = new UidGenerator(new SimpleHostInfo(DavSyncAdapter.getAndroidID()), String.valueOf(android.os.Process.myPid()));
-		uid = generator.generateUid().getValue();
+	public void initialize() {
+		generateUID();
+		name = uid.replace("@", "_") + ".ics";
 	}
 
-	@Override
-	public void generateName() {
-		name = uid.replace("@", "_") + ".ics";
+	protected void generateUID() {
+		UidGenerator generator = new UidGenerator(new SimpleHostInfo(DavSyncAdapter.getAndroidID()), String.valueOf(android.os.Process.myPid()));
+		uid = generator.generateUid().getValue();
 	}
 
 
@@ -272,7 +272,7 @@ public class Event extends Resource {
 
 
 	public long getDtStartInMillis() {
-		return (dtStart != null && dtStart.getDate() != null) ? dtStart.getDate().getTime() : 0;
+		return dtStart.getDate().getTime();
 	}
 
 	public String getDtStartTzID() {

@@ -85,8 +85,7 @@ public abstract class LocalCollection<T extends Resource> {
 
 				// new record: generate UID + remote file name so that we can upload
 				T resource = findById(id, false);
-				resource.generateUID();
-				resource.generateName();
+				resource.initialize();
 				// write generated UID + remote file name into database
 				ContentValues values = new ContentValues(2);
 				values.put(entryColumnUID(), resource.getUid());

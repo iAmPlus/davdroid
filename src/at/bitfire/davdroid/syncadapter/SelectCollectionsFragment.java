@@ -10,114 +10,111 @@
  ******************************************************************************/
 package at.bitfire.davdroid.syncadapter;
 
-import android.accounts.Account;
-import android.accounts.AccountAuthenticatorResponse;
-import android.accounts.AccountManager;
-import android.app.Fragment;
-import android.content.ContentResolver;
-import android.content.Intent;
+import android.app.ListFragment;
 import android.os.Bundle;
-import android.os.RemoteException;
-import android.provider.CalendarContract;
-import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Button;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import com.iamplus.aware.AwareSlidingLayout;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
-import at.bitfire.davdroid.resource.LocalCalendar;
 
-public class SelectCollectionsFragment extends Fragment {
+public class SelectCollectionsFragment extends ListFragment {
 
 	AwareSlidingLayout mSlidingLayer;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		
 		View v = inflater.inflate(R.layout.select_collections, container, false);
-		mSlidingLayer = (AwareSlidingLayout)v.findViewById(R.id.slidinglayout);
-		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
-			@Override
-			public void onAction(int type){
-				if(type == AwareSlidingLayout.POSITIVE) {
-					Intent intent = getActivity().getIntent();
-					AccountAuthenticatorResponse response = intent.getParcelableExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
-					if (response != null) {
-						response.onResult(null);
-					}
-					intent.removeExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
-
-					getActivity().setIntent(intent);
-					getActivity().finish();
-				}
-			}
-		});
+		//super.onCreateView(inflater, container, savedInstanceState);
 		return v;
 	}
 
 	@Override
 	public void onDestroyView() {
 		super.onDestroyView();
+		setListAdapter(null);
 	}
 
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
+		
+		final ListView listView = getListView();
+				//(ListView)view.findViewById(R.id.collections_list);
 
+		listView.setPadding(20, 30, 20, 30);
 
-		ServerInfo serverInfo = (ServerInfo)getArguments().getSerializable(Constants.KEY_SERVER_INFO);
+		//mSlidingLayer = (AwareSlidingLayout)inflater.inflate(R.layout.reset_layout, container, false);
+		//mSlidingLayer = new AwareSlidingLayout(getActivity());
+		mSlidingLayer = (AwareSlidingLayout)view.findViewById(R.id.slidinglayout);
+		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
+			@Override
+			public void onAction(int type){
+				if(type == AwareSlidingLayout.POSITIVE) {
+					onDone();
+				} else if(type == AwareSlidingLayout.NEGATIVE) {
+					getActivity().onBackPressed();
+				}
+			}
+		});
 
-		// synchronize only selected collections
-		for (ServerInfo.ResourceInfo addressBook : serverInfo.getAddressBooks())
-			addressBook.setEnabled(true);
-		for (ServerInfo.ResourceInfo calendar : serverInfo.getCalendars())
-			calendar.setEnabled(true);
+		final ServerInfo serverInfo = (ServerInfo)getArguments().getSerializable(Constants.KEY_SERVER_INFO);
+		final SelectCollectionsAdapter adapter = new SelectCollectionsAdapter(view.getContext(), serverInfo);
+		setListAdapter(adapter);
+		
+		listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+		listView.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				int itemPosition = position - 1;	// one list header view at pos. 0
+				if (adapter.getItemViewType(itemPosition) == SelectCollectionsAdapter.TYPE_ADDRESS_BOOKS_ROW) {
 
-		try {
-			AccountManager accountManager = AccountManager.get(getActivity().getApplicationContext());
-			Account account = new Account(serverInfo.getAccountName(), Constants.ACCOUNT_TYPE);
-			if(serverInfo.getBaseURL() != null)
-				accountManager.setUserData(account, Constants.ACCOUNT_KEY_BASE_URL, serverInfo.getBaseURL());
-
-			if(serverInfo.getCaldavURL() != null)
-				accountManager.setUserData(account, Constants.ACCOUNT_KEY_CALDAV_URL, serverInfo.getCaldavURL());
-
-			if(serverInfo.getCarddavURL() != null)
-				accountManager.setUserData(account, Constants.ACCOUNT_KEY_CARDDAV_URL, serverInfo.getCarddavURL());
-
-			boolean syncContacts = false;
+					//((ServerInfo.ResourceInfo)adapter.getItem(itemPosition)).setEnabled(true);
+					// unselect all other address books
+					for (int pos = 1; pos <= adapter.getNAddressBooks(); pos++)
+						if (pos != itemPosition) {
+							listView.setItemChecked(pos + 1, false);
+						}
+				}
+			}
+		});
+	}
+	
+	void onDone() {
+			ServerInfo serverInfo = (ServerInfo)getArguments().getSerializable(Constants.KEY_SERVER_INFO);
+			
+			// synchronize only selected collections
 			for (ServerInfo.ResourceInfo addressBook : serverInfo.getAddressBooks())
-				if (addressBook.isEnabled()) {
-					accountManager.setUserData(account, Constants.ACCOUNT_KEY_ADDRESSBOOK_PATH, addressBook.getURL());
-					ContentResolver.setIsSyncable(account, ContactsContract.AUTHORITY, 1);
-					syncContacts = true;
-					continue;
-				}
-			if (syncContacts) {
-				ContentResolver.setIsSyncable(account, ContactsContract.AUTHORITY, 1);
-				ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true);
-			} else
-				ContentResolver.setIsSyncable(account, ContactsContract.AUTHORITY, 0);
-
-			boolean syncCalendars = false;
+				addressBook.setEnabled(false);
 			for (ServerInfo.ResourceInfo calendar : serverInfo.getCalendars())
-				if (calendar.isEnabled()) {
-					LocalCalendar.create(account, getActivity().getContentResolver(), calendar);
-					syncCalendars = true;
-				}
-			if (syncCalendars) {
-				ContentResolver.setIsSyncable(account, CalendarContract.AUTHORITY, 1);
-				ContentResolver.setSyncAutomatically(account, CalendarContract.AUTHORITY, true);
-			} else
-				ContentResolver.setIsSyncable(account, CalendarContract.AUTHORITY, 0);
-
-
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		}
-
-
+				calendar.setEnabled(false);
+			
+			ListAdapter adapter = getListView().getAdapter();
+			for (long id : getListView().getCheckedItemIds()) {
+				int position = (int)id;		// +1 because header view is inserted at pos. 0 
+				ServerInfo.ResourceInfo info = (ServerInfo.ResourceInfo)adapter.getItem(position);
+				info.setEnabled(true);
+			}
+			
+			// pass to "account details" fragment
+			AccountDetailsFragment accountDetails = new AccountDetailsFragment();
+			Bundle arguments = new Bundle();
+			arguments.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
+			if(getArguments().getBundle(Constants.ACCOUNT_BUNDLE) != null) {
+				arguments.putBundle(Constants.ACCOUNT_BUNDLE, getArguments().getBundle(Constants.ACCOUNT_BUNDLE));
+			}
+			accountDetails.setArguments(arguments);
+			
+			getFragmentManager().beginTransaction()
+				.replace(R.id.fragment_container, accountDetails)
+				.addToBackStack(null)
+				.commitAllowingStateLoss();
 	}
 
 }

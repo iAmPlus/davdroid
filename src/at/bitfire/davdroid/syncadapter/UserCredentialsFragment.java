@@ -13,49 +13,100 @@ package at.bitfire.davdroid.syncadapter;
 import ch.boye.httpclientandroidlib.util.TextUtils;
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.app.Activity;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.text.InputType;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
+import android.widget.CheckBox;
 import com.iamplus.aware.AwareSlidingLayout;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
+import at.bitfire.davdroid.URIUtils;
 
-public class UserCredentialsFragment extends Fragment implements TextWatcher {
+public class UserCredentialsFragment extends Fragment {
+	String protocol;
 	
+	EditText editBaseURL, editUserName, editPassword;
+	CheckBox checkboxPreemptive;
+
+	AwareSlidingLayout mSlidingLayer = null;
+	
+	//EditText editUserName, editPassword;
+	ServerInfo serverInfo;
+	Account reauth_account = null;
 	@Override
 	public void onResume() {
 		super.onResume();
 		if(mSlidingLayer != null)
 			mSlidingLayer.reset();
 	}
-
-	AwareSlidingLayout mSlidingLayer = null;
-	
-	EditText editUserName, editPassword;
-	ServerInfo serverInfo;
 	
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View v = inflater.inflate(R.layout.user_details, container, false);
+
+		final AccountManager mgr = AccountManager.get(getActivity().getApplicationContext());
+
+		if(getActivity().getIntent().hasExtra(Constants.ACCOUNT_KEY_ACCESS_TOKEN)) {
+			reauth_account = getActivity().getIntent().getParcelableExtra(Constants.ACCOUNT_PARCEL);
+			serverInfo = new ServerInfo(mgr.getUserData(reauth_account, Constants.ACCOUNT_SERVER));
+		} else
+			serverInfo = (ServerInfo)getArguments().getSerializable(Constants.KEY_SERVER_INFO);
+
+		if(serverInfo.getAccountServer().equals("Google")) {
+			Intent intent = new Intent(getActivity(), AuthenticatorActivity.class);
+			intent.putExtra(Constants.KEY_SERVER_INFO, serverInfo);
+			if(reauth_account != null)
+				intent.putExtra(Constants.ACCOUNT_PARCEL, reauth_account);
+			startActivityForResult(intent, 0);
+			return v;
+		}
+		Spinner spnrProtocol = (Spinner) v.findViewById(R.id.select_protocol);
+		editBaseURL = (EditText) v.findViewById(R.id.baseURL);
+		checkboxPreemptive = (CheckBox) v.findViewById(R.id.auth_preemptive);
+		if(!serverInfo.getAccountServer().equals("Other")) {
+			editBaseURL.setVisibility(View.GONE);
+			checkboxPreemptive.setVisibility(View.GONE);
+			spnrProtocol.setVisibility(View.GONE);
+		} else {
+			spnrProtocol.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+				@Override
+				public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+					protocol = parent.getAdapter().getItem(position).toString();
+				}
+
+				@Override
+				public void onNothingSelected(AdapterView<?> parent) {
+					protocol = null;
+				}
+			});
+			spnrProtocol.setSelection(1);	// HTTPS
+			if(reauth_account != null) {
+				editBaseURL.setText(mgr.getUserData(reauth_account, Constants.ACCOUNT_KEY_BASE_URL));
+				editBaseURL.setInputType(InputType.TYPE_NULL);
+			}
+		}
 		
 		editUserName = (EditText) v.findViewById(R.id.user_name);
-		editUserName.addTextChangedListener(this);
+		if(reauth_account != null) {
+			editUserName.setText(reauth_account.name);
+			editUserName.setInputType(InputType.TYPE_NULL);
+		}
 		
 		editPassword = (EditText) v.findViewById(R.id.password);
-		editPassword.addTextChangedListener(this);
 		editPassword.setImeOptions(EditorInfo.IME_ACTION_DONE);
 		editPassword.setOnEditorActionListener(
 				new TextView.OnEditorActionListener () {
@@ -67,7 +118,11 @@ public class UserCredentialsFragment extends Fragment implements TextWatcher {
 					|| event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
 						if(!TextUtils.isEmpty(editUserName.getText().toString()) 
 								&& !TextUtils.isEmpty(editPassword.getText().toString()))
-							queryServer();
+							if(reauth_account != null) {
+								mgr.setPassword(reauth_account, editPassword.getText().toString());
+								getActivity().finish();
+							} else
+								queryServer();
 						return true;
 					}
 					return false;
@@ -101,53 +156,49 @@ public class UserCredentialsFragment extends Fragment implements TextWatcher {
 	}
 
 	void queryServer() {
-		FragmentTransaction ft = getFragmentManager().beginTransaction();
-
-		AccountManager mAccountManager = AccountManager.get(getActivity().getApplicationContext());
-		Account reauth_account = null;
-		Bundle args = new Bundle();
-		if(getActivity().getIntent().hasExtra(Constants.ACCOUNT_KEY_ACCESS_TOKEN)) {
-			Account []accounts = mAccountManager.getAccountsByType(getActivity().getIntent().getStringExtra(Constants.ACCOUNT_TYPE));
-			for (Account account: accounts) {
-				reauth_account = account;
-			}
-		}
-		
-		serverInfo = new ServerInfo("Yahoo");
-		serverInfo.setAccountName(editUserName.getText().toString());
-		
-		if(reauth_account != null) {
-			mAccountManager.setPassword(reauth_account, editPassword.getText().toString());
-			getActivity().finish();
-		} else {
-
-			Account account = new Account(editUserName.getText().toString(), Constants.ACCOUNT_TYPE);
-			Bundle userData = AccountSettings.createBundle(serverInfo);
+			Bundle args = new Bundle();
+			String host_path = editBaseURL.getText().toString();
+			args.putString(Constants.ACCOUNT_KEY_BASE_URL, URIUtils.sanitize(protocol + host_path));
+			serverInfo.setAccountName(editUserName.getText().toString());
+			serverInfo.setUserName(editUserName.getText().toString());
+			serverInfo.setPassword(editPassword.getText().toString());
 			args.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
-	
-			if (mAccountManager.addAccountExplicitly(account, editPassword.getText().toString(), userData)) {
-				mAccountManager.setUserData(account, "user_name", editUserName.getText().toString());
-				mAccountManager.setUserData(account, Constants.ACCOUNT_SERVER, "Yahoo");
-				// account created, now create calendars
-	
-				DialogFragment dialog = new QueryServerDialogFragment();
-				dialog.setArguments(args);
-			    dialog.show(ft, QueryServerDialogFragment.class.getName());
-			} else
-				Toast.makeText(getActivity(), "Couldn't create account (account with this name already existing?)", Toast.LENGTH_LONG).show();
+
+			nextTransaction(args);
+	}
+
+	public void onActivityResult(int requestCode, int resultCode,
+			Intent data) {
+		if(reauth_account != null) {
+			AccountManager accountManager = AccountManager.get(getActivity());
+			Bundle reauth_bundle = data.getBundleExtra(Constants.ACCOUNT_BUNDLE);
+			if(reauth_bundle.containsKey(Constants.ACCOUNT_KEY_ACCESS_TOKEN)) {
+				accountManager.setAuthToken(reauth_account, Constants.ACCOUNT_KEY_ACCESS_TOKEN,
+						reauth_bundle.getString(Constants.ACCOUNT_KEY_ACCESS_TOKEN));
+			}
+			if(reauth_bundle.containsKey(Constants.ACCOUNT_KEY_REFRESH_TOKEN)) {
+				accountManager.setAuthToken(reauth_account, Constants.ACCOUNT_KEY_REFRESH_TOKEN,
+						reauth_bundle.getString(Constants.ACCOUNT_KEY_REFRESH_TOKEN));
+			}
+			if(reauth_bundle.containsKey("oauth_expires_in")) {
+				accountManager.setUserData(reauth_account, "oauth_expires_in",
+						reauth_bundle.getString("oauth_expires_in"));
+			}
+			getActivity().finish();
+		}
+		if (resultCode == Activity.RESULT_OK) {
+			Bundle arguments = new Bundle();
+			serverInfo.setAccountName(data.getStringExtra("account_name"));
+			arguments.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
+			arguments.putBundle(Constants.ACCOUNT_BUNDLE, data.getBundleExtra(Constants.ACCOUNT_BUNDLE));
+			nextTransaction(arguments);
 		}
 	}
-
-	@Override
-	public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-	}
-
-	@Override
-	public void onTextChanged(CharSequence s, int start, int before, int count) {
-		getActivity().invalidateOptionsMenu();
-	}
-
-	@Override
-	public void afterTextChanged(Editable s) {
+	
+	void nextTransaction(Bundle arguments) {
+		FragmentTransaction ft = getFragmentManager().beginTransaction();
+		DialogFragment dialog = new QueryServerDialogFragment();
+		dialog.setArguments(arguments);
+		dialog.show(ft, QueryServerDialogFragment.class.getName());
 	}
 }

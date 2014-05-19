@@ -98,7 +98,6 @@ public class WebDavResource {
 	protected CloseableHttpClient httpClient;
 	protected HttpClientContext context;
 	private String authBearer = null;
-	private boolean needBearer = false;
 
 	public WebDavResource(CloseableHttpClient httpClient, URI baseURL, boolean trailingSlash) throws URISyntaxException {
 		this.httpClient = httpClient;
@@ -154,7 +153,6 @@ public class WebDavResource {
 		properties.put(Property.ETAG, ETag);
 		authBearer = parent.authBearer;
 	}
-
 
 	/* feature detection */
 

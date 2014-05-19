@@ -36,10 +36,11 @@ import android.content.Intent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Toast;
+import android.widget.ZoomControls;
+import android.webkit.CookieManager;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.webkit.CookieManager;
 
 import com.iamplus.aware.AwareSlidingLayout;
 import at.bitfire.davdroid.Constants;
@@ -47,6 +48,7 @@ import at.bitfire.davdroid.R;
 
 public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 
+	//private static final String TAG = "AccountAuthenticatorActivity";
 	final Context myApp = this;
 	MyWebView browser;
 	Account reauth_account = null;
@@ -108,10 +110,8 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 				try {
 					data = new BasicResponseHandler().handleResponse(response);
 				} catch (HttpResponseException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			} catch (UnsupportedEncodingException e) {
@@ -193,7 +193,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 				String request_auth_url = null;
 				String user_name = null;
 				String oauth_token = null;
-				AccountManager mAccountManager = AccountManager.get(myApp.getApplicationContext());
 				StringTokenizer st = new StringTokenizer(data, "&");
 				while (st.hasMoreTokens()) {
 					StringTokenizer st2 = new StringTokenizer(st.nextToken(), "=");
@@ -220,8 +219,8 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 							}
 							if(key.equals("oauth_expires_in")) {
 								long expiry = Long.parseLong(value);
-								expiry += System.currentTimeMillis();
-								value = (new Long(expiry)).toString();
+								expiry += (System.currentTimeMillis()/1000);
+								value = Long.valueOf(expiry).toString();
 							}
 							userData.putString(key, value);
 						}
@@ -232,29 +231,22 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 					yahooOauth(request_auth_url);
 
 				if(user_name != null && oauth_token != null) {
-					Account account = new Account(user_name, Constants.ACCOUNT_TYPE);
-					if(mAccountManager.addAccountExplicitly(account, "", userData)) {
-						mAccountManager.setAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, oauth_token);
-						mAccountManager.setUserData(account, Constants.ACCOUNT_SERVER, properties.getProperty("type"));
-						mAccountManager.setUserData(account, properties.getProperty("client_id_name"), properties.getProperty("client_id_value"));
-						mAccountManager.setUserData(account, "oauth_consumer_secret", properties.getProperty("client_secret_value"));
-						mAccountManager.setUserData(account, "token_url", properties.getProperty("token_url"));
-						setResult(RESULT_OK);
-						finish();
-					} else {
-						setResult(RESULT_CANCELED);
-						Toast.makeText(getBaseContext(), "Couldn't add account", Toast.LENGTH_LONG).show();
-						finish();
-					}
+					userData.putString(Constants.ACCOUNT_KEY_ACCESS_TOKEN, oauth_token);
+					userData.putString(Constants.ACCOUNT_SERVER, properties.getProperty("type"));
+					userData.putString(properties.getProperty("client_id_name"), properties.getProperty("client_id_value"));
+					userData.putString("oauth_consumer_secret", properties.getProperty("client_secret_value"));
+					userData.putString("token_url", properties.getProperty("token_url"));
+					Intent intent = new Intent();
+					intent.putExtra("account_name", user_name);
+					intent.putExtra(Constants.ACCOUNT_BUNDLE, userData);
+					setResult(RESULT_OK, intent);
+					finish();
 				}
 
 			}
 			if(properties.getProperty("type") != null && properties.getProperty("type").equals("Google")) {
 
 				JSONObject responseJson;
-				/*String authCode = null;
-				String refreshCode = null;
-				String expires_in = null;*/
 				String email = null;
 				String tokenData = data;
 				StringTokenizer st = new StringTokenizer(tokenData, "&");
@@ -286,7 +278,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 					AccountManager mAccountManager = AccountManager.get(myApp.getApplicationContext());
 					setResult(RESULT_CANCELED);
 					if(authCode != null) {
-						Bundle userData = new Bundle();
 						if(reauth_account != null) {
 							mAccountManager.setAuthToken(reauth_account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, authCode);
 							if(refreshCode != null) {
@@ -295,24 +286,23 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 									mAccountManager.setUserData(reauth_account, "oauth_expires_in", expires);
 							}
 						} else {
-							Account account = new Account(email, Constants.ACCOUNT_TYPE);
-							if (mAccountManager.addAccountExplicitly(account, "", userData)) {
-								mAccountManager.setAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, authCode);
-								Intent intent = new Intent();
-								intent.putExtra("account_name", email);
-								setResult(RESULT_OK, intent);
-								if(refreshCode != null) {
-									mAccountManager.setAuthToken(account, Constants.ACCOUNT_KEY_REFRESH_TOKEN, refreshCode);
-								}
-								mAccountManager.setUserData(account, "client_id", properties.getProperty("client_id_value"));
-								mAccountManager.setUserData(account, properties.getProperty("client_secret_name"), properties.getProperty("client_secret_value"));
-								mAccountManager.setUserData(account, "token_url", properties.getProperty("token_url"));
-								mAccountManager.setUserData(account, Constants.ACCOUNT_SERVER, properties.getProperty("type"));
-								if(expires != null)
-									mAccountManager.setUserData(account, "oauth_expires_in", expires);
-							} else {
-								Toast.makeText(getBaseContext(), "Couldn't add account", Toast.LENGTH_LONG).show();
+							Bundle userData = new Bundle();
+
+							userData.putString(Constants.ACCOUNT_KEY_ACCESS_TOKEN, authCode);
+							Intent intent = new Intent();
+							intent.putExtra("account_name", email);
+							setResult(RESULT_OK, intent);
+
+							if(refreshCode != null) {
+								userData.putString(Constants.ACCOUNT_KEY_REFRESH_TOKEN, refreshCode);
 							}
+							userData.putString("client_id", properties.getProperty("client_id_value"));
+							userData.putString(properties.getProperty("client_secret_name"), properties.getProperty("client_secret_value"));
+							userData.putString("token_url", properties.getProperty("token_url"));
+							userData.putString(Constants.ACCOUNT_SERVER, properties.getProperty("type"));
+							if(expires != null)
+								userData.putString("oauth_expires_in", expires);
+							intent.putExtra(Constants.ACCOUNT_BUNDLE, userData);
 						}
 					}
 					finish();
@@ -333,32 +323,28 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 		//Check for re-authentication intent
 		if(getIntent().hasExtra(Constants.ACCOUNT_KEY_ACCESS_TOKEN)) {
 			AccountManager mgr = AccountManager.get(getApplicationContext());
-			Account []accounts = mgr.getAccountsByType(getIntent().getStringExtra(Constants.ACCOUNT_TYPE));
-			for (Account account: accounts) {
-				reauth_account = account;
-				if(reauth_account.name.equals(getIntent().getStringExtra(Constants.ACCOUNT_KEY_ACCOUNT_NAME)))
-					properties = reader.getProperties(mgr.getUserData(reauth_account, Constants.ACCOUNT_SERVER));
-			}
+			reauth_account = getIntent().getParcelableExtra(Constants.ACCOUNT_PARCEL);
+			properties = reader.getProperties(mgr.getUserData(reauth_account, Constants.ACCOUNT_SERVER));
 		} else if(bnd != null) {
 			serverInfo = (ServerInfo) bnd.getSerializable(Constants.KEY_SERVER_INFO);
 			properties = reader.getProperties(serverInfo.getAccountServer());
-			setContentView(R.layout.authenticator);
-			mSlidingLayer = (AwareSlidingLayout)findViewById(R.id.slidinglayout);
-			mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
-				@Override
-				public void onAction(int type){
-					if(type == AwareSlidingLayout.NEGATIVE) {
-						onBackPressed();
-						if(mSlidingLayer != null){
-							mSlidingLayer.reset();
-						}
-					}
-				}
-			});
 		} else {
 			setResult(RESULT_CANCELED);
 			finish();
 		}
+		setContentView(R.layout.authenticator);
+		mSlidingLayer = (AwareSlidingLayout)findViewById(R.id.slidinglayout);
+		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
+			@Override
+			public void onAction(int type){
+				if(type == AwareSlidingLayout.NEGATIVE) {
+					onBackPressed();
+					if(mSlidingLayer != null){
+						mSlidingLayer.reset();
+					}
+				}
+			}
+		});
 
 	}
 
@@ -374,7 +360,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 			}
 			if(properties.getProperty("timestamp_name") != null) {
 				nameValuePairs.add(
-						new BasicNameValuePair(properties.getProperty("timestamp_name"), "" + System.currentTimeMillis()));
+						new BasicNameValuePair(properties.getProperty("timestamp_name"), "" + (System.currentTimeMillis()/1000)));
 
 			}
 			if ((properties.getProperty("client_id_name") != null) && (properties.getProperty("client_id_value") != null)) {
@@ -460,12 +446,30 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setContentView(R.layout.browser);
 		browser = (MyWebView) findViewById(R.id.browser_view);
+		final ZoomControls zc = (ZoomControls) findViewById(R.id.zoomctrl);
+		zc.setOnZoomInClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				zc.setIsZoomOutEnabled(true);
+				if (!browser.zoomIn())
+				zc.setIsZoomInEnabled(false);
+
+			}
+		});
+		zc.setOnZoomOutClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				zc.setIsZoomInEnabled(true);
+				if (!browser.zoomOut())
+				zc.setIsZoomOutEnabled(false);
+			}
+		});
 
 		//Make sure No cookies are created
 		CookieManager.getInstance().removeAllCookie();
 
 		//Make sure no caching is done
-		browser.getSettings().setCacheMode(browser.getSettings().LOAD_NO_CACHE);
+		browser.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
 		browser.getSettings().setAppCacheEnabled(false);
 		browser.clearHistory();
 		browser.clearCache(true);

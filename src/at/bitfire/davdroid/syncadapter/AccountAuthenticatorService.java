@@ -129,7 +129,6 @@ public class AccountAuthenticatorService extends Service {
 					nameValuePairs.add(new BasicNameValuePair("client_secret", am.getUserData(account, "client_secret")));
 					nameValuePairs.add(new BasicNameValuePair("grant_type", "refresh_token"));
 					nameValuePairs.add(new BasicNameValuePair("refresh_token", refreshToken));
-					//nameValuePairs.add(new BasicNameValuePair("grant_type", "refresh_token"));
 					HttpClient httpclient = new DefaultHttpClient();
 					HttpPost httppost = new HttpPost(am.getUserData(account, "token_url"));
 					HttpResponse httpResponse;
@@ -141,14 +140,10 @@ public class AccountAuthenticatorService extends Service {
 						try {
 							data = new BasicResponseHandler().handleResponse(httpResponse);
 						} catch (HttpResponseException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						} catch (IOException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-						/*Gson gSon = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").create();
-						gSon.fromJson(IOUtils.toString(result.getEntity().getContent()), LogonInfo.class).fill(form);*/
 					} catch (UnsupportedEncodingException e) {
 						e.printStackTrace();
 					} catch (HttpResponseException e) {
@@ -166,7 +161,6 @@ public class AccountAuthenticatorService extends Service {
 							expiry += (System.currentTimeMillis()/1000);
 							am.setUserData(account, "oauth_expires_in", Long.valueOf(expiry).toString());
 						} catch (JSONException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 					}
@@ -185,19 +179,12 @@ public class AccountAuthenticatorService extends Service {
 			// If we get here, then we couldn't access the user's password - so we
 			// need to re-prompt them for their credentials. We do that by creating
 			// an intent to display our AuthenticatorActivity.
-			Intent intent = null;
+			Intent intent = new Intent(context, AddAccountActivity.class);
 			final Bundle bundle = new Bundle();
-			if((account_type != null) && account_type.equals("Google"))
-				intent = new Intent(context, AuthenticatorActivity.class);
-			else if((account_type != null) && account_type.equals("Yahoo"))
-				intent = new Intent(context, AddAccountActivity.class);
-			if(intent != null) {
-				intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
-				intent.putExtra(Constants.ACCOUNT_TYPE, account.type);
-				intent.putExtra(Constants.ACCOUNT_KEY_ACCESS_TOKEN, authTokenType);
-				intent.putExtra(Constants.ACCOUNT_KEY_ACCOUNT_NAME, account.name);
-				bundle.putParcelable(AccountManager.KEY_INTENT, intent);
-			}
+			intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
+			intent.putExtra(Constants.ACCOUNT_PARCEL, account);
+			intent.putExtra(Constants.ACCOUNT_KEY_ACCESS_TOKEN, authTokenType);
+			bundle.putParcelable(AccountManager.KEY_INTENT, intent);
 			return bundle;
 		}
 

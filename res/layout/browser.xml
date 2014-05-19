@@ -18,7 +18,8 @@
         <ZoomControls android:id="@+id/zoomctrl"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="bottom|right" />
+            android:orientation="vertical"
+            android:gravity="top|right" />
     </FrameLayout>
 
 </com.iamplus.aware.AwareSlidingLayout>

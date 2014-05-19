@@ -17,13 +17,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
-import android.accounts.AccountManagerCallback;
-import android.accounts.AccountManagerFuture;
-import android.accounts.AuthenticatorException;
-import android.accounts.OperationCanceledException;
-import android.app.Activity;
 import android.app.DialogFragment;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.AsyncTaskLoader;
@@ -34,7 +27,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 import android.widget.Toast;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
@@ -50,14 +42,11 @@ import ch.boye.httpclientandroidlib.impl.client.CloseableHttpClient;
 public class QueryServerDialogFragment extends DialogFragment
 		implements LoaderCallbacks<ServerInfo> {
 	private static final String TAG = "davdroid.QueryServerDialogFragment";
-	//public static final String EXTRA_ACCOUNT_SERVER = "account_server";
 	static ServerInfo serverInfo = null;
 	static Context mContext;
-	public static String authCode = null;
 	boolean hasAddressBook = true;
 	boolean hasCalendar = true;
-	static Account account = null;
-	static AccountManager accountManager = null;
+	static Bundle userData = null;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -81,41 +70,8 @@ public class QueryServerDialogFragment extends DialogFragment
 		mContext = getActivity();
 		serverInfo = (ServerInfo)
 				getArguments().getSerializable(Constants.KEY_SERVER_INFO);
-		accountManager =
-				AccountManager.get(mContext.getApplicationContext());
-		Account []all_accounts = accountManager.getAccountsByType(Constants.ACCOUNT_TYPE);
-		for(Account acc : all_accounts) {
-			if(acc.name.equals(serverInfo.getAccountName()))
-				account = acc;
-		}
-		if(accountManager.getUserData(account, Constants.ACCOUNT_SERVER).equals("Google")) {
-			accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN,
-				null, (Activity) mContext, new AccountManagerCallback<Bundle>(){
-
-				@Override
-				public void run(AccountManagerFuture<Bundle> authBundle) {
-					try {
-						Bundle bnd = (Bundle) authBundle.getResult();
-						authCode = bnd.getString(AccountManager.KEY_AUTHTOKEN);
-						createLoader();
-	
-					} catch (OperationCanceledException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (AuthenticatorException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-	
-				}
-	
-			}, null);
-		} else {
-			createLoader();
-		}
+		userData = getArguments().getBundle(Constants.ACCOUNT_BUNDLE);
+		createLoader();
 
 		return v;
 	}
@@ -137,6 +93,9 @@ public class QueryServerDialogFragment extends DialogFragment
 				new SelectCollectionsFragment();
 			Bundle arguments = new Bundle();
 			arguments.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
+			if(userData != null) {
+				arguments.putBundle(Constants.ACCOUNT_BUNDLE, userData);
+			}
 			selectCollections.setArguments(arguments);
 
 			getFragmentManager().beginTransaction()
@@ -167,12 +126,11 @@ public class QueryServerDialogFragment extends DialogFragment
 			String userName = null;
 			String password = null;
 
-			if(account != null && accountManager.getUserData(account, Constants.ACCOUNT_SERVER).equals("Yahoo")) {
-				AccountSettings settings = new AccountSettings(getContext(), account);
-				userName = settings.getUserName();
-				password = settings.getPassword();
-			} else if(account != null && accountManager.getUserData(account, Constants.ACCOUNT_SERVER).equals("Google")) {
-				authBearer = "Bearer " + authCode;
+			if(!serverInfo.getAccountServer().equals("Google")) {
+				userName = serverInfo.getUserName();
+				password = serverInfo.getPassword();
+			} else if(serverInfo.getAccountServer().equals("Google")) {
+				authBearer = "Bearer " + userData.getString(Constants.ACCOUNT_KEY_ACCESS_TOKEN);
 			}
 			AccountDeatilsReader reader = new AccountDeatilsReader(mContext);
 			Properties properties =
@@ -183,9 +141,6 @@ public class QueryServerDialogFragment extends DialogFragment
 
 			CloseableHttpClient httpClient = DavHttpClient.create();
 			try {
-
-				//WebDavResource cardDavPrincipal = null;
-				//boolean cardDavRedirect = false;
 
 				if(properties.getProperty(Constants.ACCOUNT_KEY_BASE_URL)
 						!= null) {

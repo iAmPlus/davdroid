@@ -10,9 +10,7 @@
  ******************************************************************************/
 package at.bitfire.davdroid.syncadapter;
 
-import android.accounts.Account;
 import android.accounts.AccountAuthenticatorActivity;
-import android.accounts.AccountManager;
 import android.content.Intent;
 import android.os.Bundle;
 import at.bitfire.davdroid.Constants;
@@ -32,12 +30,12 @@ public class AddAccountActivity extends AccountAuthenticatorActivity {
 		
 		if(getIntent().hasExtra(Constants.ACCOUNT_KEY_ACCESS_TOKEN)) {
 			getFragmentManager().beginTransaction()
-			.add(R.id.fragment_container, new UserCredentialsFragment(), "enter_credentials")
+			.add(R.id.fragment_container, new UserCredentialsFragment(), "user_details")
 			.commit();
 		}
 		if (savedInstanceState == null) {	// first call
 			getFragmentManager().beginTransaction()
-				.add(R.id.fragment_container, new EnterCredentialsFragment(), "enter_credentials")
+				.add(R.id.fragment_container, new SelectServerFragment(), "select_server")
 				.commit();
 		}
 

@@ -66,7 +66,6 @@ public class CalendarsSyncAdapterService extends Service {
 
 		@Override
 		protected Map<LocalCollection<?>, RemoteCollection<?>> getSyncPairs(Account account, ContentProviderClient provider) {
-			//AccountSettings settings = new AccountSettings(getContext(), account);
 
 			try {
 				Map<LocalCollection<?>, RemoteCollection<?>> map = new HashMap<LocalCollection<?>, RemoteCollection<?>>();
@@ -78,8 +77,7 @@ public class CalendarsSyncAdapterService extends Service {
 					AccountManagerFuture<Bundle> authBundle = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, null, null, null);
 					accessToken = authBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
 					accessToken = "Bearer " + accessToken;
-				}
-				if(accountManager.getUserData(account, Constants.ACCOUNT_SERVER).equals("Yahoo")) {
+				} else {
 					userName = settings.getUserName();
 					password = settings.getPassword();
 				}

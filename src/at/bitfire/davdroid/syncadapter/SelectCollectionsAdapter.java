@@ -12,7 +12,6 @@ package at.bitfire.davdroid.syncadapter;
 
 import lombok.Getter;
 import android.content.Context;
-import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,7 +31,8 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 	@Getter protected int nAddressBooks, nCalendars;
 
 
-	public SelectCollectionsAdapter(ServerInfo serverInfo) {
+	public SelectCollectionsAdapter(Context context, ServerInfo serverInfo) {
+		this.context = context;
 		this.serverInfo = serverInfo;
 		nAddressBooks = (serverInfo.getAddressBooks() == null) ? 0 : serverInfo.getAddressBooks().size();
 		nCalendars = (serverInfo.getCalendars() == null) ? 0 : serverInfo.getCalendars().size();
@@ -43,15 +43,15 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 
 	@Override
 	public int getCount() {
-		return nAddressBooks + nCalendars + 2;
+		return nAddressBooks + nCalendars;
 	}
 
 	@Override
 	public Object getItem(int position) {
-		if (position > 0 && position <= nAddressBooks)
-			return serverInfo.getAddressBooks().get(position - 1);
-		else if (position > nAddressBooks + 1)
-			return serverInfo.getCalendars().get(position - nAddressBooks - 2);
+		if (position >= 0 && position < nAddressBooks)
+			return serverInfo.getAddressBooks().get(position);
+		else if (position >= nAddressBooks)
+			return serverInfo.getCalendars().get(position - nAddressBooks);
 		return null;
 	}
 
@@ -75,13 +75,13 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 
 	@Override
 	public int getItemViewType(int position) {
-		if (position == 0)
+		/*if (position == 0)
 			return TYPE_ADDRESS_BOOKS_HEADING;
-		else if (position <= nAddressBooks)
+		else*/ if (position < nAddressBooks)
 			return TYPE_ADDRESS_BOOKS_ROW;
-		else if (position == nAddressBooks + 1)
-			return TYPE_CALENDARS_HEADING;
-		else if (position <= nAddressBooks + nCalendars + 1)
+		/*else if (position == nAddressBooks + 1)
+			return TYPE_CALENDARS_HEADING;*/
+		else if (position < nAddressBooks + nCalendars)
 			return TYPE_CALENDARS_ROW;
 		else
 			return IGNORE_ITEM_VIEW_TYPE;
@@ -104,16 +104,22 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 				break;
 			case TYPE_CALENDARS_ROW:
 				convertView = inflater.inflate(android.R.layout.simple_list_item_multiple_choice, null);
+				break;
+			}
+			
+			// step 2: fill view with content
+			switch (getItemViewType(position)) {
+			case TYPE_ADDRESS_BOOKS_ROW:
+				setContent((CheckedTextView)convertView, R.drawable.addressbook, (ServerInfo.ResourceInfo)getItem(position));
+				break;
+			case TYPE_CALENDARS_ROW:
+				setContent((CheckedTextView)convertView, R.drawable.calendar, (ServerInfo.ResourceInfo)getItem(position));
 			}
 		}
-
-		// step 2: fill view with content
-		switch (getItemViewType(position)) {
-		case TYPE_ADDRESS_BOOKS_ROW:
-			setContent((CheckedTextView)convertView, R.drawable.addressbook, (ServerInfo.ResourceInfo)getItem(position));
-			break;
-		case TYPE_CALENDARS_ROW:
-			setContent((CheckedTextView)convertView, R.drawable.calendar, (ServerInfo.ResourceInfo)getItem(position));
+		if(getItemViewType(position) == TYPE_ADDRESS_BOOKS_ROW
+				|| getItemViewType(position) == TYPE_CALENDARS_ROW) {
+			((CheckedTextView)convertView).setChecked(
+					!((CheckedTextView)convertView).isChecked());
 		}
 
 		return convertView;
@@ -125,17 +131,7 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 		view.setCompoundDrawablesWithIntrinsicBounds(collectionIcon, 0, info.isReadOnly() ? R.drawable.ic_read_only : 0, 0);
 		view.setCompoundDrawablePadding(10);
 
-		// set text		
-		String title = "<b>" + info.getTitle() + "</b>";
-		if (info.isReadOnly())
-			title = title + " (" + context.getString(R.string.read_only) + ")";
-
-		String description = info.getDescription();
-		if (description == null)
-			description = info.getURL();
-
-		// FIXME escape HTML
-		view.setText(Html.fromHtml(title + "<br/>" + description));
+		view.setText(info.getTitle());
 	}
 
 	@Override

@@ -35,9 +35,8 @@ public abstract class Resource {
 	}
 
 	// sets UID and resource name (= remote file name)
-	public abstract void generateUID();
-	public abstract void generateName();
-	
+	public abstract void initialize();
+
 	public abstract void parseEntity(InputStream entity) throws IOException, InvalidResourceException;
 	public abstract ByteArrayOutputStream toEntity() throws IOException;
 }

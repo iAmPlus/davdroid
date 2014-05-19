@@ -1,18 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.iamplus.aware.AwareSlidingLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/slidinglayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:scrollbars="vertical"
-    android:positiveButtonText="@string/next_action"
-    android:positiveButtonVisibility="visible"
+    android:id="@+id/slidinglayout"
     android:negativeButtonText="@string/message_cancel_text"
     android:negativeButtonVisibility="visible" >
 
     <ListView
-    android:id="@android:id/list"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_weight="1" />
+        android:id="@+id/select_server_list"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="left"
+        android:entries="@array/server_names" />
 
 </com.iamplus.aware.AwareSlidingLayout>

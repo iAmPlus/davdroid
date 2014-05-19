@@ -33,11 +33,8 @@ public class TlsSniSocketFactory implements LayeredConnectionSocketFactory {
 
 	final static TlsSniSocketFactory INSTANCE = new TlsSniSocketFactory();
 
-	private final static SSLCertificateSocketFactory sslSocketFactory = (SSLCertificateSocketFactory) SSLCertificateSocketFactory.getDefault(0);
+	private final static SSLCertificateSocketFactory sslSocketFactory = (SSLCertificateSocketFactory)SSLCertificateSocketFactory.getDefault(0);
 	private final static HostnameVerifier hostnameVerifier = new BrowserCompatHostnameVerifier();
-
-
-	// Plain TCP/IP (layer below TLS)
 
 	@Override
 	public Socket createSocket(HttpContext context) throws IOException {
@@ -46,14 +43,22 @@ public class TlsSniSocketFactory implements LayeredConnectionSocketFactory {
 
 	@Override
 	public Socket connectSocket(int timeout, Socket socket, HttpHost host, InetSocketAddress remoteAddr, InetSocketAddress localAddr, HttpContext context) throws IOException {
-		// we don't need the non-SSL socket
+		// we'll rather create a new socket
 		socket.close();
 
 		// create and connect SSL socket, but don't do hostname/certificate verification yet
 		SSLSocket ssl = (SSLSocket)sslSocketFactory.createSocket(remoteAddr.getAddress(), host.getPort());
 
-		// set up SNI before the handshake
-		Log.i(TAG, "No SNI support below Android 4.2!");
+		// set reasonable SSL/TLS settings before the handshake:
+		// - enable all supported protocols (enables TLSv1.1 and TLSv1.2 on Android <4.4.3, if available)
+		ssl.setEnabledProtocols(ssl.getSupportedProtocols());
+
+		Log.d(TAG, "No documented SNI support on Android <4.2, trying with reflection");
+		try {
+				java.lang.reflect.Method setHostnameMethod = ssl.getClass().getMethod("setHostname", String.class);				setHostnameMethod.invoke(ssl, host.getHostName());
+		} catch (Exception e) {
+			Log.w(TAG, "SNI not useable", e);
+		}
 
 		// verify hostname and certificate
 		SSLSession session = ssl.getSession();

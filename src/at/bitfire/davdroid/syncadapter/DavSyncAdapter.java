@@ -13,6 +13,7 @@ package at.bitfire.davdroid.syncadapter;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.http.HttpStatus;
 
@@ -46,7 +47,9 @@ public abstract class DavSyncAdapter extends AbstractThreadedSyncAdapter impleme
 	@Getter private static String androidID;
 
 	protected AccountManager accountManager;
-	protected CloseableHttpClient httpClient;
+
+	protected CloseableHttpClient httpClient = DavHttpClient.create();
+	final ReentrantReadWriteLock httpClientLock = new ReentrantReadWriteLock();
 
 
 	public DavSyncAdapter(Context context) {
@@ -58,7 +61,6 @@ public abstract class DavSyncAdapter extends AbstractThreadedSyncAdapter impleme
 		}
 
 		accountManager = AccountManager.get(context);
-		httpClient = DavHttpClient.create();
 	}
 	
 	@Override public void close() {
@@ -67,8 +69,10 @@ public abstract class DavSyncAdapter extends AbstractThreadedSyncAdapter impleme
 			@Override
 			protected Void doInBackground(Void... params) {
 				try {
+					httpClientLock.writeLock().lock();
 					httpClient.close();
 					httpClient = null;
+					httpClientLock.writeLock().unlock();
 				} catch (IOException e) {
 					Log.w(TAG, "Couldn't close HTTP client", e);
 				}
@@ -92,8 +96,50 @@ public abstract class DavSyncAdapter extends AbstractThreadedSyncAdapter impleme
 
 		do {
 			try {
-				AccountManagerFuture<Bundle> authBundle = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, true, null, null);
-				accessToken = authBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
+
+				Map<LocalCollection<?>, RemoteCollection<?>> syncCollections = getSyncPairs(account, provider);
+				if (syncCollections == null)
+					Log.i(TAG, "Nothing to synchronize");
+				else {
+					retry = false;
+					try {
+						httpClientLock.readLock().lock();
+						for (Map.Entry<LocalCollection<?>, RemoteCollection<?>> entry : syncCollections.entrySet())
+							new SyncManager(entry.getKey(), entry.getValue()).synchronize(extras.containsKey(ContentResolver.SYNC_EXTRAS_MANUAL), syncResult);
+		
+					} catch (DavException ex) {
+						syncResult.stats.numParseExceptions++;
+						Log.e(TAG, "Invalid DAV response", ex);
+					} catch (HttpException ex) {
+						if (ex.getCode() == HttpStatus.SC_UNAUTHORIZED) {
+							Log.e(TAG, "HTTP Unauthorized " + ex.getCode(), ex);
+							AccountManagerFuture<Bundle> authBundle = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, true, null, null);
+							if(!authBundle.getResult().containsKey(AccountManager.KEY_INTENT)) {
+								retry = true;
+								accessToken = authBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
+								if(accessToken != null) {
+									accountManager.invalidateAuthToken(Constants.ACCOUNT_TYPE, accessToken);
+								}
+							}
+							syncResult.stats.numAuthExceptions++;
+						} else if (ex.isClientError()) {
+							Log.e(TAG, "Hard HTTP error " + ex.getCode(), ex);
+							syncResult.stats.numParseExceptions++;
+						} else {
+							Log.w(TAG, "Soft HTTP error " + ex.getCode() + " (Android will try again later)", ex);
+							syncResult.stats.numIoExceptions++;
+						}
+					} catch (LocalStorageException ex) {
+						syncResult.databaseError = true;
+						Log.e(TAG, "Local storage (content provider) exception", ex);
+					} catch (IOException ex) {
+						syncResult.stats.numIoExceptions++;
+						Log.e(TAG, "I/O error (Android will try again later)", ex);
+					} finally {
+						// allow httpClient shutdown
+						httpClientLock.readLock().unlock();
+					}
+				}
 			} catch (OperationCanceledException e) {
 				Log.e(TAG, "OAuth canceled", e);
 			} catch (AuthenticatorException e) {
@@ -101,45 +147,6 @@ public abstract class DavSyncAdapter extends AbstractThreadedSyncAdapter impleme
 			} catch (IOException e) {
 				Log.e(TAG, "OAuth failed, network error", e);
 			}
-
-			Map<LocalCollection<?>, RemoteCollection<?>> syncCollections = getSyncPairs(account, provider);
-			if (syncCollections == null && accessToken != null)
-				Log.i(TAG, "Nothing to synchronize");
-			else
-				try {
-					for (Map.Entry<LocalCollection<?>, RemoteCollection<?>> entry : syncCollections.entrySet())
-						new SyncManager(entry.getKey(), entry.getValue()).synchronize(extras.containsKey(ContentResolver.SYNC_EXTRAS_MANUAL), syncResult);
-	
-				} catch (DavException ex) {
-					retry = false;
-					syncResult.stats.numParseExceptions++;
-					Log.e(TAG, "Invalid DAV response", ex);
-				} catch (HttpException ex) {
-					retry = false;
-					if (ex.getCode() == HttpStatus.SC_UNAUTHORIZED) {
-						Log.e(TAG, "HTTP Unauthorized " + ex.getCode(), ex);
-						if(accessToken != null) {
-							accountManager.invalidateAuthToken(Constants.ACCOUNT_TYPE, accessToken);
-							retry = true;
-						}
-						syncResult.stats.numAuthExceptions++;
-					} else if (ex.isClientError()) {
-						Log.e(TAG, "Hard HTTP error " + ex.getCode(), ex);
-						syncResult.stats.numParseExceptions++;
-					} else {
-						Log.w(TAG, "Soft HTTP error" + ex.getCode(), ex);
-						syncResult.stats.numIoExceptions++;
-					}
-	
-				} catch (LocalStorageException ex) {
-					retry = false;
-					syncResult.databaseError = true;
-					Log.e(TAG, "Local storage (content provider) exception", ex);
-				} catch (IOException ex) {
-					retry = false;
-					syncResult.stats.numIoExceptions++;
-					Log.e(TAG, "I/O error", ex);
-				}
 		} while(retry);
 	}
 }

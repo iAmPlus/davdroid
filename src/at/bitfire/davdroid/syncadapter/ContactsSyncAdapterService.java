@@ -61,7 +61,6 @@ public class ContactsSyncAdapterService extends Service {
 
 		private ContactsSyncAdapter(Context context) {
 			super(context);
-			Log.i(TAG, "httpClient = " + httpClient);
 		}
 
 		@Override
@@ -79,8 +78,7 @@ public class ContactsSyncAdapterService extends Service {
 					AccountManagerFuture<Bundle> authBundle = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, null, null, null);
 					accessToken = authBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
 					accessToken = "Bearer " + accessToken;
-				}
-				if(accountManager.getUserData(account, Constants.ACCOUNT_SERVER).equals("Yahoo")) {
+				} else {
 					userName = settings.getUserName();
 					password = settings.getPassword();
 				}

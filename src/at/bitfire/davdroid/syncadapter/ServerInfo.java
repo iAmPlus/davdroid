@@ -26,6 +26,8 @@ public class ServerInfo implements Serializable {
 	private String caldavURL = null;
 	private String carddavURL = null;
 	final private String accountServer;
+	private String userName, password;
+	boolean authPreemptive;
 	private String accountName;
 
 	private String errorMessage;

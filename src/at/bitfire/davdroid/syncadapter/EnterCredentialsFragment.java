@@ -10,139 +10,79 @@
  ******************************************************************************/
 package at.bitfire.davdroid.syncadapter;
 
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import com.iamplus.aware.AwareSlidingLayout;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
+import at.bitfire.davdroid.URIUtils;
 
 public class EnterCredentialsFragment extends Fragment {
+	String protocol;
 
-	AwareSlidingLayout mSlidingLayer;
 	ServerInfo serverInfo;
+	TextView textHttpWarning;
+	EditText editBaseURL, editUserName, editPassword;
+	CheckBox checkboxPreemptive;
+	Button btnNext;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View v = inflater.inflate(R.layout.enter_credentials, container, false);
 
-		ListView listView = (ListView) v.findViewById(R.id.select_server);
-		String[] values = getResources().getStringArray(R.array.server_names);
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(v.getContext(),
-				android.R.layout.simple_list_item_1, android.R.id.text1, values);
-		listView.setAdapter(adapter);
-		listView.setOnItemClickListener(new OnItemClickListener() {
+		// protocol selection spinner
+		/*textHttpWarning = (TextView) v.findViewById(R.id.http_warning);
+
+		Spinner spnrProtocol = (Spinner) v.findViewById(R.id.select_protocol);
+		spnrProtocol.setOnItemSelectedListener(new OnItemSelectedListener() {
 			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				if(isOnline()) {
-					String account_server = parent.getAdapter().getItem(position).toString();
-					if(account_server.equals("Yahoo")) {
-						UserCredentialsFragment uf = new UserCredentialsFragment();
-						getFragmentManager().beginTransaction()
-							.replace(R.id.fragment_container, uf)
-							.addToBackStack(null)
-							.commitAllowingStateLoss();
-					} else {
-						//serverInfo = (ServerInfo)getArguments().getSerializable(Constants.KEY_SERVER_INFO);
-						//String accountName = editAccountName.getText().toString();
-						serverInfo = new ServerInfo(account_server);
-						//serverInfo.setAccountName(accountName);
-						Intent intent = new Intent(getActivity(), AuthenticatorActivity.class);
-						intent.putExtra(Constants.KEY_SERVER_INFO, serverInfo);
-						startActivityForResult(intent, 0);
-					}
-				} else {
-					AlertDialog dialog;
-					AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-					builder.setTitle(getActivity().getResources().getString(R.string.no_network))
-						.setMessage(getActivity().getResources().getString(R.string.connect_to_network))
-						.setCancelable(false)
-						.setNegativeButton(R.string.network_dialog_back,new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog,int id) {
-								// if this button is clicked, just close
-								// the dialog box and do nothing
-								dialog.cancel();
-							}
-						});
-					dialog = builder.create();
-					dialog.show();
-				}
+			public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+				protocol = parent.getAdapter().getItem(position).toString();
+				textHttpWarning.setVisibility(protocol.equals("https://") ? View.GONE : View.VISIBLE);
 			}
 
-		});
-		mSlidingLayer = (AwareSlidingLayout) v.findViewById(R.id.slidinglayout);
-		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
-			
 			@Override
-			public void onAction(int type){
-				if(type == AwareSlidingLayout.NEGATIVE) {
-					getActivity().onBackPressed();
-					if(mSlidingLayer != null){
-						mSlidingLayer.reset();
-					}
-				}
+			public void onNothingSelected(AdapterView<?> parent) {
+				protocol = null;
 			}
 		});
+		spnrProtocol.setSelection(1);	// HTTPS
+
+		// other input fields
+		editBaseURL = (EditText) v.findViewById(R.id.baseURL);
+		editUserName = (EditText) v.findViewById(R.id.userName);
+		editPassword = (EditText) v.findViewById(R.id.password);
+		
+		checkboxPreemptive = (CheckBox) v.findViewById(R.id.auth_preemptive);*/
 
 		return v;
 	}
 
-	private boolean isOnline() {
-		ConnectivityManager cm =
-			(ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo netInfo = cm.getActiveNetworkInfo();
-		if (netInfo != null && netInfo.isConnectedOrConnecting()) {
-			return true;
-		}
-		return false;
-	}
-
-	public void onActivityResult(int requestCode, int resultCode,
-			Intent data) {
-		if (resultCode == Activity.RESULT_OK) {
-			/*serverInfo = (ServerInfo)getArguments().getSerializable(
-				Constants.KEY_SERVER_INFO);*/
-			Bundle arguments = new Bundle();
-			serverInfo.setAccountName(data.getStringExtra("account_name"));
-			//serverInfo.setCookie(data.getStringExtra("cookie"));
-			arguments.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
-			FragmentTransaction ft = getFragmentManager().beginTransaction();
-
-			/*Bundle arguments = new Bundle();
-			arguments.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);*/
-
-			DialogFragment dialog = new QueryServerDialogFragment();
-			dialog.setArguments(arguments);
-			dialog.show(ft, QueryServerDialogFragment.class.getName());
-			//accountDetails.setArguments(arguments);
-
-			/*getFragmentManager().beginTransaction()
-				.replace(R.id.fragment_container, accountDetails)
-				.addToBackStack(null)
-				.commitAllowingStateLoss();*/
-		}
-	}
-
-	@Override
-	public void onViewCreated(View view, Bundle savedInstanceState) {
-		if (mSlidingLayer != null) {
-			mSlidingLayer.reset();
-		}
+	void queryServer() {
+		FragmentTransaction ft = getFragmentManager().beginTransaction();
+		
+		Bundle args = new Bundle();
+		
+		String host_path = editBaseURL.getText().toString();
+		args.putString(Constants.ACCOUNT_KEY_BASE_URL, URIUtils.sanitize(protocol + host_path));
+		args.putString(Constants.ACCOUNT_KEY_USERNAME, editUserName.getText().toString());
+		args.putString(Constants.ACCOUNT_KEY_PASSWORD, editPassword.getText().toString());
+		args.putBoolean(Constants.ACCOUNT_KEY_AUTH_PREEMPTIVE, checkboxPreemptive.isChecked());
+		
+		DialogFragment dialog = new QueryServerDialogFragment();
+		dialog.setArguments(args);
+		dialog.show(ft, QueryServerDialogFragment.class.getName());
 	}
 
 }
