@@ -66,14 +66,6 @@ public class UserCredentialsFragment extends Fragment {
 		} else
 			serverInfo = (ServerInfo)getArguments().getSerializable(Constants.KEY_SERVER_INFO);
 
-		if(serverInfo.getAccountServer().equals("Google")) {
-			Intent intent = new Intent(getActivity(), AuthenticatorActivity.class);
-			intent.putExtra(Constants.KEY_SERVER_INFO, serverInfo);
-			if(reauth_account != null)
-				intent.putExtra(Constants.ACCOUNT_PARCEL, reauth_account);
-			startActivityForResult(intent, 0);
-			return v;
-		}
 		Spinner spnrProtocol = (Spinner) v.findViewById(R.id.select_protocol);
 		editBaseURL = (EditText) v.findViewById(R.id.baseURL);
 		checkboxPreemptive = (CheckBox) v.findViewById(R.id.auth_preemptive);
@@ -99,7 +91,7 @@ public class UserCredentialsFragment extends Fragment {
 				editBaseURL.setInputType(InputType.TYPE_NULL);
 			}
 		}
-		
+
 		editUserName = (EditText) v.findViewById(R.id.user_name);
 		if(reauth_account != null) {
 			editUserName.setText(reauth_account.name);
@@ -128,6 +120,18 @@ public class UserCredentialsFragment extends Fragment {
 					return false;
 				}
 			});
+
+		if(serverInfo.getAccountServer().equals("Google")) {
+			editUserName.setVisibility(View.GONE);
+			editPassword.setVisibility(View.GONE);
+			Intent intent = new Intent(getActivity(), AuthenticatorActivity.class);
+			intent.putExtra(Constants.KEY_SERVER_INFO, serverInfo);
+			if(reauth_account != null)
+				intent.putExtra(Constants.ACCOUNT_PARCEL, reauth_account);
+			startActivityForResult(intent, 0);
+			return v;
+		}
+
 		mSlidingLayer = (AwareSlidingLayout)v.findViewById(R.id.slidinglayout);
 		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
 			@Override

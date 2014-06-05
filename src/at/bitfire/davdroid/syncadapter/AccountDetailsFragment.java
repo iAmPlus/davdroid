@@ -56,9 +56,9 @@ public class AccountDetailsFragment extends Fragment {
 
 		serverInfo = (ServerInfo)getArguments().getSerializable(
 			Constants.KEY_SERVER_INFO);
-		if(TextUtils.isEmpty(serverInfo.getAccountName())) {
+		editAccountName = (EditText)v.findViewById(R.id.account_name);
 
-			editAccountName = (EditText)v.findViewById(R.id.account_name);
+		if(TextUtils.isEmpty(serverInfo.getAccountName())) {
 	
 			editAccountName.setImeOptions(EditorInfo.IME_ACTION_DONE);
 			editAccountName.setOnEditorActionListener(
@@ -76,8 +76,10 @@ public class AccountDetailsFragment extends Fragment {
 						return false;
 					}
 				});
-		} else
+		} else {
+			editAccountName.setVisibility(View.GONE);
 			addAccount(serverInfo.getAccountName());
+		}
 
 		mSlidingLayer = (AwareSlidingLayout)v.findViewById(R.id.slidinglayout);
 		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){

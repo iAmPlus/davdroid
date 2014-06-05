@@ -481,7 +481,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 
 		browser.getSettings().setJavaScriptEnabled(true);
 		browser.getSettings().setLoadWithOverviewMode(true);
-		browser.getSettings().setBuiltInZoomControls(true);
+		browser.getSettings().setBuiltInZoomControls(false);
 		browser.setInitialScale(1);
 		browser.setPadding(0, 0, 0, 0);
 		browser.getSettings().setUseWideViewPort(true);
