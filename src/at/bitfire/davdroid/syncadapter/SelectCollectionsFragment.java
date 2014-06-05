@@ -46,20 +46,19 @@ public class SelectCollectionsFragment extends ListFragment {
 		super.onViewCreated(view, savedInstanceState);
 		
 		final ListView listView = getListView();
-				//(ListView)view.findViewById(R.id.collections_list);
 
-		listView.setPadding(20, 30, 20, 30);
-
-		//mSlidingLayer = (AwareSlidingLayout)inflater.inflate(R.layout.reset_layout, container, false);
-		//mSlidingLayer = new AwareSlidingLayout(getActivity());
 		mSlidingLayer = (AwareSlidingLayout)view.findViewById(R.id.slidinglayout);
 		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
 			@Override
 			public void onAction(int type){
 				if(type == AwareSlidingLayout.POSITIVE) {
-					onDone();
+					if(getListView().getCheckedItemCount() > 0)
+						onDone();
 				} else if(type == AwareSlidingLayout.NEGATIVE) {
 					getActivity().onBackPressed();
+				}
+				if(mSlidingLayer != null){
+					mSlidingLayer.reset();
 				}
 			}
 		});

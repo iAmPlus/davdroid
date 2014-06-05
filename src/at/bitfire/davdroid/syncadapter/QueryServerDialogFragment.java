@@ -44,8 +44,8 @@ public class QueryServerDialogFragment extends DialogFragment
 	private static final String TAG = "davdroid.QueryServerDialogFragment";
 	static ServerInfo serverInfo = null;
 	static Context mContext;
-	boolean hasAddressBook = true;
-	boolean hasCalendar = true;
+	static boolean hasAddressBook = false;
+	static boolean hasCalendar = false;
 	static Bundle userData = null;
 
 	@Override
@@ -271,6 +271,7 @@ public class QueryServerDialogFragment extends DialogFragment
 									resource.getColor()
 								);
 								addressBooks.add(info);
+								hasAddressBook = true;
 							}
 
 					serverInfo.setAddressBooks(addressBooks);
@@ -408,6 +409,7 @@ public class QueryServerDialogFragment extends DialogFragment
 								);
 								info.setTimezone(resource.getTimezone());
 								calendars.add(info);
+								hasCalendar = true;
 							}
 
 					serverInfo.setCalendars(calendars);

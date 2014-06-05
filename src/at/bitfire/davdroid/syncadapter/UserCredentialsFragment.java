@@ -196,7 +196,8 @@ public class UserCredentialsFragment extends Fragment {
 			arguments.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
 			arguments.putBundle(Constants.ACCOUNT_BUNDLE, data.getBundleExtra(Constants.ACCOUNT_BUNDLE));
 			nextTransaction(arguments);
-		}
+		} else
+			getActivity().onBackPressed();
 	}
 	
 	void nextTransaction(Bundle arguments) {
