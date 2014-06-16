@@ -73,6 +73,14 @@
             android:name=".syncadapter.AuthenticatorActivity"
             android:excludeFromRecents="true"
             android:noHistory="true" />
+
+       <receiver 
+           android:name=".syncadapter.DeviceSetupReceiver">
+          <intent-filter>
+             <action android:name="at.bitfire.davdroid.ADD_ACCOUNT">
+          </action>
+          </intent-filter>
+       </receiver>
     </application>
 
 </manifest>
