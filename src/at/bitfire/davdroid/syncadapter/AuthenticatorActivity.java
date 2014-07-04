@@ -379,7 +379,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 					new BasicNameValuePair("oauth_version", properties.getProperty("oauth_version")));
 			if ((properties.getProperty("redirect_ui_name") != null) && (properties.getProperty("redirect_uri_value") != null)) {
 				nameValuePairs.add(
-						new BasicNameValuePair(properties.getProperty("redirect_ui_name"), "http://localhost"));
+						new BasicNameValuePair(properties.getProperty("redirect_ui_name"), properties.getProperty("redirect_uri_value")));
 			}
 			new GetAuthCode(nameValuePairs).execute("");
 		}
@@ -392,7 +392,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 				@Override
 				public boolean shouldOverrideUrlLoading(WebView webView, String url) {
 					/* This call inject JavaScript into the page which just finished loading. */
-					if(url.startsWith("http://localhost")) {
+					if(url.startsWith(properties.getProperty("redirect_uri_value"))) {
 						browser.stopLoading();
 						StringTokenizer st = new StringTokenizer (url.substring(url.indexOf("?")+1), "&");
 						String code = null;
