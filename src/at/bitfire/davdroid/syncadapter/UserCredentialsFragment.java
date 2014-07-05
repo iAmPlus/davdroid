@@ -20,6 +20,7 @@ import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -173,6 +174,10 @@ public class UserCredentialsFragment extends Fragment {
 
 	public void onActivityResult(int requestCode, int resultCode,
 			Intent data) {
+        if (data == null) {
+            Log.d("IamPlusSyncAdapter:UserCredentialsFrag", "onActivityResult : intent null");
+            return;
+        }
 		if(reauth_account != null) {
 			AccountManager accountManager = AccountManager.get(getActivity());
 			Bundle reauth_bundle = data.getBundleExtra(Constants.ACCOUNT_BUNDLE);
