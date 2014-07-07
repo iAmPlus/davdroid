@@ -10,6 +10,7 @@
  ******************************************************************************/
 package at.bitfire.davdroid.syncadapter;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
@@ -24,90 +25,101 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import com.iamplus.aware.AwareSlidingLayout;
+import android.widget.TextView;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 
 public class SelectServerFragment extends Fragment {
 
-	AwareSlidingLayout mSlidingLayer;
-	ServerInfo serverInfo;
+    ServerInfo serverInfo;
 
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		View v = inflater.inflate(R.layout.select_server, container, false);
+    @Override
+    public void onAttach(Activity activity) {
+        activity.overridePendingTransition(android.R.anim.quick_enter_in,
+                android.R.anim.quick_enter_out);
+        super.onAttach(activity);
+    }
 
-		ListView listView = (ListView) v.findViewById(R.id.select_server_list);
-		String[] values = getResources().getStringArray(R.array.server_names);
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(v.getContext(),
-				android.R.layout.simple_list_item_1, android.R.id.text1, values);
-		listView.setAdapter(adapter);
-		listView.setOnItemClickListener(new OnItemClickListener() {
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				if(isOnline()) {
-					String account_server = parent.getAdapter().getItem(position).toString();
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+            Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.pref_title_layout, container, false);
 
-					serverInfo = new ServerInfo(account_server);
-					Bundle args = new Bundle();
-					args.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
-					UserCredentialsFragment ucf = new UserCredentialsFragment();
-					ucf.setArguments(args);
-					getFragmentManager().beginTransaction()
-						.replace(R.id.fragment_container, ucf)
-						.addToBackStack(null)
-						.commitAllowingStateLoss();
-				} else {
-					AlertDialog dialog;
-					AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-					builder.setTitle(getActivity().getResources().getString(R.string.no_network))
-						.setMessage(getActivity().getResources().getString(R.string.connect_to_network))
-						.setCancelable(false)
-						.setNegativeButton(R.string.network_dialog_back,new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog,int id) {
-								// if this button is clicked, just close
-								// the dialog box and do nothing
-								dialog.cancel();
-							}
-						});
-					dialog = builder.create();
-					dialog.show();
-				}
-			}
+        View quickFrame = v.findViewById(R.id.quick_frame);
+        final Activity activity = getActivity();
+        quickFrame.setBackgroundColor(activity.getApplicationColor());
 
-		});
-		mSlidingLayer = (AwareSlidingLayout) v.findViewById(R.id.slidinglayout);
-		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
-			
-			@Override
-			public void onAction(int type){
-				if(type == AwareSlidingLayout.NEGATIVE) {
-					getActivity().onBackPressed();
-					if(mSlidingLayer != null){
-						mSlidingLayer.reset();
-					}
-				}
-			}
-		});
+        TextView title = (TextView) v.findViewById(R.id.quick_title);
+        title.setText(activity.getTitle());
 
-		return v;
-	}
+        quickFrame.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                activity.finish();
+                activity.overridePendingTransition(
+                        android.R.anim.quick_exit_in,
+                        android.R.anim.quick_exit_out);
+            }
+        });
 
-	private boolean isOnline() {
-		ConnectivityManager cm =
-			(ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo netInfo = cm.getActiveNetworkInfo();
-		if (netInfo != null && netInfo.isConnectedOrConnecting()) {
-			return true;
-		}
-		return false;
-	}
+        ListView listView = (ListView) v.findViewById(android.R.id.list);
+        String[] values = getResources().getStringArray(R.array.server_names);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(v.getContext(),
+                android.R.layout.simple_list_item_1, android.R.id.text1, values);
+        listView.setAdapter(adapter);
+        listView.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view,
+                    int position, long id) {
+                if (isOnline()) {
+                    String account_server = parent.getAdapter()
+                            .getItem(position).toString();
 
-	@Override
-	public void onViewCreated(View view, Bundle savedInstanceState) {
-		if (mSlidingLayer != null) {
-			mSlidingLayer.reset();
-		}
-	}
+                    serverInfo = new ServerInfo(account_server);
+                    Bundle args = new Bundle();
+                    args.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
+                    UserCredentialsFragment ucf = new UserCredentialsFragment();
+                    ucf.setArguments(args);
+                    getFragmentManager().beginTransaction()
+                            .replace(R.id.fragment_container, ucf)
+                            .addToBackStack(null).commitAllowingStateLoss();
+                } else {
+                    AlertDialog dialog;
+                    AlertDialog.Builder builder = new AlertDialog.Builder(
+                            getActivity());
+                    builder.setTitle(
+                            getActivity().getResources().getString(
+                                    R.string.no_network))
+                            .setMessage(
+                                    getActivity().getResources().getString(
+                                            R.string.connect_to_network))
+                            .setCancelable(false)
+                            .setNegativeButton(R.string.network_dialog_back,
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(
+                                                DialogInterface dialog, int id) {
+                                            // if this button is clicked, just
+                                            // close
+                                            // the dialog box and do nothing
+                                            dialog.cancel();
+                                        }
+                                    });
+                    dialog = builder.create();
+                    dialog.show();
+                }
+            }
+
+        });
+        return v;
+    }
+
+    private boolean isOnline() {
+        ConnectivityManager cm = (ConnectivityManager) getActivity()
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        if (netInfo != null && netInfo.isConnectedOrConnecting()) {
+            return true;
+        }
+        return false;
+    }
 
 }

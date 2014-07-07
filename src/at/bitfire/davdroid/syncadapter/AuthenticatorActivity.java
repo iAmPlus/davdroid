@@ -36,13 +36,13 @@ import android.content.Intent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ZoomControls;
 import android.webkit.CookieManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.iamplus.aware.AwareSlidingLayout;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 
@@ -53,7 +53,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 	MyWebView browser;
 	Account reauth_account = null;
 	Properties properties;
-	AwareSlidingLayout mSlidingLayer;
 	private String authCode;
 	private String refreshCode;
 	private String expires;
@@ -315,6 +314,8 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+	    overridePendingTransition(android.R.anim.quick_enter_in,
+                android.R.anim.quick_enter_out);
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		AccountDeatilsReader reader = new AccountDeatilsReader(this);
@@ -332,20 +333,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 			setResult(RESULT_CANCELED);
 			finish();
 		}
-		setContentView(R.layout.authenticator);
-		mSlidingLayer = (AwareSlidingLayout)findViewById(R.id.slidinglayout);
-		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
-			@Override
-			public void onAction(int type){
-				if(type == AwareSlidingLayout.NEGATIVE) {
-					onBackPressed();
-					if(mSlidingLayer != null){
-						mSlidingLayer.reset();
-					}
-				}
-			}
-		});
-
+		setContentView(R.layout.pref_title_layout);
 	}
 
 	@Override
@@ -442,28 +430,10 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 
 	@SuppressLint("SetJavaScriptEnabled")
 	public void initWebView() {
-		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
-				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setContentView(R.layout.browser);
 		browser = (MyWebView) findViewById(R.id.browser_view);
-		final ZoomControls zc = (ZoomControls) findViewById(R.id.zoomctrl);
-		zc.setOnZoomInClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				zc.setIsZoomOutEnabled(true);
-				if (!browser.zoomIn())
-				zc.setIsZoomInEnabled(false);
-
-			}
-		});
-		zc.setOnZoomOutClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				zc.setIsZoomInEnabled(true);
-				if (!browser.zoomOut())
-				zc.setIsZoomOutEnabled(false);
-			}
-		});
+		Button cancel = (Button) findViewById(R.id.cancel);
+		cancel.setBackgroundColor(getApplicationColor());
 
 		//Make sure No cookies are created
 		CookieManager.getInstance().removeAllCookie();
@@ -481,32 +451,17 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 
 		browser.getSettings().setJavaScriptEnabled(true);
 		browser.getSettings().setLoadWithOverviewMode(true);
-		browser.getSettings().setBuiltInZoomControls(false);
+		browser.getSettings().setBuiltInZoomControls(true);
+		browser.getSettings().setDisplayZoomControls(false);
 		browser.setInitialScale(1);
 		browser.setPadding(0, 0, 0, 0);
 		browser.getSettings().setUseWideViewPort(true);
-
-		mSlidingLayer = (AwareSlidingLayout)findViewById(R.id.slidinglayout);
-		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
-			@Override
-			public void onAction(int type){
-				if(type == AwareSlidingLayout.POSITIVE) {
-					if(mSlidingLayer != null){
-						mSlidingLayer.reset();
-					}
-				}
-				else if(type == AwareSlidingLayout.NEGATIVE) {
-					if(browser.canGoBack()) {
-						browser.goBack();
-					} else {
-						onBackPressed();
-					}
-					if(mSlidingLayer != null){
-						mSlidingLayer.reset();
-					}
-				}
-			}
-		});
 	}
+	
+    public void finish(View view) {
+        finish();
+        overridePendingTransition(android.R.anim.quick_exit_in,
+                android.R.anim.quick_exit_out);
+    }
 
 }

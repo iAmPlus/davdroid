@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.iamplus.aware.AwareSlidingLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/slidinglayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/slidinglayout"
     android:negativeButtonText="@string/message_cancel_text"
     android:negativeButtonVisibility="visible" >
 
-    <FrameLayout
+    <Button
+        android:id="@+id/cancel"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="wrap_content"
+        android:onClick="finish"
+        android:text="@android:string/cancel"
+        android:paddingTop="@dimen/item_margin"
+        android:paddingBottom="@dimen/item_margin"
+        android:textSize="@dimen/font_size_normal" />
 
-        <at.bitfire.davdroid.syncadapter.MyWebView
-            android:id="@+id/browser_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+    <at.bitfire.davdroid.syncadapter.MyWebView
+        android:id="@+id/browser_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/cancel" />
 
-        <ZoomControls android:id="@+id/zoomctrl"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="top|right" />
-    </FrameLayout>
-
-</com.iamplus.aware.AwareSlidingLayout>
+</RelativeLayout>

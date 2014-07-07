@@ -29,6 +29,8 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
 import com.iamplus.aware.AwareSlidingLayout;
+
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -42,123 +44,135 @@ public class UserCredentialsFragment extends Fragment {
 	EditText editBaseURL, editUserName, editPassword;
 	CheckBox checkboxPreemptive;
 
-	AwareSlidingLayout mSlidingLayer = null;
-	
 	//EditText editUserName, editPassword;
 	ServerInfo serverInfo;
 	Account reauth_account = null;
-	@Override
-	public void onResume() {
-		super.onResume();
-		if(mSlidingLayer != null)
-			mSlidingLayer.reset();
-	}
-	
 
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		View v = inflater.inflate(R.layout.user_details, container, false);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+            Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.user_details, container, false);
 
-		final AccountManager mgr = AccountManager.get(getActivity().getApplicationContext());
+        final AccountManager mgr = AccountManager.get(getActivity()
+                .getApplicationContext());
 
-		if(getActivity().getIntent().hasExtra(Constants.ACCOUNT_KEY_ACCESS_TOKEN)) {
-			reauth_account = getActivity().getIntent().getParcelableExtra(Constants.ACCOUNT_PARCEL);
-			serverInfo = new ServerInfo(mgr.getUserData(reauth_account, Constants.ACCOUNT_SERVER));
-		} else
-			serverInfo = (ServerInfo)getArguments().getSerializable(Constants.KEY_SERVER_INFO);
+        if (getActivity().getIntent().hasExtra(
+                Constants.ACCOUNT_KEY_ACCESS_TOKEN)) {
+            reauth_account = getActivity().getIntent().getParcelableExtra(
+                    Constants.ACCOUNT_PARCEL);
+            serverInfo = new ServerInfo(mgr.getUserData(reauth_account,
+                    Constants.ACCOUNT_SERVER));
+        } else
+            serverInfo = (ServerInfo) getArguments().getSerializable(
+                    Constants.KEY_SERVER_INFO);
 
-		Spinner spnrProtocol = (Spinner) v.findViewById(R.id.select_protocol);
-		editBaseURL = (EditText) v.findViewById(R.id.baseURL);
-		checkboxPreemptive = (CheckBox) v.findViewById(R.id.auth_preemptive);
-		if(!serverInfo.getAccountServer().equals("Other")) {
-			editBaseURL.setVisibility(View.GONE);
-			checkboxPreemptive.setVisibility(View.GONE);
-			spnrProtocol.setVisibility(View.GONE);
-		} else {
-			spnrProtocol.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-				@Override
-				public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-					protocol = parent.getAdapter().getItem(position).toString();
-				}
+        Spinner spnrProtocol = (Spinner) v.findViewById(R.id.select_protocol);
+        editBaseURL = (EditText) v.findViewById(R.id.baseURL);
+        checkboxPreemptive = (CheckBox) v.findViewById(R.id.auth_preemptive);
+        if (!serverInfo.getAccountServer().equals("Other")) {
+            editBaseURL.setVisibility(View.GONE);
+            checkboxPreemptive.setVisibility(View.GONE);
+            spnrProtocol.setVisibility(View.GONE);
+        } else {
+            spnrProtocol
+                    .setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> parent,
+                                View view, int position, long id) {
+                            protocol = parent.getAdapter().getItem(position)
+                                    .toString();
+                        }
 
-				@Override
-				public void onNothingSelected(AdapterView<?> parent) {
-					protocol = null;
-				}
-			});
-			spnrProtocol.setSelection(1);	// HTTPS
-			if(reauth_account != null) {
-				editBaseURL.setText(mgr.getUserData(reauth_account, Constants.ACCOUNT_KEY_BASE_URL));
-				editBaseURL.setInputType(InputType.TYPE_NULL);
-			}
-		}
+                        @Override
+                        public void onNothingSelected(AdapterView<?> parent) {
+                            protocol = null;
+                        }
+                    });
+            spnrProtocol.setSelection(1); // HTTPS
+            if (reauth_account != null) {
+                editBaseURL.setText(mgr.getUserData(reauth_account,
+                        Constants.ACCOUNT_KEY_BASE_URL));
+                editBaseURL.setInputType(InputType.TYPE_NULL);
+            }
+        }
 
-		editUserName = (EditText) v.findViewById(R.id.user_name);
-		if(reauth_account != null) {
-			editUserName.setText(reauth_account.name);
-			editUserName.setInputType(InputType.TYPE_NULL);
-		}
-		
-		editPassword = (EditText) v.findViewById(R.id.password);
-		editPassword.setImeOptions(EditorInfo.IME_ACTION_DONE);
-		editPassword.setOnEditorActionListener(
-				new TextView.OnEditorActionListener () {
-				@Override
-				public boolean onEditorAction(TextView v,
-						int actionId, KeyEvent event) {
-					if(actionId == EditorInfo.IME_ACTION_DONE 
-					|| actionId == EditorInfo.IME_NULL
-					|| event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-						if(!TextUtils.isEmpty(editUserName.getText().toString()) 
-								&& !TextUtils.isEmpty(editPassword.getText().toString()))
-							if(reauth_account != null) {
-								mgr.setPassword(reauth_account, editPassword.getText().toString());
-								getActivity().finish();
-							} else
-								queryServer();
-						return true;
-					}
-					return false;
-				}
-			});
+        editUserName = (EditText) v.findViewById(R.id.user_name);
+        if (reauth_account != null) {
+            editUserName.setText(reauth_account.name);
+            editUserName.setInputType(InputType.TYPE_NULL);
+        }
 
-		if(serverInfo.getAccountServer().equals("Google")) {
-			editUserName.setVisibility(View.GONE);
-			editPassword.setVisibility(View.GONE);
-			Intent intent = new Intent(getActivity(), AuthenticatorActivity.class);
-			intent.putExtra(Constants.KEY_SERVER_INFO, serverInfo);
-			if(reauth_account != null)
-				intent.putExtra(Constants.ACCOUNT_PARCEL, reauth_account);
-			startActivityForResult(intent, 0);
-			return v;
-		}
+        editPassword = (EditText) v.findViewById(R.id.password);
+        editPassword.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        editPassword
+                .setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                    @Override
+                    public boolean onEditorAction(TextView v, int actionId,
+                            KeyEvent event) {
+                        if (actionId == EditorInfo.IME_ACTION_DONE
+                                || actionId == EditorInfo.IME_NULL
+                                || event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+                            if (!TextUtils.isEmpty(editUserName.getText()
+                                    .toString())
+                                    && !TextUtils.isEmpty(editPassword
+                                            .getText().toString()))
+                                if (reauth_account != null) {
+                                    mgr.setPassword(reauth_account,
+                                            editPassword.getText().toString());
+                                    getActivity().finish();
+                                } else
+                                    queryServer();
+                            return true;
+                        }
+                        return false;
+                    }
+                });
 
-		mSlidingLayer = (AwareSlidingLayout)v.findViewById(R.id.slidinglayout);
-		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
-			@Override
-			public void onAction(int type){
-				switch(type) {
-				case AwareSlidingLayout.POSITIVE:
-					if(!TextUtils.isEmpty(editUserName.getText().toString()) 
-								&& !TextUtils.isEmpty(editPassword.getText().toString()))
-							queryServer();
-					if(mSlidingLayer != null){
-						mSlidingLayer.reset();
-					}
-					break;
+        if (serverInfo.getAccountServer().equals("Google")) {
+            editUserName.setVisibility(View.GONE);
+            editPassword.setVisibility(View.GONE);
+            Intent intent = new Intent(getActivity(),
+                    AuthenticatorActivity.class);
+            intent.putExtra(Constants.KEY_SERVER_INFO, serverInfo);
+            if (reauth_account != null)
+                intent.putExtra(Constants.ACCOUNT_PARCEL, reauth_account);
+            startActivityForResult(intent, 0);
+            return v;
+        }
 
-				case AwareSlidingLayout.NEGATIVE:
-					getActivity().onBackPressed();
-					if(mSlidingLayer != null){
-						mSlidingLayer.reset();
-					}
-					break;
-				}
-			}
-		});
+        Button cancel = (Button) v.findViewById(R.id.cancel);
+        Button next = (Button) v.findViewById(R.id.next_action);
+        cancel.setBackgroundColor(getActivity().getApplicationColor());
+        next.setBackgroundColor(getActivity().getApplicationColor());
+        cancel.setVisibility(View.VISIBLE);
+        next.setVisibility(View.VISIBLE);
 
-		return v;
-	}
+        cancel.setOnClickListener(new Button.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                final Activity activity = getActivity();
+                activity.onBackPressed();
+                activity.overridePendingTransition(
+                        android.R.anim.quick_exit_in,
+                        android.R.anim.quick_exit_out);
+            }
+        });
+
+        next.setOnClickListener(new Button.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                if (!TextUtils.isEmpty(editUserName.getText().toString())
+                        && !TextUtils
+                                .isEmpty(editPassword.getText().toString())) {
+                    queryServer();
+                }
+            }
+        });
+
+        return v;
+    }
 
 	void queryServer() {
 			Bundle args = new Bundle();
