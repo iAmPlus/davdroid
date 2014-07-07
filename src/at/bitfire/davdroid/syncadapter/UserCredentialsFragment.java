@@ -178,8 +178,14 @@ public class UserCredentialsFragment extends Fragment {
 			Bundle args = new Bundle();
 			String host_path = editBaseURL.getText().toString();
 			args.putString(Constants.ACCOUNT_KEY_BASE_URL, URIUtils.sanitize(protocol + host_path));
+
+            //Fix For Yahoo Not Syncing Contacts
+	        String userName = editUserName.getText().toString();
+	        int atIndex = userName.indexOf('@');
+	        userName = atIndex != -1 ? userName.substring(0, atIndex) : userName;
+
 			serverInfo.setAccountName(editUserName.getText().toString());
-			serverInfo.setUserName(editUserName.getText().toString());
+			serverInfo.setUserName(userName);
 			serverInfo.setPassword(editPassword.getText().toString());
 			args.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
 
