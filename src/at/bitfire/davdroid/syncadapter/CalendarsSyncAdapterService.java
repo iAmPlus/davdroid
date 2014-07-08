@@ -68,7 +68,7 @@ public class CalendarsSyncAdapterService extends Service {
 		protected Map<LocalCollection<?>, RemoteCollection<?>> getSyncPairs(Account account, ContentProviderClient provider) {
 
 			try {
-				Map<LocalCollection<?>, RemoteCollection<?>> map = new HashMap<LocalCollection<?>, RemoteCollection<?>>();
+				Map<LocalCollection<?>, RemoteCollection<?>> map = new HashMap<LocalCollection<?>, RemoteCollection<?>>(2);
 				AccountSettings settings = new AccountSettings(getContext(), account);
 				String	userName = null,
 						password = null;

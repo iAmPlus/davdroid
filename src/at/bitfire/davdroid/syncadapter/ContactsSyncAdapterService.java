@@ -101,7 +101,7 @@ public class ContactsSyncAdapterService extends Service {
 					dav = new CardDavAddressBook(httpClient, uri.toString(), userName, password, true);
 				}
 
-				Map<LocalCollection<?>, RemoteCollection<?>> map = new HashMap<LocalCollection<?>, RemoteCollection<?>>();
+				Map<LocalCollection<?>, RemoteCollection<?>> map = new HashMap<LocalCollection<?>, RemoteCollection<?>>(2);
 				map.put(database, dav);
 
 				return map;
