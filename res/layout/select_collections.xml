@@ -1,18 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.iamplus.aware.AwareSlidingLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/slidinglayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:scrollbars="vertical"
-    android:positiveButtonText="@string/next_action"
-    android:positiveButtonVisibility="visible"
-    android:negativeButtonText="@string/message_cancel_text"
-    android:negativeButtonVisibility="visible" >
+    android:scrollbars="vertical" >
+
+    <LinearLayout
+        android:id="@+id/buttons_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/next_action"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:paddingBottom="@dimen/item_margin"
+            android:paddingTop="@dimen/item_margin"
+            android:text="@string/next_action"
+            android:textColor="@android:color/black"
+            android:textSize="@dimen/font_size_normal" />
+
+        <Button
+            android:id="@+id/cancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:alpha="0.7"
+            android:paddingBottom="@dimen/item_margin"
+            android:paddingTop="@dimen/item_margin"
+            android:text="@string/message_cancel_text"
+            android:textColor="@android:color/black"
+            android:textSize="@dimen/font_size_normal" />
+    </LinearLayout>
 
     <ListView
-    android:id="@android:id/list"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_weight="1" />
+        android:id="@android:id/list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/buttons_layout"
+        android:layout_weight="1" />
 
-</com.iamplus.aware.AwareSlidingLayout>
+</RelativeLayout>
