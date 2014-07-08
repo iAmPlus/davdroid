@@ -14,6 +14,7 @@
         android:text="@android:string/cancel"
         android:paddingTop="@dimen/item_margin"
         android:paddingBottom="@dimen/item_margin"
+        android:textColor="@android:color/black"
         android:textSize="@dimen/font_size_normal" />
 
     <at.bitfire.davdroid.syncadapter.MyWebView
