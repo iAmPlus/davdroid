@@ -194,12 +194,13 @@ public class UserCredentialsFragment extends Fragment {
 
 	public void onActivityResult(int requestCode, int resultCode,
 			Intent data) {
-        if (data == null) {
-            Log.d("IamPlusSyncAdapter:UserCredentialsFrag", "onActivityResult : intent null");
-            return;
-        }
 		if(reauth_account != null) {
 			AccountManager accountManager = AccountManager.get(getActivity());
+            if (data == null) {
+                getActivity().onBackPressed();
+                Log.d("IamPlusSyncAdapter:UserCredentialsFrag", "onActivityResult : intent null");
+                return;
+            }
 			Bundle reauth_bundle = data.getBundleExtra(Constants.ACCOUNT_BUNDLE);
 			if(reauth_bundle.containsKey(Constants.ACCOUNT_KEY_ACCESS_TOKEN)) {
 				accountManager.setAuthToken(reauth_account, Constants.ACCOUNT_KEY_ACCESS_TOKEN,
@@ -215,14 +216,20 @@ public class UserCredentialsFragment extends Fragment {
 			}
 			getActivity().finish();
 		}
-		if (resultCode == Activity.RESULT_OK) {
-			Bundle arguments = new Bundle();
-			serverInfo.setAccountName(data.getStringExtra("account_name"));
-			arguments.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
-			arguments.putBundle(Constants.ACCOUNT_BUNDLE, data.getBundleExtra(Constants.ACCOUNT_BUNDLE));
-			nextTransaction(arguments);
-		} else
-			getActivity().onBackPressed();
+        if (resultCode == Activity.RESULT_OK) {
+            Bundle arguments = new Bundle();
+            if (data == null) {
+                getActivity().onBackPressed();
+                Log.d("IamPlusSyncAdapter:UserCredentialsFrag", "onActivityResult : intent null");
+                return;
+            }
+            serverInfo.setAccountName(data.getStringExtra("account_name"));
+            arguments.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
+            arguments.putBundle(Constants.ACCOUNT_BUNDLE, data.getBundleExtra(Constants.ACCOUNT_BUNDLE));
+            nextTransaction(arguments);
+        } else {
+            getActivity().onBackPressed();
+        }
 	}
 	
 	void nextTransaction(Bundle arguments) {
