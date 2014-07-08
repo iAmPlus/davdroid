@@ -86,7 +86,7 @@ public class WebDavResource {
 							methods = new HashSet<String>();
 
 	// DAV properties
-	protected HashMap<Property, String> properties = new HashMap<Property, String>();
+	protected HashMap<Property, String> properties = new HashMap<Property, String>(2);
 	@Getter protected List<String> supportedComponents;
 
 	// list of members (only for collections)
