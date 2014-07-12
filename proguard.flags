@@ -1,6 +1,9 @@
 # Keep all Fragments in this package, which are used by reflection.
 
 # Don't warn
+-dontshrink
+-dontoptimize
+-dontpreverify
 -dontwarn javax.xml.stream.**
 -dontwarn org.codehaus.groovy.**
 -dontwarn groovy.lang.**
