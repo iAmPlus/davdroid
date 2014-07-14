@@ -28,7 +28,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.text.TextUtils;
 import android.util.Log;
-import com.iamplus.aware.AwareSlidingLayout;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 import at.bitfire.davdroid.resource.LocalCalendar;
@@ -36,76 +35,17 @@ import at.bitfire.davdroid.resource.LocalCalendar;
 public class AccountDetailsFragment extends Fragment {
 	public static final String KEY_SERVER_INFO = "server_info";
 
-	@Override
-	public void onResume() {
-		super.onResume();
-		if(mSlidingLayer != null)
-			mSlidingLayer.reset();
-	}
-
 	ServerInfo serverInfo;
-
-	EditText editAccountName;
-
-	AwareSlidingLayout mSlidingLayer = null;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater,
 			ViewGroup container, Bundle savedInstanceState) {
-		View v = inflater.inflate(R.layout.account_details, container, false);
 
 		serverInfo = (ServerInfo)getArguments().getSerializable(
 			Constants.KEY_SERVER_INFO);
-		editAccountName = (EditText)v.findViewById(R.id.account_name);
 
-		if(TextUtils.isEmpty(serverInfo.getAccountName())) {
-	
-			editAccountName.setImeOptions(EditorInfo.IME_ACTION_DONE);
-			editAccountName.setOnEditorActionListener(
-					new TextView.OnEditorActionListener () {
-					@Override
-					public boolean onEditorAction(TextView v,
-							int actionId, KeyEvent event) {
-						if((actionId == EditorInfo.IME_ACTION_DONE 
-						|| actionId == EditorInfo.IME_NULL
-						|| event.getKeyCode() == KeyEvent.KEYCODE_ENTER)
-						&& !TextUtils.isEmpty(editAccountName.getText().toString())) {
-							addAccount(editAccountName.getText().toString());
-							return true;
-						}
-						return false;
-					}
-				});
-		} else {
-			editAccountName.setVisibility(View.GONE);
-			addAccount(serverInfo.getAccountName());
-		}
-
-		mSlidingLayer = (AwareSlidingLayout)v.findViewById(R.id.slidinglayout);
-		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
-			@Override
-			public void onAction(int type){
-				switch(type) {
-				case AwareSlidingLayout.POSITIVE:
-					if(!TextUtils.isEmpty(editAccountName.getText().toString())) {
-							addAccount(editAccountName.getText().toString());
-					}
-					if(mSlidingLayer != null){
-						mSlidingLayer.reset();
-					}
-					break;
-
-				case AwareSlidingLayout.NEGATIVE:
-					getActivity().onBackPressed();
-					if(mSlidingLayer != null){
-						mSlidingLayer.reset();
-					}
-					break;
-				}
-			}
-		});
-
-		return v;
+		addAccount(serverInfo.getAccountName());
+		return null;
 	}
 
 
@@ -113,6 +53,12 @@ public class AccountDetailsFragment extends Fragment {
 
 	void addAccount(String account_name) {
 		try {
+
+            if (TextUtils.isEmpty(account_name)) {
+                Toast.makeText(getActivity(), R.string.account_name_empty, Toast.LENGTH_LONG).show();
+                getActivity().finish();
+                return;
+            }
 
 			AccountManager accountManager = AccountManager.get(getActivity());
 			Account []accounts = accountManager.getAccountsByType(Constants.ACCOUNT_TYPE);
@@ -175,7 +121,7 @@ public class AccountDetailsFragment extends Fragment {
 				
 				getActivity().finish();
 			} else
-				Toast.makeText(getActivity(), "Couldn't create account (account with this name already existing?)", Toast.LENGTH_LONG).show();
+				Toast.makeText(getActivity(), R.string.account_already_exists, Toast.LENGTH_LONG).show();
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}

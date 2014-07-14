@@ -28,7 +28,6 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
-import com.iamplus.aware.AwareSlidingLayout;
 
 import android.widget.Button;
 import android.widget.EditText;
