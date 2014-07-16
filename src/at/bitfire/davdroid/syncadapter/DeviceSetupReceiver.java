@@ -24,6 +24,7 @@ import android.os.RemoteException;
 import android.provider.CalendarContract;
 import android.provider.ContactsContract;
 import android.util.Log;
+import android.os.Bundle;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 import at.bitfire.davdroid.resource.LocalCalendar;
@@ -33,6 +34,7 @@ import at.bitfire.davdroid.webdav.DavIncapableException;
 import at.bitfire.davdroid.webdav.PermanentlyMovedException;
 import at.bitfire.davdroid.webdav.WebDavResource;
 import at.bitfire.davdroid.webdav.HttpPropfind.Mode;
+import at.bitfire.davdroid.resource.LocalStorageException;
 
 public class DeviceSetupReceiver extends BroadcastReceiver {
 
@@ -94,8 +96,24 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 				accountManager.setUserData(account, properties.getProperty("client_secret_name"), properties.getProperty("client_secret_value"));
 				accountManager.setUserData(account, "token_url", properties.getProperty("token_url"));
 				accountManager.setUserData(account, Constants.ACCOUNT_SERVER, properties.getProperty("type"));
-				AccountManagerFuture<Bundle> token = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, null, null, null);
+				
+				/*try {
+					authBearer = "Bearer " + accountManager.blockingGetAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, true);
+				} catch (OperationCanceledException e) {
+					errorMessage.concat(e.getMessage());
+				} catch (AuthenticatorException e) {
+					errorMessage.concat(e.getMessage());
+				} catch (IOException e) {
+					errorMessage.concat(e.getMessage());
+				}*/
+				AccountManagerFuture<Bundle> token = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, true, null, null);
 				try {
+					if(token.getResult().containsKey(AccountManager.KEY_INTENT)) {
+						/*Intent auth = token.getResult().getParcelable(AccountManager.KEY_INTENT);
+            			auth.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            			mContext.startActivity(auth);*/
+            			return "Require OAuth";
+					}
 					authBearer = "Bearer " + token.getResult().getString(AccountManager.KEY_AUTHTOKEN);
 				} catch (OperationCanceledException e) {
 					errorMessage.concat(e.getMessage());
@@ -105,9 +123,17 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 					errorMessage.concat(e.getMessage());
 				}
 			} else {
-				serverInfo.setUserName(accountManager.getUserData(account, Constants.ACCOUNT_KEY_USERNAME));
-				serverInfo.setUserName(accountManager.getPassword(account));
-				userName = serverInfo.getUserName();
+				//serverInfo.setUserName(accountManager.getUserData(account, Constants.ACCOUNT_KEY_USERNAME));
+
+				android.util.Log.v("SK", accountServer);
+				android.util.Log.v("SK", accountName);
+				android.util.Log.v("SK", accountManager.getPassword(account));
+				userName = accountName;
+				if(userName.indexOf("@") != -1) {
+					userName = userName.substring(0, userName.indexOf("@"));
+				}
+				serverInfo.setUserName(userName);
+				serverInfo.setPassword(accountManager.getPassword(account));
 				password = serverInfo.getPassword();
 			}
 			
@@ -118,7 +144,7 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 				return errorMessage;
 			}
 
-			CloseableHttpClient httpClient = DavHttpClient.create();
+			CloseableHttpClient httpClient = DavHttpClient.create(true, true);
 			try {
 
 				if(TextUtils.isEmpty(serverInfo.getBaseURL())
@@ -126,14 +152,13 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 				{
 					serverInfo.setBaseURL(
 						properties.getProperty(Constants.ACCOUNT_KEY_BASE_URL));
+					if(authBearer != null)
+						base = new WebDavResource(httpClient,
+								new URI(serverInfo.getBaseURL()), authBearer);
+					else
+						base = new WebDavResource(httpClient,
+								new URI(serverInfo.getBaseURL()), userName, password, true, true);
 				}
-				
-				if(authBearer != null)
-					base = new WebDavResource(httpClient,
-							new URI(serverInfo.getBaseURL()), authBearer);
-				else
-					base = new WebDavResource(httpClient,
-							new URI(serverInfo.getBaseURL()), userName, password, true, true);
 				try {
 					if(base != null) {
 
@@ -424,6 +449,23 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 			}
 
 			if (hasAddressBook || hasCalendar) {
+					Bundle accountData = AccountSettings.createBundle(serverInfo);
+					accountManager.setUserData(account, "version", accountData.getString("version"));
+					accountManager.setUserData(account, Constants.ACCOUNT_KEY_USERNAME,
+							accountData.getString(Constants.ACCOUNT_KEY_USERNAME));
+					accountManager.setUserData(account, Constants.ACCOUNT_KEY_AUTH_PREEMPTIVE,
+							accountData.getString(Constants.ACCOUNT_KEY_AUTH_PREEMPTIVE));
+					if(accountData.containsKey(Constants.ACCOUNT_SERVER))
+						accountManager.setUserData(account, Constants.ACCOUNT_SERVER, serverInfo.getAccountServer());
+					if(accountData.containsKey(Constants.ACCOUNT_KEY_BASE_URL))
+						accountManager.setUserData(account, Constants.ACCOUNT_KEY_BASE_URL, serverInfo.getBaseURL());
+					if(accountData.containsKey(Constants.ACCOUNT_KEY_CARDDAV_URL))
+						accountManager.setUserData(account, Constants.ACCOUNT_KEY_CARDDAV_URL, serverInfo.getCarddavURL());
+					if(accountData.containsKey(Constants.ACCOUNT_KEY_CALDAV_URL))
+						accountManager.setUserData(account, Constants.ACCOUNT_KEY_CALDAV_URL, serverInfo.getCaldavURL());
+					if(accountData.containsKey(Constants.ACCOUNT_KEY_ADDRESSBOOK_PATH))
+						accountManager.setUserData(account, Constants.ACCOUNT_KEY_ADDRESSBOOK_PATH,
+							accountData.getString(Constants.ACCOUNT_KEY_ADDRESSBOOK_PATH));
 						
 				boolean syncContacts = false;
 				for (ServerInfo.ResourceInfo addressBook : serverInfo.getAddressBooks())
@@ -443,7 +485,7 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 					if (calendar.isEnabled()) {
 						try {
 							LocalCalendar.create(account, mContext.getContentResolver(), calendar);
-						} catch (RemoteException e) {
+						} catch (LocalStorageException e) {
 							e.printStackTrace();
 						}
 						syncCalendars = true;
@@ -460,14 +502,23 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 		
 		@Override
 		protected void onPostExecute(String error) {
+			android.util.Log.v("SK", "onPostExecute");
 			Intent resultIntent = new Intent();
+			resultIntent.setAction("at.bitfire.davdroid.ADD_ACCOUNT_RESPONSE");
+			resultIntent.putExtra("account_name", accountName);
+			//resultIntent.addCategory(Intent.CATEGORY_DEFAULT);
 			if (hasAddressBook || hasCalendar) {
+				android.util.Log.v("SK", "onPostExecute: success");
 				resultIntent.putExtra(status, "success");
-			} else
+			} else {
+				android.util.Log.v("SK", "onPostExecute: failed");
 				resultIntent.putExtra(status, "failed");
+			}
 			if (error != "") {
+				android.util.Log.v("SK", "onPostExecute: error");
 				resultIntent.putExtra(message, error);
 			}
+			android.util.Log.v("SK", "onPostExecute: sendBroadcast");
 			mContext.sendBroadcast(resultIntent);
 			result.finish();
 		}
@@ -475,6 +526,7 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 	
 	@Override
 	public void onReceive(Context context, Intent addAccount) {
+		android.util.Log.v("SK", "onReceive");
 		PendingResult result = goAsync();
 		UpdateAccount account_task = new UpdateAccount(
 				addAccount.getStringExtra(Constants.ACCOUNT_KEY_ACCOUNT_NAME), 

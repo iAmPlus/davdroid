@@ -43,7 +43,6 @@ public class UserCredentialsFragment extends Fragment {
 	EditText editBaseURL, editUserName, editPassword;
 	CheckBox checkboxPreemptive;
 
-	//EditText editUserName, editPassword;
 	ServerInfo serverInfo;
 	Account reauth_account = null;
 
@@ -176,9 +175,10 @@ public class UserCredentialsFragment extends Fragment {
 	void queryServer() {
 			Bundle args = new Bundle();
 			String host_path = editBaseURL.getText().toString();
-			args.putString(Constants.ACCOUNT_KEY_BASE_URL, URIUtils.sanitize(protocol + host_path));
-
-            //Fix For Yahoo Not Syncing Contacts
+			if(!TextUtils.isEmpty(host_path) && protocol != null) {
+				serverInfo.setBaseURL(URIUtils.sanitize(protocol + host_path));
+			}
+		//Fix For Yahoo Not Syncing Contacts
 	        String userName = editUserName.getText().toString();
 	        int atIndex = userName.indexOf('@');
 	        userName = atIndex != -1 ? userName.substring(0, atIndex) : userName;
@@ -193,42 +193,17 @@ public class UserCredentialsFragment extends Fragment {
 
 	public void onActivityResult(int requestCode, int resultCode,
 			Intent data) {
-		if(reauth_account != null) {
-			AccountManager accountManager = AccountManager.get(getActivity());
-            if (data == null) {
-                getActivity().onBackPressed();
-                Log.d("IamPlusSyncAdapter:UserCredentialsFrag", "onActivityResult : intent null");
-                return;
-            }
-			Bundle reauth_bundle = data.getBundleExtra(Constants.ACCOUNT_BUNDLE);
-			if(reauth_bundle.containsKey(Constants.ACCOUNT_KEY_ACCESS_TOKEN)) {
-				accountManager.setAuthToken(reauth_account, Constants.ACCOUNT_KEY_ACCESS_TOKEN,
-						reauth_bundle.getString(Constants.ACCOUNT_KEY_ACCESS_TOKEN));
+		if (resultCode == Activity.RESULT_OK) {
+			if(reauth_account != null) {
+				getActivity().finish();
 			}
-			if(reauth_bundle.containsKey(Constants.ACCOUNT_KEY_REFRESH_TOKEN)) {
-				accountManager.setAuthToken(reauth_account, Constants.ACCOUNT_KEY_REFRESH_TOKEN,
-						reauth_bundle.getString(Constants.ACCOUNT_KEY_REFRESH_TOKEN));
-			}
-			if(reauth_bundle.containsKey("oauth_expires_in")) {
-				accountManager.setUserData(reauth_account, "oauth_expires_in",
-						reauth_bundle.getString("oauth_expires_in"));
-			}
-			getActivity().finish();
-		}
-        if (resultCode == Activity.RESULT_OK) {
-            Bundle arguments = new Bundle();
-            if (data == null) {
-                getActivity().onBackPressed();
-                Log.d("IamPlusSyncAdapter:UserCredentialsFrag", "onActivityResult : intent null");
-                return;
-            }
-            serverInfo.setAccountName(data.getStringExtra("account_name"));
-            arguments.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
-            arguments.putBundle(Constants.ACCOUNT_BUNDLE, data.getBundleExtra(Constants.ACCOUNT_BUNDLE));
-            nextTransaction(arguments);
-        } else {
-            getActivity().onBackPressed();
-        }
+			Bundle arguments = new Bundle();
+			serverInfo.setAccountName(data.getStringExtra("account_name"));
+			arguments.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
+			arguments.putBundle(Constants.ACCOUNT_BUNDLE, data.getBundleExtra(Constants.ACCOUNT_BUNDLE));
+			nextTransaction(arguments);
+		} else
+			getActivity().onBackPressed();
 	}
 	
 	void nextTransaction(Bundle arguments) {

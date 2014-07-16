@@ -1,12 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2014 Richard Hirner (bitfire web engineering).
+ * Copyright (c) 2014 Ricki Hirner (bitfire web engineering).
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/gpl.html
- * 
- * Contributors:
- *	 Richard Hirner (bitfire web engineering) - initial API and implementation
  ******************************************************************************/
 package at.bitfire.davdroid.syncadapter;
 
@@ -31,6 +28,7 @@ import android.util.Log;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 import at.bitfire.davdroid.resource.LocalCalendar;
+import at.bitfire.davdroid.resource.LocalStorageException;
 
 public class AccountDetailsFragment extends Fragment {
 	public static final String KEY_SERVER_INFO = "server_info";
@@ -50,7 +48,7 @@ public class AccountDetailsFragment extends Fragment {
 
 
 	// actions
-
+	
 	void addAccount(String account_name) {
 		try {
 
@@ -80,6 +78,7 @@ public class AccountDetailsFragment extends Fragment {
 			}
 			Account account = new Account(account_name, Constants.ACCOUNT_TYPE);
 			Bundle userData = AccountSettings.createBundle(serverInfo);
+			
 			Bundle accountData = getArguments().getBundle(Constants.ACCOUNT_BUNDLE);
 			if(accountData != null) {
 				userData.putAll(accountData);
@@ -96,7 +95,7 @@ public class AccountDetailsFragment extends Fragment {
 				ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true);
 			} else
 				ContentResolver.setIsSyncable(account, ContactsContract.AUTHORITY, 0);
-
+			
 			if (accountManager.addAccountExplicitly(account, serverInfo.getPassword(), userData)) {
 				// account created, now create calendars
 				if(userData.containsKey(Constants.ACCOUNT_KEY_ACCESS_TOKEN)) {
@@ -122,7 +121,7 @@ public class AccountDetailsFragment extends Fragment {
 				getActivity().finish();
 			} else
 				Toast.makeText(getActivity(), R.string.account_already_exists, Toast.LENGTH_LONG).show();
-		} catch (RemoteException e) {
+		} catch (LocalStorageException e) {
 			e.printStackTrace();
 		}
 	}

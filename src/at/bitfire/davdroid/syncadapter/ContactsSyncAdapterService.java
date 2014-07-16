@@ -1,12 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2014 Richard Hirner (bitfire web engineering).
+ * Copyright (c) 2014 Ricki Hirner (bitfire web engineering).
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/gpl.html
- * 
- * Contributors:
- *     Richard Hirner (bitfire web engineering) - initial API and implementation
  ******************************************************************************/
 package at.bitfire.davdroid.syncadapter;
 
@@ -16,7 +13,6 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
-import lombok.Synchronized;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerFuture;
@@ -38,7 +34,8 @@ import at.bitfire.davdroid.resource.RemoteCollection;
 public class ContactsSyncAdapterService extends Service {
 	private static ContactsSyncAdapter syncAdapter;
 
-	@Override @Synchronized
+	
+	@Override
 	public void onCreate() {
 		if (syncAdapter == null)
 			syncAdapter = new ContactsSyncAdapter(getApplicationContext());
@@ -54,11 +51,12 @@ public class ContactsSyncAdapterService extends Service {
 	public IBinder onBind(Intent intent) {
 		return syncAdapter.getSyncAdapterBinder();
 	}
+	
 
 	private static class ContactsSyncAdapter extends DavSyncAdapter {
 		private final static String TAG = "davdroid.ContactsSyncAdapter";
 
-
+		
 		private ContactsSyncAdapter(Context context) {
 			super(context);
 		}
@@ -101,7 +99,7 @@ public class ContactsSyncAdapterService extends Service {
 					dav = new CardDavAddressBook(httpClient, uri.toString(), userName, password, true);
 				}
 
-				Map<LocalCollection<?>, RemoteCollection<?>> map = new HashMap<LocalCollection<?>, RemoteCollection<?>>(2);
+				Map<LocalCollection<?>, RemoteCollection<?>> map = new HashMap<LocalCollection<?>, RemoteCollection<?>>();
 				map.put(database, dav);
 
 				return map;

@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2014 Ricki Hirner (bitfire web engineering).
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/gpl.html
+ ******************************************************************************/
 package at.bitfire.davdroid.webdav.test;
 
 import java.io.IOException;
@@ -14,9 +21,7 @@ import lombok.Cleanup;
 import org.apache.commons.io.IOUtils;
 
 import android.content.res.AssetManager;
-import android.os.Build;
 import android.test.InstrumentationTestCase;
-import android.util.Log;
 import at.bitfire.davdroid.webdav.DavException;
 import at.bitfire.davdroid.webdav.DavHttpClient;
 import at.bitfire.davdroid.webdav.DavMultiget;
@@ -31,8 +36,6 @@ import ch.boye.httpclientandroidlib.impl.client.CloseableHttpClient;
 // tests require running robohydra!
 
 public class WebDavResourceTest extends InstrumentationTestCase {
-	private static final String TAG = "davdroidTest.WebDavResourceTest";
-	
 	static final String ROBOHYDRA_BASE = "http://10.0.0.11:3000/";
 	static byte[] SAMPLE_CONTENT = new byte[] { 1, 2, 3, 4, 5 };
 	
@@ -45,7 +48,7 @@ public class WebDavResourceTest extends InstrumentationTestCase {
 
 	@Override
 	protected void setUp() throws Exception {
-		httpClient = DavHttpClient.create(); 
+		httpClient = DavHttpClient.create(true, true); 
 				
 		assetMgr = getInstrumentation().getContext().getResources().getAssets();
 		
@@ -166,20 +169,14 @@ public class WebDavResourceTest extends InstrumentationTestCase {
 	public void testGetHttpsWithSni() throws URISyntaxException, HttpException, IOException, DavException {
 		WebDavResource file = new WebDavResource(httpClient, new URI("https://sni.velox.ch"), false);
 		
-		boolean	sniWorking;
+		boolean	sniWorking = false;
 		try {
 			file.get();
 			sniWorking = true; 
 		} catch (SSLPeerUnverifiedException e) {
-			sniWorking = false;
 		}
 		
-		if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-			// SNI should be available in Android 4.2+
-			assertTrue(sniWorking);
-		} else
-			Log.i(TAG, "SNI not tested (only available in Android 4.2+)");
-		
+		assertTrue(sniWorking);
 	}
 	
 	public void testMultiGet() throws DavException, IOException, HttpException {
@@ -193,7 +190,7 @@ public class WebDavResourceTest extends InstrumentationTestCase {
 	
 	public void testPutAddDontOverwrite() throws IOException, HttpException {
 		// should succeed on a non-existing file
-		davNonExistingFile.put(SAMPLE_CONTENT, PutMode.ADD_DONT_OVERWRITE);
+		assertEquals("has-just-been-created", davNonExistingFile.put(SAMPLE_CONTENT, PutMode.ADD_DONT_OVERWRITE));
 		
 		// should fail on an existing file
 		try {
@@ -205,7 +202,7 @@ public class WebDavResourceTest extends InstrumentationTestCase {
 	
 	public void testPutUpdateDontOverwrite() throws IOException, HttpException {
 		// should succeed on an existing file
-		davExistingFile.put(SAMPLE_CONTENT, PutMode.UPDATE_DONT_OVERWRITE);
+		assertEquals("has-just-been-updated", davExistingFile.put(SAMPLE_CONTENT, PutMode.UPDATE_DONT_OVERWRITE));
 		
 		// should fail on a non-existing file
 		try {

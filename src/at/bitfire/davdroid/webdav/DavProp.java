@@ -1,12 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2014 Richard Hirner (bitfire web engineering).
+ * Copyright (c) 2014 Ricki Hirner (bitfire web engineering).
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/gpl.html
- * 
- * Contributors:
- *     Richard Hirner (bitfire web engineering) - initial API and implementation
  ******************************************************************************/
 package at.bitfire.davdroid.webdav;
 
@@ -115,69 +112,69 @@ public class DavProp {
 	
 	@Element(required=false,name="addressbook-home-set")
 	DavAddressbookHomeSet addressbookHomeSet;
-
+	
 	@Element(required=false,name="calendar-home-set")
 	DavCalendarHomeSet calendarHomeSet;
 
 	@Element(required=false,name="addressbook-description")
 	DavPropAddressbookDescription addressbookDescription;
-
+	
 	@Element(required=false,name="calendar-description")
 	DavPropCalendarDescription calendarDescription;
-
+	
 	@Element(required=false,name="calendar-color")
 	DavPropCalendarColor calendarColor;
-
+	
 	@Element(required=false,name="calendar-timezone")
 	DavPropCalendarTimezone calendarTimezone;
-
+	
 	@Namespace(prefix="C",reference="urn:ietf:params:xml:ns:caldav")
 	@ElementList(required=false,name="supported-calendar-component-set",entry="comp")
 	List<DavPropComp> supportedCalendarComponentSet;
-
+	
 	@Element(name="address-data",required=false)
 	DavPropAddressData addressData;
 
 	@Element(name="calendar-data",required=false)
 	DavPropCalendarData calendarData;
 
-
+	
 	@Namespace(prefix="CD",reference="urn:ietf:params:xml:ns:carddav")
 	public static class DavAddressbookHomeSet {
 		@Element(required=false)
 		@Getter private DavHref href;
 	}
-
+	
 	@Namespace(prefix="C",reference="urn:ietf:params:xml:ns:caldav")
 	public static class DavCalendarHomeSet {
 		@Element(required=false)
 		@Getter private DavHref href;
 	}
-
+	
 	@Namespace(prefix="CD",reference="urn:ietf:params:xml:ns:carddav")
 	public static class DavPropAddressbookDescription {
 		@Text(required=false)
 		@Getter private String description;
 	}
-
+	
 	@Namespace(prefix="C",reference="urn:ietf:params:xml:ns:caldav")
 	public static class DavPropCalendarDescription {
 		@Text(required=false)
 		@Getter private String description;
 	}
-
+	
 	@Namespace(prefix="A",reference="http://apple.com/ns/ical/")
 	public static class DavPropCalendarColor {
 		@Text(required=false)
 		@Getter private String color;
 	}
-
+	
 	@Namespace(prefix="C",reference="urn:ietf:params:xml:ns:caldav")
 	public static class DavPropCalendarTimezone {
 		@Text(required=false)
 		@Getter private String timezone;
 	}
-
+	
 	@Namespace(prefix="C",reference="urn:ietf:params:xml:ns:caldav")
 	public static class DavPropComp {
 		@Attribute
@@ -189,7 +186,7 @@ public class DavProp {
 		@Text(required=false)
 		@Getter String vcard;
 	}
-
+	
 	@Namespace(prefix="C",reference="urn:ietf:params:xml:ns:caldav")
 	public static class DavPropCalendarData {
 		@Text(required=false)

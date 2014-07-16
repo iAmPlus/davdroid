@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Richard Hirner (bitfire web engineering).
+ * Copyright (c) 2014 Ricki Hirner (bitfire web engineering).
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0
  * which accompanies this distribution, and is available at
@@ -66,14 +66,15 @@ import at.bitfire.davdroid.syncadapter.AccountSettings;
 
 public class LocalAddressBook extends LocalCollection<Contact> {
 	private final static String TAG = "davdroid.LocalAddressBook";
-
+	
 	protected final static String COLUMN_UNKNOWN_PROPERTIES = RawContacts.SYNC3;
 
+	
 	protected AccountSettings accountSettings;
-
-
+	
+	
 	/* database fields */
-
+	
 	@Override
 	protected Uri entriesURI() {
 		return syncAdapterURI(RawContacts.CONTENT_URI);
@@ -81,12 +82,12 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 
 	protected String entryColumnAccountType()	{ return RawContacts.ACCOUNT_TYPE; }
 	protected String entryColumnAccountName()	{ return RawContacts.ACCOUNT_NAME; }
-
+	
 	protected String entryColumnParentID()		{ return null;	/* maybe use RawContacts.DATA_SET some day? */ }
 	protected String entryColumnID()			{ return RawContacts._ID; }
 	protected String entryColumnRemoteName()	{ return RawContacts.SOURCE_ID; }
 	protected String entryColumnETag()			{ return RawContacts.SYNC2; }
-
+	
 	protected String entryColumnDirty()			{ return RawContacts.DIRTY; }
 	protected String entryColumnDeleted()		{ return RawContacts.DELETED; }
 
@@ -98,15 +99,15 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 		super(account, providerClient);
 		this.accountSettings = accountSettings;
 	}
-
-
+	
+	
 	/* collection operations */
-
+	
 	@Override
 	public long getId() {
 		return -1;
 	}
-
+	
 	@Override
 	public String getCTag() {
 		return accountSettings.getAddressBookCTag();
@@ -117,16 +118,16 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 		accountSettings.setAddressBookCTag(cTag);
 	}
 
-
+	
 	/* create/update/delete */
-
+	
 	public Contact newResource(long localID, String resourceName, String eTag) {
 		return new Contact(localID, resourceName, eTag);
 	}
-
+	
 	public void deleteAllExceptRemoteNames(Resource[] remoteResources) {
 		String where;
-
+		
 		if (remoteResources.length != 0) {
 			List<String> sqlFileNames = new LinkedList<String>();
 			for (Resource res : remoteResources)
@@ -134,20 +135,20 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 			where = entryColumnRemoteName() + " NOT IN (" + StringUtils.join(sqlFileNames, ",") + ")";
 		} else
 			where = entryColumnRemoteName() + " IS NOT NULL";
-
+			
 		Builder builder = ContentProviderOperation.newDelete(entriesURI()).withSelection(where, null);
 		pendingOperations.add(builder
 				.withYieldAllowed(true)
 				.build());
 	}
-
-
+	
+	
 	/* methods for populating the data object from the content provider */
 
 	@Override
 	public void populate(Resource res) throws LocalStorageException {
 		Contact c = (Contact)res;
-
+		
 		try {
 			@Cleanup Cursor cursor = providerClient.query(ContentUris.withAppendedId(entriesURI(), c.getLocalID()),
 				new String[] { entryColumnUID(), COLUMN_UNKNOWN_PROPERTIES, RawContacts.STARRED }, null, null, null);
@@ -157,7 +158,7 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 				c.setStarred(cursor.getInt(2) != 0);
 			} else
 				throw new RecordNotFoundException();
-
+		
 			populateStructuredName(c);
 			populatePhoneNumbers(c);
 			populateEmailAddresses(c);
@@ -182,22 +183,22 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 				/* 6 */ StructuredName.PHONETIC_GIVEN_NAME, StructuredName.PHONETIC_MIDDLE_NAME, StructuredName.PHONETIC_FAMILY_NAME
 			}, StructuredName.RAW_CONTACT_ID + "=? AND " + Data.MIMETYPE + "=?",
 			new String[] { String.valueOf(c.getLocalID()), StructuredName.CONTENT_ITEM_TYPE }, null);
-
+		
 		if (cursor != null && cursor.moveToNext()) {
 			c.setDisplayName(cursor.getString(0));
-
+			
 			c.setPrefix(cursor.getString(1));
 			c.setGivenName(cursor.getString(2));
 			c.setMiddleName(cursor.getString(3));
 			c.setFamilyName(cursor.getString(4));
 			c.setSuffix(cursor.getString(5));
-
+			
 			c.setPhoneticGivenName(cursor.getString(6));
 			c.setPhoneticMiddleName(cursor.getString(7));
 			c.setPhoneticFamilyName(cursor.getString(8));
 		}
 	}
-
+	
 	protected void populatePhoneNumbers(Contact c) throws RemoteException {
 		@Cleanup Cursor cursor = providerClient.query(dataURI(), new String[] { Phone.TYPE, Phone.LABEL, Phone.NUMBER, Phone.IS_SUPER_PRIMARY },
 				Phone.RAW_CONTACT_ID + "=? AND " + Data.MIMETYPE + "=?",
@@ -276,7 +277,7 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 			c.getPhoneNumbers().add(number);
 		}
 	}
-
+	
 	protected void populateEmailAddresses(Contact c) throws RemoteException {
 		@Cleanup Cursor cursor = providerClient.query(dataURI(), new String[] { Email.TYPE, Email.ADDRESS, Email.LABEL, Email.IS_SUPER_PRIMARY },
 				Email.RAW_CONTACT_ID + "=? AND " + Data.MIMETYPE + "=?",
@@ -303,7 +304,7 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 			c.getEmails().add(email);
 		}
 	}
-
+	
 	protected void populatePhoto(Contact c) throws RemoteException {
 		@Cleanup Cursor cursor = providerClient.query(dataURI(),
 				new String[] { Photo.PHOTO_FILE_ID, Photo.PHOTO },
@@ -325,7 +326,7 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 				c.setPhoto(cursor.getBlob(1));
 		}
 	}
-
+	
 	protected void populateOrganization(Contact c) throws RemoteException {
 		@Cleanup Cursor cursor = providerClient.query(dataURI(),
 				new String[] { Organization.COMPANY, Organization.DEPARTMENT, Organization.TITLE, Organization.JOB_DESCRIPTION },
@@ -350,14 +351,14 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 				c.setJobDescription(role);
 		}
 	}
-
+	
 	protected void populateIMPPs(Contact c) throws RemoteException {
 		@Cleanup Cursor cursor = providerClient.query(dataURI(), new String[] { Im.DATA, Im.TYPE, Im.LABEL, Im.PROTOCOL, Im.CUSTOM_PROTOCOL },
 				Im.RAW_CONTACT_ID + "=? AND " + Data.MIMETYPE + "=?",
 				new String[] { String.valueOf(c.getLocalID()), Im.CONTENT_ITEM_TYPE }, null);
 		while (cursor != null && cursor.moveToNext()) {
 			String handle = cursor.getString(0);
-
+			
 			Impp impp = null;
 			switch (cursor.getInt(3)) {
 			case Im.PROTOCOL_AIM:
@@ -390,7 +391,7 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 			case Im.PROTOCOL_CUSTOM:
 				impp = new Impp(cursor.getString(4), handle);
 			}
-
+			
 			if (impp != null) {
 				switch (cursor.getInt(1)) {
 				case Im.TYPE_HOME:
@@ -416,7 +417,7 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 		if (cursor != null && cursor.moveToNext())
 			c.setNickName(cursor.getString(0));
 	}
-
+	
 	protected void populateNote(Contact c) throws RemoteException {
 		@Cleanup Cursor cursor = providerClient.query(dataURI(), new String[] { Note.NOTE },
 				Note.RAW_CONTACT_ID + "=? AND " + Data.MIMETYPE + "=?",
@@ -424,7 +425,7 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 		if (cursor != null && cursor.moveToNext())
 			c.setNote(cursor.getString(0));
 	}
-
+	
 	protected void populatePostalAddresses(Contact c) throws RemoteException {
 		@Cleanup Cursor cursor = providerClient.query(dataURI(), new String[] {
 				/* 0 */ StructuredPostal.FORMATTED_ADDRESS, StructuredPostal.TYPE, StructuredPostal.LABEL,
@@ -435,7 +436,7 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 			new String[] { String.valueOf(c.getLocalID()), StructuredPostal.CONTENT_ITEM_TYPE }, null);
 		while (cursor != null && cursor.moveToNext()) {
 			Address address = new Address();
-
+	
 			address.setLabel(cursor.getString(0));
 			switch (cursor.getInt(1)) {
 			case StructuredPostal.TYPE_HOME:
@@ -460,7 +461,7 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 			c.getAddresses().add(address);
 		}
 	}
-
+	
 	protected void populateURLs(Contact c) throws RemoteException {
 		@Cleanup Cursor cursor = providerClient.query(dataURI(), new String[] { Website.URL },
 				Website.RAW_CONTACT_ID + "=? AND " + Data.MIMETYPE + "=?",
@@ -468,7 +469,7 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 		while (cursor != null && cursor.moveToNext())
 			c.getURLs().add(cursor.getString(0));
 	}
-
+	
 	protected void populateEvents(Contact c) throws RemoteException {
 		@Cleanup Cursor cursor = providerClient.query(dataURI(), new String[] { CommonDataKinds.Event.TYPE, CommonDataKinds.Event.START_DATE },
 				Photo.RAW_CONTACT_ID + "=? AND " + Data.MIMETYPE + "=?",
@@ -490,7 +491,7 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 			}
 		}
 	}
-
+	
 	protected void populateSipAddress(Contact c) throws RemoteException {
 		@Cleanup Cursor cursor = providerClient.query(dataURI(),
 				new String[] { SipAddress.SIP_ADDRESS, SipAddress.TYPE, SipAddress.LABEL },
@@ -514,9 +515,9 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 		}
 	}
 
-
+	
 	/* content builder methods */
-
+	
 	@Override
 	protected Builder buildEntry(Builder builder, Resource resource) {
 		Contact contact = (Contact)resource;
@@ -530,53 +531,53 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 			.withValue(COLUMN_UNKNOWN_PROPERTIES, contact.getUnknownProperties())
 			.withValue(RawContacts.STARRED, contact.isStarred());
 	}
-
-
+	
+	
 	@Override
 	protected void addDataRows(Resource resource, long localID, int backrefIdx) {
 		Contact contact = (Contact)resource;
 
 		queueOperation(buildStructuredName(newDataInsertBuilder(localID, backrefIdx), contact));
-
+		
 		for (Telephone number : contact.getPhoneNumbers())
 			queueOperation(buildPhoneNumber(newDataInsertBuilder(localID, backrefIdx), number));
-
+		
 		for (ezvcard.property.Email email : contact.getEmails())
 			queueOperation(buildEmail(newDataInsertBuilder(localID, backrefIdx), email));
 
 		if (contact.getPhoto() != null)
 			queueOperation(buildPhoto(newDataInsertBuilder(localID, backrefIdx), contact.getPhoto()));
-
+		
 		queueOperation(buildOrganization(newDataInsertBuilder(localID, backrefIdx), contact));
-
+			
 		for (Impp impp : contact.getImpps())
 			queueOperation(buildIMPP(newDataInsertBuilder(localID, backrefIdx), impp));
-
+		
 		if (contact.getNickName() != null)
 			queueOperation(buildNickName(newDataInsertBuilder(localID, backrefIdx), contact.getNickName()));
-
+		
 		if (contact.getNote() != null)
 			queueOperation(buildNote(newDataInsertBuilder(localID, backrefIdx), contact.getNote()));
-
+		
 		for (Address address : contact.getAddresses())
 			queueOperation(buildAddress(newDataInsertBuilder(localID, backrefIdx), address));
-
+		
 		// TODO group membership
-
+		
 		for (String url : contact.getURLs())
 			queueOperation(buildURL(newDataInsertBuilder(localID, backrefIdx), url));
-
+		
 		// events
 		if (contact.getAnniversary() != null)
 			queueOperation(buildEvent(newDataInsertBuilder(localID, backrefIdx), contact.getAnniversary(), CommonDataKinds.Event.TYPE_ANNIVERSARY));
 		if (contact.getBirthDay() != null)
 			queueOperation(buildEvent(newDataInsertBuilder(localID, backrefIdx), contact.getBirthDay(), CommonDataKinds.Event.TYPE_BIRTHDAY));
-
+		
 		// TODO relations
-
+		
 		// SIP addresses are built by buildIMPP
 	}
-
+	
 	@Override
 	protected void removeDataRows(Resource resource) {
 		pendingOperations.add(ContentProviderOperation.newDelete(dataURI())
@@ -598,17 +599,17 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 			.withValue(StructuredName.PHONETIC_MIDDLE_NAME, contact.getPhoneticMiddleName())
 			.withValue(StructuredName.PHONETIC_FAMILY_NAME, contact.getPhoneticFamilyName());
 	}
-
+	
 	protected Builder buildPhoneNumber(Builder builder, Telephone number) {
 		int typeCode = Phone.TYPE_OTHER;
 		String typeLabel = null;
 		boolean is_primary = false;
-
+		
 		Set<TelephoneType> types = number.getTypes();
 		// preferred number?
 		if (types.contains(TelephoneType.PREF))
 			is_primary = true;
-
+		
 		// 1 Android type <-> 2 VCard types: fax, cell, pager
 		if (types.contains(TelephoneType.FAX)) {
 			if (types.contains(TelephoneType.HOME))
@@ -657,7 +658,7 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 			typeCode = Phone.TYPE_CUSTOM;
 			typeLabel = xNameToLabel(type.getValue());
 		}
-
+		
 		builder = builder
 			.withValue(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE)
 			.withValue(Phone.NUMBER, number.getText())
@@ -668,12 +669,12 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 			builder = builder.withValue(Phone.LABEL, typeLabel);
 		return builder;
 	}
-
+	
 	protected Builder buildEmail(Builder builder, ezvcard.property.Email email) {
 		int typeCode = 0;
 		String typeLabel = null;
 		boolean is_primary = false;
-
+		
 		for (EmailType type : email.getTypes())
 			if (type == EmailType.PREF)
 				is_primary = true;
@@ -691,7 +692,7 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 				typeLabel = xNameToLabel(email.getTypes().iterator().next().getValue());
 			}
 		}
-
+		
 		builder = builder
 				.withValue(Data.MIMETYPE, Email.CONTENT_ITEM_TYPE)
 				.withValue(Email.ADDRESS, email.getValue())
@@ -702,13 +703,13 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 			builder = builder.withValue(Email.LABEL, typeLabel);
 		return builder;
 	}
-
+	
 	protected Builder buildPhoto(Builder builder, byte[] photo) {
 		return builder
 			.withValue(Data.MIMETYPE, Photo.CONTENT_ITEM_TYPE)
 			.withValue(Photo.PHOTO, photo);
 	}
-
+	
 	protected Builder buildOrganization(Builder builder, Contact contact) {
 		if (contact.getOrganization() == null && contact.getJobTitle() == null && contact.getJobDescription() == null)
 			return null;
@@ -722,7 +723,7 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 			if (org.hasNext())
 				department = org.next();
 		}
-
+		
 		return builder
 				.withValue(Data.MIMETYPE, Organization.CONTENT_ITEM_TYPE)
 				.withValue(Organization.COMPANY, company)
@@ -746,19 +747,19 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 				typeCode = Im.TYPE_CUSTOM;
 				typeLabel = xNameToLabel(impp.getTypes().iterator().next().getValue());
 			}
-
+		
 		int protocolCode = 0;
 		String protocolLabel = null;
-
+		
 		String protocol = impp.getProtocol();
 		if (protocol == null) {
 			Log.w(TAG, "Ignoring IMPP address without protocol");
 			return null;
 		}
-
+		
 		// SIP addresses are IMPP entries in the VCard but locally stored in SipAddress rather than Im
 		boolean sipAddress = false;
-
+		
 		if (impp.isAim())
 			protocolCode = Im.PROTOCOL_AIM;
 		else if (impp.isMsn())
@@ -783,7 +784,7 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 			protocolCode = Im.PROTOCOL_CUSTOM;
 			protocolLabel = protocol;
 		}
-
+		
 		if (sipAddress)
 			// save as SIP address
 			builder = builder
@@ -810,7 +811,7 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 			.withValue(Data.MIMETYPE, Nickname.CONTENT_ITEM_TYPE)
 			.withValue(Nickname.NAME, nickName);
 	}
-
+	
 	protected Builder buildNote(Builder builder, String note) {
 		return builder
 			.withValue(Data.MIMETYPE, Note.CONTENT_ITEM_TYPE)
@@ -827,7 +828,7 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 		if (StringUtils.isEmpty(formattedAddress)) {
 			String	lineStreet = StringUtils.join(new String[] { address.getStreetAddress(), address.getPoBox(), address.getExtendedAddress() }, " "),
 					lineLocality = StringUtils.join(new String[] { address.getPostalCode(), address.getLocality() }, " ");
-
+			
 			List<String> lines = new LinkedList<String>();
 			if (lineStreet != null)
 				lines.add(lineStreet);
@@ -835,10 +836,10 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 				lines.add(address.getRegion());
 			if (lineLocality != null)
 				lines.add(lineLocality);
-
+			
 			formattedAddress = StringUtils.join(lines, "\n");
 		}
-
+			
 		int typeCode = 0;
 		String typeLabel = null;
 		for (AddressType type : address.getTypes())
@@ -853,7 +854,7 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 				typeCode = StructuredPostal.TYPE_CUSTOM;
 				typeLabel = xNameToLabel(address.getTypes().iterator().next().getValue());
 			}
-
+		
 		builder = builder
 			.withValue(Data.MIMETYPE, StructuredPostal.CONTENT_ITEM_TYPE)
 			.withValue(StructuredPostal.FORMATTED_ADDRESS, formattedAddress)
@@ -875,7 +876,7 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 			.withValue(Data.MIMETYPE, Website.CONTENT_ITEM_TYPE)
 			.withValue(Website.URL, url);
 	}
-
+	
 	protected Builder buildEvent(Builder builder, DateOrTimeProperty date, int type) {
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 		if (date.getDate() == null) {
@@ -887,19 +888,19 @@ public class LocalAddressBook extends LocalCollection<Contact> {
 			.withValue(CommonDataKinds.Event.TYPE, type) 
 			.withValue(CommonDataKinds.Event.START_DATE, formatter.format(date.getDate()));
 	}
+	
 
-
-
+	
 	/* helper methods */
-
+	
 	protected Uri dataURI() {
 		return syncAdapterURI(Data.CONTENT_URI);
 	}
-
+	
 	protected static String labelToXName(String label) {
 		return "X-" + label.replaceAll(" ","_").replaceAll("[^\\p{L}\\p{Nd}\\-_]", "").toUpperCase(Locale.US);
 	}
-
+	
 	private Builder newDataInsertBuilder(long raw_contact_id, Integer backrefIdx) {
 		return newDataInsertBuilder(dataURI(), Data.RAW_CONTACT_ID, raw_contact_id, backrefIdx);
 	}

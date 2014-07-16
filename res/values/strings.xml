@@ -144,6 +144,17 @@
     <string name="network_dialog_back">Back</string>
     <string name="error_empty_account_name">Account name cannot be blank</string>
     <string name="error_account_name_exist">Account with same name already added</string>
+    
+    <string name="general_settings">General settings</string>
+    <string name="debug_settings">Debug settings</string>
+    <string name="disable_http_compression">Disable HTTP compression</string>
+    <string name="http_compression_disabled">HTTP compression is disabled (debug mode)</string>
+    <string name="http_compression_enabled">HTTP compression is used whenever possible</string>
+    <string name="network_logging">Log network traffic</string>
+    <string name="network_logging_enabled">All network traffic is being logged verbosely (debug mode)</string>
+    <string name="network_logging_disabled">Network traffic is not being logged</string>
+    <string name="report_an_issue">Report an issue</string>
+
     <string name="account_name_empty">Couldn\'t create account, account name empty</string>
     <string name="account_already_exists">Couldn\'t create account (account with this name already existing?)</string>
 </resources>

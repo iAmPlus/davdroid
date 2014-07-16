@@ -1,12 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2014 Richard Hirner (bitfire web engineering).
+ * Copyright (c) 2014 Ricki Hirner (bitfire web engineering).
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/gpl.html
- * 
- * Contributors:
- *     Richard Hirner (bitfire web engineering) - initial API and implementation
  ******************************************************************************/
 package at.bitfire.davdroid.resource;
 
@@ -33,23 +30,29 @@ import at.bitfire.davdroid.webdav.WebDavResource;
 import at.bitfire.davdroid.webdav.WebDavResource.PutMode;
 import ch.boye.httpclientandroidlib.impl.client.CloseableHttpClient;
 
+/**
+ * Represents a remotely stored synchronizable collection (collection as in
+ * WebDAV terminology).
+ *
+ * @param <T> Subtype of Resource that can be stored in the collection
+ */
 public abstract class RemoteCollection<T extends Resource> {
 	private static final String TAG = "davdroid.RemoteCollection";
-
+	
 	CloseableHttpClient httpClient;
 	@Getter WebDavResource collection;
 
 	abstract protected String memberContentType();
 	abstract protected DavMultiget.Type multiGetType();
 	abstract protected T newResourceSkeleton(String name, String ETag);
-
+	
 	public RemoteCollection(CloseableHttpClient httpClient, String baseURL, String user, String password, boolean preemptiveAuth) throws URISyntaxException {
 		this.httpClient = httpClient;
-
+		
 		collection = new WebDavResource(httpClient, new URI(baseURL), user, password, preemptiveAuth, true);
 	}
 
-
+	
 	/* collection operations */
 
 	public RemoteCollection(CloseableHttpClient httpClient, String baseURL, String accessToken) throws URISyntaxException {
@@ -66,7 +69,7 @@ public abstract class RemoteCollection<T extends Resource> {
 		}
 		return collection.getCTag();
 	}
-
+	
 	public Resource[] getMemberETags() throws IOException, DavException, HttpException {
 		try {
 			collection.propfind(HttpPropfind.Mode.MEMBERS_ETAG);
@@ -81,24 +84,24 @@ public abstract class RemoteCollection<T extends Resource> {
 		}
 		return resources.toArray(new Resource[0]);
 	}
-
+	
 	@SuppressWarnings("unchecked")
 	public Resource[] multiGet(Resource[] resources) throws IOException, DavException, HttpException {
 		try {
 			if (resources.length == 1)
 				return (T[]) new Resource[] { get(resources[0]) };
-
+			
 			Log.i(TAG, "Multi-getting " + resources.length + " remote resource(s)");
-
+			
 			LinkedList<String> names = new LinkedList<String>();
 			for (Resource resource : resources)
 				names.add(resource.getName());
-
+			
 			LinkedList<T> foundResources = new LinkedList<T>();
 			collection.multiGet(multiGetType(), names.toArray(new String[0]));
 			if (collection.getMembers() == null)
 				throw new DavNoContentException();
-
+			
 			for (WebDavResource member : collection.getMembers()) {
 				T resource = newResourceSkeleton(member.getName(), member.getETag());
 				try {
@@ -112,55 +115,63 @@ public abstract class RemoteCollection<T extends Resource> {
 					Log.e(TAG, "Ignoring unparseable entity in multi-response", e);
 				}
 			}
-
+			
 			return foundResources.toArray(new Resource[0]);
 		} catch (InvalidResourceException e) {
 			Log.e(TAG, "Couldn't parse entity from GET", e);
 		}
-
+		
 		return new Resource[0];
 	}
-
-
+	
+	
 	/* internal member operations */
 
 	public Resource get(Resource resource) throws IOException, HttpException, DavException, InvalidResourceException {
 		WebDavResource member = new WebDavResource(collection, resource.getName());
 		member.get();
-
+		
 		byte[] data = member.getContent();
 		if (data == null)
 			throw new DavNoContentException();
-
+		
 		@Cleanup InputStream is = new ByteArrayInputStream(data);
 		resource.parseEntity(is);
 		return resource;
 	}
-
-	public void add(Resource res) throws IOException, HttpException, ValidationException {
+	
+	// returns ETag of the created resource, if returned by server
+	public String add(Resource res) throws IOException, HttpException, ValidationException {
 		WebDavResource member = new WebDavResource(collection, res.getName(), res.getETag());
 		member.setContentType(memberContentType());
-
+		
 		@Cleanup ByteArrayOutputStream os = res.toEntity();
-		member.put(os.toByteArray(), PutMode.ADD_DONT_OVERWRITE);
-
+		String eTag = member.put(os.toByteArray(), PutMode.ADD_DONT_OVERWRITE);
+		
+		// after a successful upload, the collection has implicitely changed, too
 		collection.invalidateCTag();
+		
+		return eTag;
 	}
 
 	public void delete(Resource res) throws IOException, HttpException {
 		WebDavResource member = new WebDavResource(collection, res.getName(), res.getETag());
 		member.delete();
-
+		
 		collection.invalidateCTag();
 	}
-
-	public void update(Resource res) throws IOException, HttpException, ValidationException {
+	
+	// returns ETag of the updated resource, if returned by server
+	public String update(Resource res) throws IOException, HttpException, ValidationException {
 		WebDavResource member = new WebDavResource(collection, res.getName(), res.getETag());
 		member.setContentType(memberContentType());
-
+		
 		@Cleanup ByteArrayOutputStream os = res.toEntity();
-		member.put(os.toByteArray(), PutMode.UPDATE_DONT_OVERWRITE);
-
+		String eTag = member.put(os.toByteArray(), PutMode.UPDATE_DONT_OVERWRITE);
+		
+		// after a successful upload, the collection has implicitely changed, too
 		collection.invalidateCTag();
+		
+		return eTag;
 	}
 }

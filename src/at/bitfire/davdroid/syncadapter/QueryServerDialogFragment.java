@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Richard Hirner (bitfire web engineering).
+ * Copyright (c) 2014 Ricki Hirner (bitfire web engineering).
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0
  * which accompanies this distribution, and is available at
@@ -38,6 +38,7 @@ import at.bitfire.davdroid.webdav.PermanentlyMovedException;
 import at.bitfire.davdroid.webdav.WebDavResource;
 import ch.boye.httpclientandroidlib.HttpException;
 import ch.boye.httpclientandroidlib.impl.client.CloseableHttpClient;
+import ch.boye.httpclientandroidlib.util.TextUtils;
 
 public class QueryServerDialogFragment extends DialogFragment
 		implements LoaderCallbacks<ServerInfo> {
@@ -113,10 +114,12 @@ public class QueryServerDialogFragment extends DialogFragment
 
 	static class ServerInfoLoader extends AsyncTaskLoader<ServerInfo> {
 		private static final String TAG = "davdroid.ServerInfoLoader";
-		Bundle args;
-
+		final Bundle args;
+		final Context context;
+		
 		public ServerInfoLoader(Context context, Bundle args) {
 			super(context);
+			this.context = context;
 			this.args = args;
 		}
 
@@ -125,33 +128,40 @@ public class QueryServerDialogFragment extends DialogFragment
 			String authBearer = null;
 			String userName = null;
 			String password = null;
-
-			if(!serverInfo.getAccountServer().equals("Google")) {
-				userName = serverInfo.getUserName();
-				password = serverInfo.getPassword();
-			} else if(serverInfo.getAccountServer().equals("Google")) {
-				authBearer = "Bearer " + userData.getString(Constants.ACCOUNT_KEY_ACCESS_TOKEN);
-			}
 			AccountDeatilsReader reader = new AccountDeatilsReader(mContext);
 			Properties properties =
 				reader.getProperties(serverInfo.getAccountServer());
+
+			if(serverInfo.getAccountServer().equals("Google")) {
+				userData.putString("client_id", properties.getProperty("client_id_value"));
+				userData.putString(properties.getProperty("client_secret_name"), properties.getProperty("client_secret_value"));
+				userData.putString("token_url", properties.getProperty("token_url"));
+				userData.putString(Constants.ACCOUNT_SERVER, properties.getProperty("type"));
+				authBearer = "Bearer " + userData.getString(Constants.ACCOUNT_KEY_ACCESS_TOKEN);
+			} else {
+				userName = serverInfo.getUserName();
+				password = serverInfo.getPassword();
+			}
 			WebDavResource base = null;
 			WebDavResource principal = null;
 			String errorMessage = "";
 
-			CloseableHttpClient httpClient = DavHttpClient.create();
+			// disable compression and enable network logging for debugging purposes 
+			CloseableHttpClient httpClient = DavHttpClient.create(true, true);
+			
 			try {
 
-				if(properties.getProperty(Constants.ACCOUNT_KEY_BASE_URL)
-						!= null) {
+				if(TextUtils.isEmpty(serverInfo.getBaseURL())
+						&& (properties.getProperty(Constants.ACCOUNT_KEY_BASE_URL) != null) )
+				{
 					serverInfo.setBaseURL(
 						properties.getProperty(Constants.ACCOUNT_KEY_BASE_URL));
 					if(authBearer != null)
-						base = new WebDavResource(
-								httpClient, new URI(serverInfo.getBaseURL()), authBearer);
+						base = new WebDavResource(httpClient,
+								new URI(serverInfo.getBaseURL()), authBearer);
 					else
-						base = new WebDavResource(httpClient, new URI(serverInfo.getBaseURL()), userName,
-								password, true, true);
+						base = new WebDavResource(httpClient,
+								new URI(serverInfo.getBaseURL()), userName, password, true, true);
 				}
 				String principalPath;
 				try {
