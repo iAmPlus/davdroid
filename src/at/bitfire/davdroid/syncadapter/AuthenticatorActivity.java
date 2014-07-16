@@ -420,6 +420,9 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 				if((properties.getProperty("client_id_name") != null) && properties.getProperty("client_id_value") != null)
 					query = query.concat("&" + properties.getProperty("client_id_name") + "=" +
 							URLEncoder.encode(properties.getProperty("client_id_value"), "utf-8"));
+				//Required to re-generate refresh token.
+				//Without this sync will work only till access token expires
+				query = query.concat("&access_type=offline");
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 			}
