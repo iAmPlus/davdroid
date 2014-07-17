@@ -57,17 +57,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 	private String refreshCode;
 	private String expires;
 
-	static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-	static Random rnd = new Random();
-
-	String randomString( int len ) 
-	{
-		StringBuilder sb = new StringBuilder( len );
-		for( int i = 0; i < len; i++ ) 
-			sb.append( AB.charAt( rnd.nextInt(AB.length()) ) );
-		return sb.toString();
-	}
-
 	class GetAuthCode extends AsyncTask<String, Integer, HttpResponse>{
 
 		List<NameValuePair> nameValuePairs;
@@ -84,12 +73,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 			HttpClient httpclient = new DefaultHttpClient();
 			HttpPost httppost = null;
 			HttpGet httpget = null;
-			if(properties.getProperty("type") != null && properties.getProperty("type").equals("Yahoo")) {
-				if(params[0] != "")
-					httppost = new HttpPost(properties.getProperty("token_url"));
-				else
-					httppost = new HttpPost(properties.getProperty("auth_url"));
-			} 
 			if(properties.getProperty("type") != null && properties.getProperty("type").equals("Google")) {
 				if(params[0] != "") {
 					httpget = new HttpGet(properties.getProperty("get_email_url"));
@@ -123,126 +106,10 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 			return response;
 		}
 
-		private void yahooOauth(String request_auth_url) {
-
-			initWebView();
-			browser.setWebViewClient(new WebViewClient() {
-				@Override
-				public boolean shouldOverrideUrlLoading(WebView webView, String url) {
-
-					/* This call inject JavaScript into the page which just finished loading. */
-					String auth_token = null;
-					String auth_verifier = null;
-					if(url.startsWith("http://localhost")) {
-						StringTokenizer st = new StringTokenizer (url.substring(url.indexOf("?")+1), "&");
-						while(st.hasMoreTokens()) {
-							String tmp = st.nextToken();
-							if(tmp.startsWith("oauth_token=")) {
-								auth_token = tmp.substring(tmp.indexOf("=")+1);
-							}
-							if(tmp.startsWith("oauth_verifier=")) {
-								auth_verifier = tmp.substring(tmp.indexOf("=")+1);
-							}
-						}
-
-						List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-						if(properties.getProperty("random_string") != null) {
-							nameValuePairs.add(
-									new BasicNameValuePair(properties.getProperty("random_string"), randomString(rnd.nextInt(32))));
-						}
-						if(properties.getProperty("timestamp_name") != null) {
-							nameValuePairs.add(
-									new BasicNameValuePair(properties.getProperty("timestamp_name"), "" + System.currentTimeMillis()));
-
-						}
-						if ((properties.getProperty("client_id_name") != null) && (properties.getProperty("client_id_value") != null)) {
-							nameValuePairs.add(
-									new BasicNameValuePair(properties.getProperty("client_id_name"), properties.getProperty("client_id_value")));
-							if ((properties.getProperty("signature_method_name") != null) && (properties.getProperty("signature_method_value") != null)) {
-								nameValuePairs.add(
-										new BasicNameValuePair(properties.getProperty("signature_method_name"), properties.getProperty("signature_method_value")));
-								if ((properties.getProperty("signature_name") != null)) {
-									nameValuePairs.add(
-											new BasicNameValuePair(properties.getProperty("signature_name"), properties.getProperty("client_secret_value") + "&" + token_secret));
-								}
-							}
-						}
-						nameValuePairs.add(
-								new BasicNameValuePair("oauth_version", properties.getProperty("oauth_version")));
-						nameValuePairs.add(new BasicNameValuePair("oauth_token", auth_token));
-						nameValuePairs.add(new BasicNameValuePair("oauth_verifier", auth_verifier));
-						new GetAuthCode(nameValuePairs).execute("token");
-						String html="<html><head></head><body> Please wait</body></html>";
-						browser.loadData(html, "text/html", "utf-8");
-					}
-					return super.shouldOverrideUrlLoading(webView, url);
-
-				}
-			});
-			browser.loadUrl(request_auth_url);
-		}
-
 		@SuppressLint("SetJavaScriptEnabled")
 		@Override
 		protected void onPostExecute(HttpResponse result) {
 			super.onPostExecute(result);
-			if(properties.getProperty("type") != null && properties.getProperty("type").equals("Yahoo")) {
-
-				Bundle userData = new Bundle();
-				String request_auth_url = null;
-				String user_name = null;
-				String oauth_token = null;
-				StringTokenizer st = new StringTokenizer(data, "&");
-				while (st.hasMoreTokens()) {
-					StringTokenizer st2 = new StringTokenizer(st.nextToken(), "=");
-					if(st2.hasMoreTokens()) {
-						String key = st2.nextToken();
-						if(st2.hasMoreTokens()) {
-							String value = st2.nextToken();
-							if( key.equals("oauth_token_secret") ) {
-								token_secret = value;
-							}
-							if(key.equals("oauth_token")) {
-								oauth_token = value;
-							}
-							if(key.equals("xoauth_request_auth_url")) {
-								try {
-									request_auth_url = URLDecoder.decode(value, "UTF-8");
-								} catch (UnsupportedEncodingException e) {
-									e.printStackTrace();
-									request_auth_url = null;
-								}
-							}
-							if(key.equals("xoauth_yahoo_guid")) {
-								user_name = value;
-							}
-							if(key.equals("oauth_expires_in")) {
-								long expiry = Long.parseLong(value);
-								expiry += (System.currentTimeMillis()/1000);
-								value = Long.valueOf(expiry).toString();
-							}
-							userData.putString(key, value);
-						}
-					}
-				}
-
-				if(request_auth_url != null)
-					yahooOauth(request_auth_url);
-
-				if(user_name != null && oauth_token != null) {
-					userData.putString(Constants.ACCOUNT_KEY_ACCESS_TOKEN, oauth_token);
-					userData.putString(Constants.ACCOUNT_SERVER, properties.getProperty("type"));
-					userData.putString(properties.getProperty("client_id_name"), properties.getProperty("client_id_value"));
-					userData.putString("oauth_consumer_secret", properties.getProperty("client_secret_value"));
-					userData.putString("token_url", properties.getProperty("token_url"));
-					Intent intent = new Intent();
-					intent.putExtra("account_name", user_name);
-					intent.putExtra(Constants.ACCOUNT_BUNDLE, userData);
-					setResult(RESULT_OK, intent);
-					finish();
-				}
-
-			}
 			if(properties.getProperty("type") != null && properties.getProperty("type").equals("Google")) {
 
 				JSONObject responseJson;
@@ -334,43 +201,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 			finish();
 		}
 		setContentView(R.layout.pref_title_layout);
-	}
-
-	@Override
-	protected void onResume() {
-		super.onResume();
-
-		if(properties.getProperty("type") != null && properties.getProperty("type").equals("Yahoo")) {
-			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-			if(properties.getProperty("random_string") != null) {
-				nameValuePairs.add(
-						new BasicNameValuePair(properties.getProperty("random_string"), randomString(rnd.nextInt(32))));
-			}
-			if(properties.getProperty("timestamp_name") != null) {
-				nameValuePairs.add(
-						new BasicNameValuePair(properties.getProperty("timestamp_name"), "" + (System.currentTimeMillis()/1000)));
-
-			}
-			if ((properties.getProperty("client_id_name") != null) && (properties.getProperty("client_id_value") != null)) {
-				nameValuePairs.add(
-						new BasicNameValuePair(properties.getProperty("client_id_name"), properties.getProperty("client_id_value")));
-				if ((properties.getProperty("signature_method_name") != null) && (properties.getProperty("signature_method_value") != null)) {
-					nameValuePairs.add(
-							new BasicNameValuePair(properties.getProperty("signature_method_name"), properties.getProperty("signature_method_value")));
-					if ((properties.getProperty("signature_name") != null)) {
-						nameValuePairs.add(
-								new BasicNameValuePair(properties.getProperty("signature_name"), properties.getProperty("client_secret_value") + "&"));
-					}
-				}
-			}
-			nameValuePairs.add(
-					new BasicNameValuePair("oauth_version", properties.getProperty("oauth_version")));
-			if ((properties.getProperty("redirect_ui_name") != null) && (properties.getProperty("redirect_uri_value") != null)) {
-				nameValuePairs.add(
-						new BasicNameValuePair(properties.getProperty("redirect_ui_name"), properties.getProperty("redirect_uri_value")));
-			}
-			new GetAuthCode(nameValuePairs).execute("");
-		}
 
 		if(properties.getProperty("type") != null && properties.getProperty("type").equals("Google")) {
 			initWebView();
@@ -422,13 +252,28 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 							URLEncoder.encode(properties.getProperty("client_id_value"), "utf-8"));
 				//Required to re-generate refresh token.
 				//Without this sync will work only till access token expires
-				query = query.concat("&access_type=offline");
+				query = query.concat("&approval_prompt=force&include_granted_scopes=true&access_type=offline");
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 			}
 			String auth_url = properties.getProperty("auth_url") + "?" + query;
 			browser.loadUrl( auth_url);
 		}
+
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		if(browser != null)
+			browser.onPause();
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		if(browser != null)
+			browser.onResume();
 	}
 
 	@SuppressLint("SetJavaScriptEnabled")
