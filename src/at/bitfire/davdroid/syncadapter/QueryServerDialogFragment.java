@@ -151,30 +151,11 @@ public class QueryServerDialogFragment extends DialogFragment
 			
 			try {
 
-				if(TextUtils.isEmpty(serverInfo.getBaseURL())
-						&& (properties.getProperty(Constants.ACCOUNT_KEY_BASE_URL) != null) )
-				{
-					serverInfo.setBaseURL(
-						properties.getProperty(Constants.ACCOUNT_KEY_BASE_URL));
-					if(authBearer != null)
-						base = new WebDavResource(httpClient,
-								new URI(serverInfo.getBaseURL()), authBearer);
-					else
-						base = new WebDavResource(httpClient,
-								new URI(serverInfo.getBaseURL()), userName, password, true, true);
-				}
-				String principalPath;
+				
+				String principalPath = null;
 				try {
-					if(base != null) {
-
-						base.options();
-						base.propfind(Mode.EMPTY_PROPFIND);
-						// (1/5) detect capabilities
-						serverInfo.setCardDAV(base.supportsDAV("addressbook"));
-						serverInfo.setCardDAV(
-								base.supportsDAV("calendar-access"));
-					} 
-					if (base == null || !serverInfo.isCardDAV()){
+					if (!TextUtils.isEmpty(properties.getProperty(
+							Constants.ACCOUNT_KEY_CARDDAV_URL))) {
 						serverInfo.setCarddavURL(properties.getProperty(
 							Constants.ACCOUNT_KEY_CARDDAV_URL));
 
@@ -184,31 +165,43 @@ public class QueryServerDialogFragment extends DialogFragment
 						else
 							base = new WebDavResource(httpClient, new URI(serverInfo.getCarddavURL()), userName,
 									password, true, true);
+					} else {
+						if(!TextUtils.isEmpty(properties.getProperty(Constants.ACCOUNT_KEY_BASE_URL)) )
+						{
+							serverInfo.setBaseURL(
+								properties.getProperty(Constants.ACCOUNT_KEY_BASE_URL));
+							if(authBearer != null)
+								base = new WebDavResource(httpClient,
+										new URI(serverInfo.getBaseURL()), authBearer);
+							else
+								base = new WebDavResource(httpClient,
+										new URI(serverInfo.getBaseURL()), userName, password, true, true);
+						} else 
+							throw new DavIncapableException(
+								getContext().getString(
+									R.string.no_carddav));
+					}
 
+					if(base != null) {
+
+						// Google gived 401 for OPTIONS but 301 moved for
+						// PROPFIND. So first try emply PROPFIND
 						base.propfind(Mode.EMPTY_PROPFIND);
 						// (1/5) detect capabilities
 						base.options();
+						base.propfind(Mode.CURRENT_USER_PRINCIPAL);
 						serverInfo.setCardDAV(base.supportsDAV("addressbook"));
-					} else {
-						throw new DavIncapableException(
-							getContext().getString(
-								R.string.neither_caldav_nor_carddav));
-					}
+						principalPath = base.getCurrentUserPrincipal();
 
-					// (2/5) get principal URL
-					base.options();
-					base.propfind(Mode.CURRENT_USER_PRINCIPAL);
-					serverInfo.setCardDAV(base.supportsDAV("addressbook"));
-					principalPath = base.getCurrentUserPrincipal();
-
-					/*Removed since google doesn't support 
-					 *!base.supportsMethod("REPORT") on base
-					 *but only on principal url ||*/
-					if (!base.supportsMethod("PROPFIND")
-							|| !serverInfo.isCardDAV() ) {
-						throw new DavIncapableException(
-							getContext().getString(
-								R.string.neither_caldav_nor_carddav));
+						/*Removed since google doesn't support 
+						 *!base.supportsMethod("REPORT") on base
+						 *but only on principal url ||*/
+						if (!base.supportsMethod("PROPFIND")
+								|| !serverInfo.isCardDAV() ) {
+							throw new DavIncapableException(
+								getContext().getString(
+									R.string.no_carddav));
+						}
 					}
 
 				} catch(PermanentlyMovedException e) {
@@ -323,24 +316,39 @@ public class QueryServerDialogFragment extends DialogFragment
 
 			try {
 
-				if(base == null || !serverInfo.isCalDAV()) {
-					if(properties.getProperty(Constants.ACCOUNT_KEY_CALDAV_URL)
-								!= null) {
-						serverInfo.setCaldavURL(properties.getProperty(
-								Constants.ACCOUNT_KEY_CALDAV_URL));
-						if(authBearer != null)
-							base= new WebDavResource(httpClient, new URI(
+				if (!TextUtils.isEmpty(properties.getProperty(
+						Constants.ACCOUNT_KEY_CALDAV_URL))) {
+					serverInfo.setCaldavURL(properties.getProperty(
+						Constants.ACCOUNT_KEY_CALDAV_URL));
+
+					if(authBearer != null)
+						base= new WebDavResource(httpClient, new URI(
 								serverInfo.getCaldavURL()), authBearer);
+					else
+						base = new WebDavResource(httpClient, new URI(serverInfo.getCaldavURL()), userName,
+								password, true, true);
+				} else {
+					if(!TextUtils.isEmpty(properties.getProperty(Constants.ACCOUNT_KEY_BASE_URL)) )
+					{
+						serverInfo.setBaseURL(
+							properties.getProperty(Constants.ACCOUNT_KEY_BASE_URL));
+						if(authBearer != null)
+							base = new WebDavResource(httpClient,
+									new URI(serverInfo.getBaseURL()), authBearer);
 						else
-							base = new WebDavResource(httpClient, new URI(serverInfo.getCaldavURL()), userName,
-									password, true, true);
-					} else {
+							base = new WebDavResource(httpClient,
+									new URI(serverInfo.getBaseURL()), userName, password, true, true);
+					} else 
 						throw new DavIncapableException(
 							getContext().getString(
-								R.string.neither_caldav_nor_carddav));
-					}
+								R.string.no_caldav));
+				}
+
+				if(base != null) {
 
 					base.options();
+					base.propfind(Mode.EMPTY_PROPFIND);
+					// (1/5) detect capabilities
 					serverInfo.setCalDAV(base.supportsDAV("calendar-access"));
 
 					/*Removed since google doesn't 
@@ -349,7 +357,7 @@ public class QueryServerDialogFragment extends DialogFragment
 							|| !serverInfo.isCalDAV())
 						throw new DavIncapableException(
 							getContext().getString(
-								R.string.neither_caldav_nor_carddav));
+								R.string.no_caldav));
 
 					// (2/5) get principal URL
 					base.propfind(Mode.CURRENT_USER_PRINCIPAL);

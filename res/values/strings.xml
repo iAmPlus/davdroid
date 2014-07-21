@@ -41,6 +41,8 @@
     <string name="exception_uri_syntax">Invalid URI: %s</string>
     <string name="exception_incapable_resource">Missing capabilities: %s</string>
     <string name="neither_caldav_nor_carddav">Neither CalDAV nor CardDAV available</string>
+    <string name="no_carddav">No CardDAV support available</string>
+    <string name="no_caldav">No CalDAV support available</string>
     <string name="error_principal_path">"Couldn't determine principal path (RFC 5397)"</string>
     <string name="error_home_set_address_books">"Couldn't determine address book home set"</string>
     <string name="error_home_set_calendars">"Couldn't determine calendar home set"</string>
