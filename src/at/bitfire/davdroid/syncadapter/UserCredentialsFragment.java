@@ -33,6 +33,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 import at.bitfire.davdroid.URIUtils;
@@ -165,6 +166,8 @@ public class UserCredentialsFragment extends Fragment {
                         && !TextUtils
                                 .isEmpty(editPassword.getText().toString())) {
                     queryServer();
+                } else {
+                    Toast.makeText(getActivity(), R.string.id_or_password_missing, Toast.LENGTH_SHORT).show();
                 }
             }
         });
