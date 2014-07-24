@@ -124,7 +124,7 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 
 	protected void setContent(CheckedTextView view, int collectionIcon, ServerInfo.ResourceInfo info) {
 		// set layout and icons
-		//view.setPadding(10, 10, 10, 10);
+		view.setPadding(10, 10, 10, 10);
 		//view.setCompoundDrawablesWithIntrinsicBounds(collectionIcon, 0, info.isReadOnly() ? R.drawable.ic_read_only : 0, 0);
 		//view.setCompoundDrawablePadding(10);
 
