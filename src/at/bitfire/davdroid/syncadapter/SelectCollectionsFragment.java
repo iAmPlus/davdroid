@@ -23,111 +23,103 @@ import at.bitfire.davdroid.R;
 
 public class SelectCollectionsFragment extends ListFragment {
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
-        View v = inflater
-                .inflate(R.layout.select_collections, container, false);
-        // super.onCreateView(inflater, container, savedInstanceState);
-        return v;
-    }
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+		Bundle savedInstanceState) {
+		View v = inflater.inflate(R.layout.select_collections, container, false);
+		return v;
+	}
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        setListAdapter(null);
-    }
+	@Override
+	public void onDestroyView() {
+		super.onDestroyView();
+		setListAdapter(null);
+	}
 
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        Button cancel = (Button) view.findViewById(R.id.cancel);
-        Button next = (Button) view.findViewById(R.id.next_action);
-        cancel.setBackgroundColor(getActivity().getApplicationColor());
-        next.setBackgroundColor(getActivity().getApplicationColor());
+	@Override
+	public void onViewCreated(View view, Bundle savedInstanceState) {
+		super.onViewCreated(view, savedInstanceState);
+		Button cancel = (Button) view.findViewById(R.id.cancel);
+		Button next = (Button) view.findViewById(R.id.next_action);
+		cancel.setBackgroundColor(getActivity().getApplicationColor());
+		next.setBackgroundColor(getActivity().getApplicationColor());
 
-        cancel.setOnClickListener(new Button.OnClickListener() {
+		cancel.setOnClickListener(new Button.OnClickListener() {
 
-            @Override
-            public void onClick(View v) {
-                final Activity activity = getActivity();
-                activity.onBackPressed();
-                activity.overridePendingTransition(
-                        android.R.anim.quick_exit_in,
-                        android.R.anim.quick_exit_out);
-            }
-        });
+			@Override
+			public void onClick(View v) {
+				final Activity activity = getActivity();
+				activity.onBackPressed();
+				activity.overridePendingTransition(
+					android.R.anim.quick_exit_in,
+					android.R.anim.quick_exit_out);
+			}
+		});
 
-        next.setOnClickListener(new Button.OnClickListener() {
+		next.setOnClickListener(new Button.OnClickListener() {
 
-            @Override
-            public void onClick(View v) {
-                if (getListView().getCheckedItemCount() > 0) {
-                    onDone();
-                }
-            }
-        });
+			@Override
+			public void onClick(View v) {
+				if (getListView().getCheckedItemCount() > 0) {
+				onDone();
+				}
+			}
+		});
 
-        final ListView listView = getListView();
+		final ListView listView = getListView();
 
-        final ServerInfo serverInfo = (ServerInfo) getArguments()
-                .getSerializable(Constants.KEY_SERVER_INFO);
-        final SelectCollectionsAdapter adapter = new SelectCollectionsAdapter(
-                view.getContext(), serverInfo);
-        setListAdapter(adapter);
+		final ServerInfo serverInfo = (ServerInfo) getArguments()
+			.getSerializable(Constants.KEY_SERVER_INFO);
+		final SelectCollectionsAdapter adapter = new SelectCollectionsAdapter(
+			view.getContext(), serverInfo);
+		setListAdapter(adapter);
 
-        listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-        listView.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view,
-                    int position, long id) {
-                int itemPosition = position - 1; // one list header view at pos.
-                                                 // 0
-                if (adapter.getItemViewType(itemPosition) == SelectCollectionsAdapter.TYPE_ADDRESS_BOOKS_ROW) {
+		listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+		listView.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				int itemPosition = position - 1;	// one list header view at pos. 0
+				if (adapter.getItemViewType(itemPosition) == SelectCollectionsAdapter.TYPE_ADDRESS_BOOKS_ROW) {
 
-                    // ((ServerInfo.ResourceInfo)adapter.getItem(itemPosition)).setEnabled(true);
-                    // unselect all other address books
-                    for (int pos = 1; pos <= adapter.getNAddressBooks(); pos++)
-                        if (pos != itemPosition) {
-                            listView.setItemChecked(pos + 1, false);
-                        }
-                }
-            }
-        });
-    }
+				// ((ServerInfo.ResourceInfo)adapter.getItem(itemPosition)).setEnabled(true);
+				// unselect all other address books
+				for (int pos = 1; pos <= adapter.getNAddressBooks(); pos++)
+					if (pos != itemPosition) {
+					listView.setItemChecked(pos + 1, false);
+					}
+				}
+			}
+		});
+	}
 
-    void onDone() {
-        ServerInfo serverInfo = (ServerInfo) getArguments().getSerializable(
-                Constants.KEY_SERVER_INFO);
+	void onDone() {
+		ServerInfo serverInfo = (ServerInfo) getArguments().getSerializable(Constants.KEY_SERVER_INFO);
 
-        // synchronize only selected collections
-        for (ServerInfo.ResourceInfo addressBook : serverInfo.getAddressBooks())
-            addressBook.setEnabled(false);
-        for (ServerInfo.ResourceInfo calendar : serverInfo.getCalendars())
-            calendar.setEnabled(false);
+		// synchronize only selected collections
+		for (ServerInfo.ResourceInfo addressBook : serverInfo.getAddressBooks())
+		addressBook.setEnabled(false);
+		for (ServerInfo.ResourceInfo calendar : serverInfo.getCalendars())
+		calendar.setEnabled(false);
 
-        ListAdapter adapter = getListView().getAdapter();
-        for (long id : getListView().getCheckedItemIds()) {
-            int position = (int) id; // +1 because header view is inserted at
-                                     // pos. 0
-            ServerInfo.ResourceInfo info = (ServerInfo.ResourceInfo) adapter
-                    .getItem(position);
-            info.setEnabled(true);
-        }
+		ListAdapter adapter = getListView().getAdapter();
+		for (long id : getListView().getCheckedItemIds()) {
+			int position = (int) id;	// +1 because header view is inserted at pos. 0
+			ServerInfo.ResourceInfo info = (ServerInfo.ResourceInfo) adapter.getItem(position);
+			info.setEnabled(true);
+		}
 
-        // pass to "account details" fragment
-        AccountDetailsFragment accountDetails = new AccountDetailsFragment();
-        Bundle arguments = new Bundle();
-        arguments.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
-        if (getArguments().getBundle(Constants.ACCOUNT_BUNDLE) != null) {
-            arguments.putBundle(Constants.ACCOUNT_BUNDLE, getArguments()
-                    .getBundle(Constants.ACCOUNT_BUNDLE));
-        }
-        accountDetails.setArguments(arguments);
+		// pass to "account details" fragment
+		AccountDetailsFragment accountDetails = new AccountDetailsFragment();
+		Bundle arguments = new Bundle();
+		arguments.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
+		if (getArguments().getBundle(Constants.ACCOUNT_BUNDLE) != null) {
+			arguments.putBundle(Constants.ACCOUNT_BUNDLE, getArguments().getBundle(Constants.ACCOUNT_BUNDLE));
+		}
+		accountDetails.setArguments(arguments);
 
-        getFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, accountDetails)
-                .addToBackStack(null).commitAllowingStateLoss();
+		getFragmentManager().beginTransaction()
+			.replace(R.id.fragment_container, accountDetails)
+			.addToBackStack(null).commitAllowingStateLoss();
     }
 
 }

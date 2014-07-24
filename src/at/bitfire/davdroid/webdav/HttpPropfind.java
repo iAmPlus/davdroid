@@ -32,8 +32,7 @@ public class HttpPropfind extends HttpEntityEnclosingRequestBase {
 		ADDRESS_BOOK_MEMBERS_COLLECTIONS,
 		CALENDAR_MEMBERS_COLLECTIONS,
 		COLLECTION_CTAG,
-		MEMBERS_ETAG,
-		EMPTY_PROPFIND
+		MEMBERS_ETAG
 	}
 
 	
@@ -98,20 +97,15 @@ public class HttpPropfind extends HttpEntityEnclosingRequestBase {
 			propfind.prop.getctag = new DavProp.DavPropGetCTag();
 			propfind.prop.getetag = new DavProp.DavPropGetETag();
 			break;
-		case EMPTY_PROPFIND:
-			break;
 		}
 		
 		try {
 			Serializer serializer = new Persister();
 			StringWriter writer = new StringWriter();
-
-			if(mode != Mode.EMPTY_PROPFIND) {
-				serializer.write(propfind, writer);
-				setEntity(new StringEntity(writer.toString(), "UTF-8"));
-			}
+			serializer.write(propfind, writer);
+		
 			setHeader("Depth", String.valueOf(depth));
-			Log.d(TAG, "Prepared PROPFIND request for " + uri + ": " + writer.toString());
+			setEntity(new StringEntity(writer.toString(), "UTF-8"));
 		} catch(Exception ex) {
 			Log.e(TAG, "Couldn't prepare PROPFIND request for " + uri, ex);
 			abort();

@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 @Data
 public class ServerInfo implements Serializable {
 	private static final long serialVersionUID = 6744847358282980437L;
-
+	
 	private String baseURL = null;
 	private String caldavURL = null;
 	private String carddavURL = null;
@@ -28,36 +28,36 @@ public class ServerInfo implements Serializable {
 	private String accountName;
 
 	private String errorMessage;
-
+	
 	private boolean calDAV, cardDAV;
 	private List<ResourceInfo>
 		addressBooks = new LinkedList<ResourceInfo>(),
 		calendars  = new LinkedList<ResourceInfo>();
-
+	
 	public boolean hasEnabledCalendars() {
 		for (ResourceInfo calendar : calendars)
 			if (calendar.enabled)
 				return true;
 		return false;
 	}
-
-
+	
+	
 	@RequiredArgsConstructor(suppressConstructorProperties=true)
 	@Data
 	public static class ResourceInfo implements Serializable {
 		private static final long serialVersionUID = -5516934508229552112L;
-
+		
 		enum Type {
 			ADDRESS_BOOK,
 			CALENDAR
 		}
-
+		
 		boolean enabled = false;
-
+		
 		final Type type;
 		final boolean readOnly;
 		final String URL, title, description, color;
-
+		
 		String timezone;
 	}
 }

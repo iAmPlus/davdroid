@@ -22,22 +22,23 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 		TYPE_ADDRESS_BOOKS_ROW = 1,
 		TYPE_CALENDARS_HEADING = 2,
 		TYPE_CALENDARS_ROW = 3;
-
+	
 	protected Context context;
 	protected ServerInfo serverInfo;
 	@Getter protected int nAddressBooks, nCalendars;
-
-
+	
+	
 	public SelectCollectionsAdapter(Context context, ServerInfo serverInfo) {
 		this.context = context;
+		
 		this.serverInfo = serverInfo;
 		nAddressBooks = (serverInfo.getAddressBooks() == null) ? 0 : serverInfo.getAddressBooks().size();
 		nCalendars = (serverInfo.getCalendars() == null) ? 0 : serverInfo.getCalendars().size();
 	}
-
-
+	
+	
 	// item data
-
+	
 	@Override
 	public int getCount() {
 		return nAddressBooks + nCalendars;
@@ -51,7 +52,7 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 			return serverInfo.getCalendars().get(position - nAddressBooks);
 		return null;
 	}
-
+	
 	@Override
 	public boolean hasStableIds() {
 		return true;
@@ -61,8 +62,8 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 	public long getItemId(int position) {
 		return position;
 	}
-
-
+	
+	
 	// item views
 
 	@Override
@@ -118,10 +119,10 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 			((CheckedTextView)convertView).setChecked(
 					!((CheckedTextView)convertView).isChecked());
 		}
-
+		
 		return convertView;
 	}
-
+	
 	protected void setContent(CheckedTextView view, int collectionIcon, ServerInfo.ResourceInfo info) {
 		// set layout and icons
 		view.setPadding(10, 10, 10, 10);

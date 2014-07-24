@@ -25,7 +25,6 @@ import at.bitfire.davdroid.webdav.DavMultiget;
 import at.bitfire.davdroid.webdav.DavNoContentException;
 import at.bitfire.davdroid.webdav.HttpException;
 import at.bitfire.davdroid.webdav.HttpPropfind;
-import at.bitfire.davdroid.webdav.PermanentlyMovedException;
 import at.bitfire.davdroid.webdav.WebDavResource;
 import at.bitfire.davdroid.webdav.WebDavResource.PutMode;
 import ch.boye.httpclientandroidlib.impl.client.CloseableHttpClient;
@@ -49,7 +48,7 @@ public abstract class RemoteCollection<T extends Resource> {
 	public RemoteCollection(CloseableHttpClient httpClient, String baseURL, String user, String password, boolean preemptiveAuth) throws URISyntaxException {
 		this.httpClient = httpClient;
 		
-		collection = new WebDavResource(httpClient, new URI(baseURL), user, password, preemptiveAuth, true);
+		collection = new WebDavResource(httpClient, new URI(baseURL), user, password, preemptiveAuth);
 	}
 
 	
@@ -64,19 +63,13 @@ public abstract class RemoteCollection<T extends Resource> {
 				collection.propfind(HttpPropfind.Mode.COLLECTION_CTAG);
 		} catch (DavException e) {
 			return null;
-		} catch (PermanentlyMovedException e) {
-			e.printStackTrace();
 		}
 		return collection.getCTag();
 	}
 	
 	public Resource[] getMemberETags() throws IOException, DavException, HttpException {
-		try {
-			collection.propfind(HttpPropfind.Mode.MEMBERS_ETAG);
-		} catch (PermanentlyMovedException e) {
-			e.printStackTrace();
-		}
-
+		collection.propfind(HttpPropfind.Mode.MEMBERS_ETAG);
+			
 		List<T> resources = new LinkedList<T>();
 		if (collection.getMembers() != null) {
 			for (WebDavResource member : collection.getMembers())

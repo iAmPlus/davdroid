@@ -126,8 +126,9 @@ public abstract class DavSyncAdapter extends AbstractThreadedSyncAdapter impleme
 		// acquiring read lock before releasing write lock will downgrade the write lock to a read lock
 		httpClientLock.readLock().lock();
 		httpClientLock.writeLock().unlock();
-
-		try {
+		
+		try {	
+			// get local <-> remote collection pairs
 			Map<LocalCollection<?>, RemoteCollection<?>> syncCollections = getSyncPairs(account, provider);
 			if (syncCollections == null)
 				Log.i(TAG, "Nothing to synchronize");
@@ -135,7 +136,7 @@ public abstract class DavSyncAdapter extends AbstractThreadedSyncAdapter impleme
 				try {
 					for (Map.Entry<LocalCollection<?>, RemoteCollection<?>> entry : syncCollections.entrySet())
 						new SyncManager(entry.getKey(), entry.getValue()).synchronize(extras.containsKey(ContentResolver.SYNC_EXTRAS_MANUAL), syncResult);
-	
+					
 				} catch (DavException ex) {
 					syncResult.stats.numParseExceptions++;
 					Log.e(TAG, "Invalid DAV response", ex);

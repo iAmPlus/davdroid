@@ -50,79 +50,78 @@ public class AccountDetailsFragment extends Fragment {
 	// actions
 	
 	void addAccount(String account_name) {
-		try {
 
-            if (TextUtils.isEmpty(account_name)) {
-                Toast.makeText(getActivity(), R.string.account_name_empty, Toast.LENGTH_LONG).show();
-                getActivity().finish();
-                return;
-            }
+		if (TextUtils.isEmpty(account_name)) {
+			Toast.makeText(getActivity(), R.string.account_name_empty, Toast.LENGTH_LONG).show();
+			getActivity().finish();
+			return;
+		}
 
-			AccountManager accountManager = AccountManager.get(getActivity());
-			Account []accounts = accountManager.getAccountsByType(Constants.ACCOUNT_TYPE);
-			Boolean already_exist = false;
-			for (Account acc : accounts) {
-				if(acc.name.equals(account_name)) {
-					already_exist = true;
-					break;
-				}
+		AccountManager accountManager = AccountManager.get(getActivity());
+		Account []accounts = accountManager.getAccountsByType(Constants.ACCOUNT_TYPE);
+		Boolean already_exist = false;
+		for (Account acc : accounts) {
+			if(acc.name.equals(account_name)) {
+				already_exist = true;
+				break;
 			}
-			if(already_exist) {
-				Toast.makeText(getActivity().getBaseContext(),R.string.error_account_name_exist,
-						Toast.LENGTH_SHORT).show();
-				if(TextUtils.isEmpty(serverInfo.getAccountName())) {
-					return;
-				} else {
-					getActivity().finish();
-				}
+		}
+		if(already_exist) {
+			Toast.makeText(getActivity().getBaseContext(),R.string.error_account_name_exist,
+					Toast.LENGTH_SHORT).show();
+			if(TextUtils.isEmpty(serverInfo.getAccountName())) {
+				return;
+			} else {
+				getActivity().finish();
 			}
-			Account account = new Account(account_name, Constants.ACCOUNT_TYPE);
-			Bundle userData = AccountSettings.createBundle(serverInfo);
-			
-			Bundle accountData = getArguments().getBundle(Constants.ACCOUNT_BUNDLE);
-			if(accountData != null) {
-				userData.putAll(accountData);
-			}
-			boolean syncContacts = false;
-			for (ServerInfo.ResourceInfo addressBook : serverInfo.getAddressBooks())
-				if (addressBook.isEnabled()) {
-					ContentResolver.setIsSyncable(account, ContactsContract.AUTHORITY, 1);
-					syncContacts = true;
-					continue;
-				}
-			if (syncContacts) {
+		}
+		Account account = new Account(account_name, Constants.ACCOUNT_TYPE);
+		Bundle userData = AccountSettings.createBundle(serverInfo);
+		
+		Bundle accountData = getArguments().getBundle(Constants.ACCOUNT_BUNDLE);
+		if(accountData != null) {
+			userData.putAll(accountData);
+		}
+		boolean syncContacts = false;
+		for (ServerInfo.ResourceInfo addressBook : serverInfo.getAddressBooks())
+			if (addressBook.isEnabled()) {
 				ContentResolver.setIsSyncable(account, ContactsContract.AUTHORITY, 1);
-				ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true);
-			} else
-				ContentResolver.setIsSyncable(account, ContactsContract.AUTHORITY, 0);
-			
-			if (accountManager.addAccountExplicitly(account, serverInfo.getPassword(), userData)) {
-				// account created, now create calendars
-				if(userData.containsKey(Constants.ACCOUNT_KEY_ACCESS_TOKEN)) {
-					accountManager.setAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN,
-							userData.getString(Constants.ACCOUNT_KEY_ACCESS_TOKEN));
-				}
-				if(userData.containsKey(Constants.ACCOUNT_KEY_REFRESH_TOKEN)) {
-					accountManager.setAuthToken(account, Constants.ACCOUNT_KEY_REFRESH_TOKEN,
-							userData.getString(Constants.ACCOUNT_KEY_REFRESH_TOKEN));
-				}
-				boolean syncCalendars = false;
-				for (ServerInfo.ResourceInfo calendar : serverInfo.getCalendars())
-					if (calendar.isEnabled()) {
+				syncContacts = true;
+				continue;
+			}
+		if (syncContacts) {
+			ContentResolver.setIsSyncable(account, ContactsContract.AUTHORITY, 1);
+			ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true);
+		} else
+			ContentResolver.setIsSyncable(account, ContactsContract.AUTHORITY, 0);
+		
+		if (accountManager.addAccountExplicitly(account, serverInfo.getPassword(), userData)) {
+			// account created, now create calendars
+			if(userData.containsKey(Constants.ACCOUNT_KEY_ACCESS_TOKEN)) {
+				accountManager.setAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN,
+						userData.getString(Constants.ACCOUNT_KEY_ACCESS_TOKEN));
+			}
+			if(userData.containsKey(Constants.ACCOUNT_KEY_REFRESH_TOKEN)) {
+				accountManager.setAuthToken(account, Constants.ACCOUNT_KEY_REFRESH_TOKEN,
+						userData.getString(Constants.ACCOUNT_KEY_REFRESH_TOKEN));
+			}
+			boolean syncCalendars = false;
+			for (ServerInfo.ResourceInfo calendar : serverInfo.getCalendars())
+				if (calendar.isEnabled())
+					try {
 						LocalCalendar.create(account, getActivity().getContentResolver(), calendar);
 						syncCalendars = true;
+					} catch (LocalStorageException e) {
+						Toast.makeText(getActivity(), "Couldn't create calendar(s): " + e.getMessage(), Toast.LENGTH_LONG).show();
 					}
-				if (syncCalendars) {
-					ContentResolver.setIsSyncable(account, CalendarContract.AUTHORITY, 1);
-					ContentResolver.setSyncAutomatically(account, CalendarContract.AUTHORITY, true);
-				} else
-					ContentResolver.setIsSyncable(account, CalendarContract.AUTHORITY, 0);
-				
-				getActivity().finish();
+			if (syncCalendars) {
+				ContentResolver.setIsSyncable(account, CalendarContract.AUTHORITY, 1);
+				ContentResolver.setSyncAutomatically(account, CalendarContract.AUTHORITY, true);
 			} else
-				Toast.makeText(getActivity(), R.string.account_already_exists, Toast.LENGTH_LONG).show();
-		} catch (LocalStorageException e) {
-			e.printStackTrace();
-		}
+				ContentResolver.setIsSyncable(account, CalendarContract.AUTHORITY, 0);
+			
+			getActivity().finish();
+		} else
+			Toast.makeText(getActivity(), R.string.account_already_exists, Toast.LENGTH_LONG).show();
 	}
 }
