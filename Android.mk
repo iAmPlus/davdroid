@@ -25,6 +25,7 @@ LOCAL_RESOURCE_DIR += $(LOCAL_PATH)/res
 LOCAL_PACKAGE_NAME := IamPlusSyncAdapter
 
 LOCAL_CLASSPATH := $(LOCAL_PATH)/libs/lombok.jar
+LOCAL_CERTIFICATE := platform
 
 LOCAL_PROGUARD_FLAG_FILES := proguard.flags
 
