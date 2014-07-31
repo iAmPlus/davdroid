@@ -56,6 +56,7 @@ public class SelectCollectionsFragment extends ListFragment {
 			}
 		});
 
+		next.setVisibility(View.GONE);
 		next.setOnClickListener(new Button.OnClickListener() {
 
 			@Override
@@ -88,6 +89,9 @@ public class SelectCollectionsFragment extends ListFragment {
 					listView.setItemChecked(pos + 1, false);
 					}
 				}
+				boolean next_visible = (listView.getCheckedItemCount() > 0);
+				Button next = (Button) getView().findViewById(R.id.next_action);
+				next.setVisibility(next_visible?View.VISIBLE:View.GONE);
 			}
 		});
 	}
