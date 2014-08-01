@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import net.fortuna.ical4j.model.ValidationException;
+import net.fortuna.ical4j.util.CompatibilityHints;
 import android.content.SyncResult;
 import android.util.Log;
 import at.bitfire.davdroid.ArrayUtils;
@@ -37,6 +38,7 @@ public class SyncManager {
 	public SyncManager(LocalCollection<? extends Resource> local, RemoteCollection<? extends Resource> remote) {
 		this.local = local;
 		this.remote = remote;
+		CompatibilityHints.setHintEnabled(CompatibilityHints.KEY_RELAXED_UNFOLDING, true);
 	}
 
 	
