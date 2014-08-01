@@ -10,6 +10,7 @@ package at.bitfire.davdroid.syncadapter;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Fragment;
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -50,6 +51,8 @@ public class AccountDetailsFragment extends Fragment {
 	// actions
 	
 	void addAccount(String account_name) {
+
+		getActivity().setResult(Activity.RESULT_CANCELED);
 
 		if (TextUtils.isEmpty(account_name)) {
 			Toast.makeText(getActivity(), R.string.account_name_empty, Toast.LENGTH_LONG).show();
@@ -120,6 +123,7 @@ public class AccountDetailsFragment extends Fragment {
 			} else
 				ContentResolver.setIsSyncable(account, CalendarContract.AUTHORITY, 0);
 			
+			getActivity().setResult(Activity.RESULT_OK);
 			getActivity().finish();
 		} else
 			Toast.makeText(getActivity(), R.string.account_already_exists, Toast.LENGTH_LONG).show();
