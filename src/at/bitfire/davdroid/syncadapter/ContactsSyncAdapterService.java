@@ -33,12 +33,16 @@ import at.bitfire.davdroid.resource.RemoteCollection;
 
 public class ContactsSyncAdapterService extends Service {
 	private static ContactsSyncAdapter syncAdapter;
+    // Object to use as a thread-safe lock
+    private static final Object sSyncAdapterLock = new Object();
 
 	
 	@Override
 	public void onCreate() {
-		if (syncAdapter == null)
-			syncAdapter = new ContactsSyncAdapter(getApplicationContext());
+		synchronized (sSyncAdapterLock) {
+			if (syncAdapter == null)
+				syncAdapter = new ContactsSyncAdapter(getApplicationContext());
+		}
 	}
 
 	@Override

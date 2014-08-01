@@ -34,12 +34,16 @@ import at.bitfire.davdroid.resource.RemoteCollection;
 
 public class CalendarsSyncAdapterService extends Service {
 	private static SyncAdapter syncAdapter;
+    // Object to use as a thread-safe lock
+    private static final Object sSyncAdapterLock = new Object();
 	
 	
 	@Override
 	public void onCreate() {
-		if (syncAdapter == null)
-			syncAdapter = new SyncAdapter(getApplicationContext());
+		synchronized (sSyncAdapterLock) {
+			if (syncAdapter == null)
+				syncAdapter = new SyncAdapter(getApplicationContext());
+		}
 	}
 
 	@Override
