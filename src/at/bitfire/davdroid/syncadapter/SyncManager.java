@@ -45,6 +45,9 @@ public class SyncManager {
 		int	deletedRemotely = pushDeleted(),
 			addedRemotely = pushNew(),
 			updatedRemotely = pushDirty();
+
+
+		try {
 		
 		syncResult.stats.numEntries = deletedRemotely + addedRemotely + updatedRemotely;
 		
@@ -95,6 +98,12 @@ public class SyncManager {
 		// update collection CTag
 		Log.i(TAG, "Sync complete, fetching new CTag");
 		local.setCTag(remote.getCTag());
+
+		} catch ( java.lang.OutOfMemoryError err) {
+			Log.w(TAG, "Out of Memory Error. Will sync partially");
+			err.printStackTrace();
+			local.commit();
+		}
 	}
 	
 	
