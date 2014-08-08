@@ -13,23 +13,18 @@ import android.app.Fragment;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.os.Bundle;
-import android.os.RemoteException;
 import android.provider.CalendarContract;
 import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.KeyEvent;
-import android.view.inputmethod.EditorInfo;
-import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 import android.text.TextUtils;
-import android.util.Log;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 import at.bitfire.davdroid.resource.LocalCalendar;
 import at.bitfire.davdroid.resource.LocalStorageException;
+import at.bitfire.davdroid.resource.ServerInfo;
 
 public class AccountDetailsFragment extends Fragment {
 	public static final String KEY_SERVER_INFO = "server_info";

@@ -16,6 +16,7 @@ import android.widget.BaseAdapter;
 import android.widget.CheckedTextView;
 import android.widget.ListAdapter;
 import at.bitfire.davdroid.R;
+import at.bitfire.davdroid.resource.ServerInfo;
 
 public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter {
 	final static int TYPE_ADDRESS_BOOKS_HEADING = 0,
@@ -102,23 +103,22 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 				break;
 			case TYPE_CALENDARS_ROW:
 				convertView = inflater.inflate(android.R.layout.simple_list_item_multiple_choice, null);
-				break;
-			}
-			
-			// step 2: fill view with content
-			switch (getItemViewType(position)) {
-			case TYPE_ADDRESS_BOOKS_ROW:
-				setContent((CheckedTextView)convertView, R.drawable.addressbook, (ServerInfo.ResourceInfo)getItem(position));
-				break;
-			case TYPE_CALENDARS_ROW:
-				setContent((CheckedTextView)convertView, R.drawable.calendar, (ServerInfo.ResourceInfo)getItem(position));
 			}
 		}
-		if(getItemViewType(position) == TYPE_ADDRESS_BOOKS_ROW
+		
+		// step 2: fill view with content
+		switch (getItemViewType(position)) {
+		case TYPE_ADDRESS_BOOKS_ROW:
+			setContent((CheckedTextView)convertView, R.drawable.addressbook, (ServerInfo.ResourceInfo)getItem(position));
+			break;
+		case TYPE_CALENDARS_ROW:
+			setContent((CheckedTextView)convertView, R.drawable.calendar, (ServerInfo.ResourceInfo)getItem(position));
+		}
+		/*if(getItemViewType(position) == TYPE_ADDRESS_BOOKS_ROW
 				|| getItemViewType(position) == TYPE_CALENDARS_ROW) {
 			((CheckedTextView)convertView).setChecked(
 					!((CheckedTextView)convertView).isChecked());
-		}
+		}*/
 		
 		return convertView;
 	}

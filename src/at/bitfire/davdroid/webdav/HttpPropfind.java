@@ -26,11 +26,10 @@ public class HttpPropfind extends HttpEntityEnclosingRequestBase {
 	public enum Mode {
 		CURRENT_USER_PRINCIPAL,
 		HOME_SETS,
-		ADDRESS_BOOK_HOME_SETS,
-		CALENDAR_HOME_SETS,
-		MEMBERS_COLLECTIONS,
-		ADDRESS_BOOK_MEMBERS_COLLECTIONS,
-		CALENDAR_MEMBERS_COLLECTIONS,
+		CARDDAV_HOME_SETS,
+		CALDAV_HOME_SETS,
+		CARDDAV_COLLECTIONS,
+		CALDAV_COLLECTIONS,
 		COLLECTION_CTAG,
 		MEMBERS_ETAG
 	}
@@ -51,51 +50,43 @@ public class HttpPropfind extends HttpEntityEnclosingRequestBase {
 		int depth = 0;
 		switch (mode) {
 		case CURRENT_USER_PRINCIPAL:
-			propfind.prop.currentUserPrincipal = new DavProp.DavCurrentUserPrincipal();
+			propfind.prop.currentUserPrincipal = new DavProp.CurrentUserPrincipal();
 			break;
 		case HOME_SETS:
-			propfind.prop.addressbookHomeSet = new DavProp.DavAddressbookHomeSet();
-			propfind.prop.calendarHomeSet = new DavProp.DavCalendarHomeSet();
+			propfind.prop.addressbookHomeSet = new DavProp.AddressbookHomeSet();
+			propfind.prop.calendarHomeSet = new DavProp.CalendarHomeSet();
 			break;
-		case ADDRESS_BOOK_HOME_SETS:
-			propfind.prop.addressbookHomeSet = new DavProp.DavAddressbookHomeSet();
+		case CARDDAV_HOME_SETS:
+			propfind.prop.addressbookHomeSet = new DavProp.AddressbookHomeSet();
 			break;
-		case CALENDAR_HOME_SETS:
-			propfind.prop.calendarHomeSet = new DavProp.DavCalendarHomeSet();
+		case CALDAV_HOME_SETS:
+			propfind.prop.calendarHomeSet = new DavProp.CalendarHomeSet();
 			break;
-		case MEMBERS_COLLECTIONS:
+		case CARDDAV_COLLECTIONS:
 			depth = 1;
-			propfind.prop.displayname = new DavProp.DavPropDisplayName();
-			propfind.prop.resourcetype = new DavProp.DavPropResourceType();
-			propfind.prop.currentUserPrivilegeSet = new LinkedList<DavProp.DavPropPrivilege>();
-			propfind.prop.addressbookDescription = new DavProp.DavPropAddressbookDescription();
-			propfind.prop.calendarDescription = new DavProp.DavPropCalendarDescription();
-			propfind.prop.calendarColor = new DavProp.DavPropCalendarColor();
-			propfind.prop.calendarTimezone = new DavProp.DavPropCalendarTimezone();
-			propfind.prop.supportedCalendarComponentSet = new LinkedList<DavProp.DavPropComp>();
+			propfind.prop.displayname = new DavProp.DisplayName();
+			propfind.prop.resourcetype = new DavProp.ResourceType();
+			propfind.prop.currentUserPrivilegeSet = new LinkedList<DavProp.Privilege>();
+			propfind.prop.addressbookDescription = new DavProp.AddressbookDescription();
+			propfind.prop.supportedAddressData = new LinkedList<DavProp.AddressDataType>();
 			break;
-		case ADDRESS_BOOK_MEMBERS_COLLECTIONS:
+		case CALDAV_COLLECTIONS:
 			depth = 1;
-			propfind.prop.displayname = new DavProp.DavPropDisplayName();
-			propfind.prop.resourcetype = new DavProp.DavPropResourceType();
-			propfind.prop.addressbookDescription = new DavProp.DavPropAddressbookDescription();
-			break;
-		case CALENDAR_MEMBERS_COLLECTIONS:
-			depth = 1;
-			propfind.prop.displayname = new DavProp.DavPropDisplayName();
-			propfind.prop.resourcetype = new DavProp.DavPropResourceType();
-			propfind.prop.calendarDescription = new DavProp.DavPropCalendarDescription();
-			propfind.prop.calendarColor = new DavProp.DavPropCalendarColor();
-			propfind.prop.calendarTimezone = new DavProp.DavPropCalendarTimezone();
-			propfind.prop.supportedCalendarComponentSet = new LinkedList<DavProp.DavPropComp>();
+			propfind.prop.displayname = new DavProp.DisplayName();
+			propfind.prop.resourcetype = new DavProp.ResourceType();
+			propfind.prop.currentUserPrivilegeSet = new LinkedList<DavProp.Privilege>();
+			propfind.prop.calendarDescription = new DavProp.CalendarDescription();
+			propfind.prop.calendarColor = new DavProp.CalendarColor();
+			propfind.prop.calendarTimezone = new DavProp.CalendarTimezone();
+			propfind.prop.supportedCalendarComponentSet = new LinkedList<DavProp.Comp>();
 			break;
 		case COLLECTION_CTAG:
-			propfind.prop.getctag = new DavProp.DavPropGetCTag(); 
+			propfind.prop.getctag = new DavProp.GetCTag(); 
 			break;
 		case MEMBERS_ETAG:
 			depth = 1;
-			propfind.prop.getctag = new DavProp.DavPropGetCTag();
-			propfind.prop.getetag = new DavProp.DavPropGetETag();
+			propfind.prop.getctag = new DavProp.GetCTag();
+			propfind.prop.getetag = new DavProp.GetETag();
 			break;
 		}
 		

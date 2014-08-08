@@ -20,6 +20,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
+import at.bitfire.davdroid.resource.ServerInfo;
 
 public class SelectCollectionsFragment extends ListFragment {
 
@@ -69,25 +70,20 @@ public class SelectCollectionsFragment extends ListFragment {
 
 		final ListView listView = getListView();
 
-		final ServerInfo serverInfo = (ServerInfo) getArguments()
-			.getSerializable(Constants.KEY_SERVER_INFO);
-		final SelectCollectionsAdapter adapter = new SelectCollectionsAdapter(
-			view.getContext(), serverInfo);
+		final ServerInfo serverInfo = (ServerInfo)getArguments().getSerializable(Constants.KEY_SERVER_INFO);
+		final SelectCollectionsAdapter adapter = new SelectCollectionsAdapter(view.getContext(), serverInfo);
 		setListAdapter(adapter);
-
+		
 		listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 		listView.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				int itemPosition = position - 1;	// one list header view at pos. 0
 				if (adapter.getItemViewType(itemPosition) == SelectCollectionsAdapter.TYPE_ADDRESS_BOOKS_ROW) {
-
-				// ((ServerInfo.ResourceInfo)adapter.getItem(itemPosition)).setEnabled(true);
-				// unselect all other address books
-				for (int pos = 1; pos <= adapter.getNAddressBooks(); pos++)
-					if (pos != itemPosition) {
-					listView.setItemChecked(pos + 1, false);
-					}
+					// unselect all other address books
+					for (int pos = 1; pos <= adapter.getNAddressBooks(); pos++)
+						if (pos != itemPosition)
+							listView.setItemChecked(pos + 1, false);
 				}
 				boolean next_visible = (listView.getCheckedItemCount() > 0);
 				Button next = (Button) getView().findViewById(R.id.next_action);

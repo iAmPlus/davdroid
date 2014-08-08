@@ -20,7 +20,6 @@ import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,7 +27,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
-
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -37,6 +36,7 @@ import android.widget.Toast;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 import at.bitfire.davdroid.URIUtils;
+import at.bitfire.davdroid.resource.ServerInfo;
 
 public class UserCredentialsFragment extends Fragment {
 	String protocol;
@@ -51,6 +51,7 @@ public class UserCredentialsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.user_details, container, false);
+        getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE|WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
 
         final AccountManager mgr = AccountManager.get(getActivity()
                 .getApplicationContext());

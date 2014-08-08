@@ -28,6 +28,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
+import at.bitfire.davdroid.resource.ServerInfo;
 
 public class SelectServerFragment extends Fragment {
 

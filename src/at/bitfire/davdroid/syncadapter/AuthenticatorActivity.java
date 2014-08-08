@@ -2,12 +2,10 @@ package at.bitfire.davdroid.syncadapter;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.Random;
 import java.util.StringTokenizer;
 
 import org.apache.http.HttpResponse;
@@ -17,7 +15,6 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
@@ -35,9 +32,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.ZoomControls;
 import android.webkit.CookieManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -45,6 +40,7 @@ import android.webkit.WebViewClient;
 
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
+import at.bitfire.davdroid.resource.ServerInfo;
 
 public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 

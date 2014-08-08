@@ -20,7 +20,6 @@ import lombok.Getter;
 import org.apache.http.HttpStatus;
 
 import ch.boye.httpclientandroidlib.impl.client.CloseableHttpClient;
-import lombok.Getter;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerFuture;
@@ -44,7 +43,6 @@ import at.bitfire.davdroid.resource.RemoteCollection;
 import at.bitfire.davdroid.webdav.DavException;
 import at.bitfire.davdroid.webdav.DavHttpClient;
 import at.bitfire.davdroid.webdav.HttpException;
-import ch.boye.httpclientandroidlib.impl.client.CloseableHttpClient;
 
 public abstract class DavSyncAdapter extends AbstractThreadedSyncAdapter implements Closeable {
 	private final static String TAG = "davdroid.DavSyncAdapter";
@@ -126,8 +124,12 @@ public abstract class DavSyncAdapter extends AbstractThreadedSyncAdapter impleme
 		// acquiring read lock before releasing write lock will downgrade the write lock to a read lock
 		httpClientLock.readLock().lock();
 		httpClientLock.writeLock().unlock();
-		
-		try {	
+
+		// TODO use VCard 4.0 if possible
+		AccountSettings accountSettings = new AccountSettings(getContext(), account);
+		Log.d(TAG, "Server supports VCard version " + accountSettings.getAddressBookVCardVersion());
+
+		try {
 			// get local <-> remote collection pairs
 			Map<LocalCollection<?>, RemoteCollection<?>> syncCollections = getSyncPairs(account, provider);
 			if (syncCollections == null)

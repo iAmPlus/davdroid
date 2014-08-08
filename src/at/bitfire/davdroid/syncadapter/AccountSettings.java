@@ -24,13 +24,16 @@ import android.provider.CalendarContract;
 import android.provider.CalendarContract.Calendars;
 import android.util.Log;
 import at.bitfire.davdroid.Constants;
+import at.bitfire.davdroid.resource.ServerInfo;
+import ezvcard.VCardVersion;
 
 public class AccountSettings {
 	private final static String TAG = "davdroid.AccountSettings";
 	
 	private final static int CURRENT_VERSION = 1;
 	private final static String
-		KEY_SETTINGS_VERSION = "version";
+		KEY_SETTINGS_VERSION = "version",
+		KEY_ADDRESSBOOK_VCARD_VERSION = "addressbook_vcard_version";
 	
 	Context context;
 	AccountManager accountManager;
@@ -106,6 +109,14 @@ public class AccountSettings {
 	
 	public void setAddressBookCTag(String cTag) {
 		accountManager.setUserData(account, Constants.ACCOUNT_KEY_ADDRESSBOOK_CTAG, cTag);
+	}
+	
+	public VCardVersion getAddressBookVCardVersion() {
+		VCardVersion version = VCardVersion.V3_0;
+		String versionStr = accountManager.getUserData(account, KEY_ADDRESSBOOK_VCARD_VERSION);
+		if (versionStr != null)
+			version = VCardVersion.valueOfByStr(versionStr);
+		return version;
 	}
 	
 	

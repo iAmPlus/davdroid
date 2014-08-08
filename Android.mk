@@ -41,7 +41,7 @@ LOCAL_PREBUILT_STATIC_JAVA_LIBRARIES := \
 		libcommons-logging:libs/commons-logging-1.1.3.jar \
 		liblombok-api:libs/lombok-api.jar \
 		libcommons-io:libs/commons-io-2.4.jar \
-		libez-vcard:libs/ez-vcard-0.9.4-SNAPSHOT.jar \
+		libez-vcard:libs/ez-vcard-0.9.6-SNAPSHOT.jar \
 		libhttpclientandroid:libs/httpclientandroidlib-1.2.1.jar \
 		libsimple-xml:libs/simple-xml-2.7.jar
 
