@@ -37,10 +37,13 @@
             android:visibility="invisible" />
     </LinearLayout>
 
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_below="@id/buttons_layout"
+        android:layout_height="wrap_content">
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/buttons_layout"
+        android:layout_height="wrap_content"
         android:orientation="vertical" >
 
         <GridLayout
@@ -90,5 +93,6 @@
             android:checked="true"
             android:text="@string/auth_preemptive" />
     </LinearLayout>
+    </ScrollView>
 
 </RelativeLayout>
