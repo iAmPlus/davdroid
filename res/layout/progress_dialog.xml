@@ -4,10 +4,31 @@
     android:layout_height="match_parent"
     android:background="#ff000000" >
 
+    <Button
+        android:id="@+id/cancel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:paddingBottom="@dimen/item_margin"
+        android:paddingTop="@dimen/item_margin"
+        android:text="@android:string/cancel"
+        android:textColor="@android:color/black"
+        android:textSize="@dimen/font_size_normal" />
+
+    <TextView
+        android:id="@+id/query_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/cancel"
+        android:gravity="center"
+        android:text="@string/querying_server" />
+
     <LinearLayout
         android:id="@+id/linearLayout1"
         android:layout_width="45dp"
         android:layout_height="45dp"
+        android:layout_below="@id/query_text"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true" >
 
@@ -16,13 +37,5 @@
             android:layout_height="match_parent" />
 
     </LinearLayout>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:gravity="center"
-        android:text="@string/querying_server" />
 
 </RelativeLayout>

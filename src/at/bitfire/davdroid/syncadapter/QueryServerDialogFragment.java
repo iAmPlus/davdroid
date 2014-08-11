@@ -16,6 +16,7 @@ import java.util.Properties;
 
 import android.app.DialogFragment;
 import android.app.LoaderManager.LoaderCallbacks;
+import android.app.Activity;
 import android.content.AsyncTaskLoader;
 import android.content.Context;
 import android.content.Loader;
@@ -25,6 +26,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+import android.widget.Button;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 import at.bitfire.davdroid.resource.DavResourceFinder;
@@ -63,6 +65,23 @@ public class QueryServerDialogFragment extends DialogFragment
 		serverInfo = (ServerInfo)
 				getArguments().getSerializable(Constants.KEY_SERVER_INFO);
 		userData = getArguments().getBundle(Constants.ACCOUNT_BUNDLE);
+		Button cancel = (Button) v.findViewById(R.id.cancel);
+        cancel.setBackgroundColor(getActivity().getApplicationColor());
+        cancel.setVisibility(View.VISIBLE);
+
+        cancel.setOnClickListener(new Button.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                final Activity activity = getActivity();
+                getDialog().dismiss();
+                activity.onBackPressed();
+                //((FragmentAlertDialog)activity).doNegativeClick();
+                activity.overridePendingTransition(
+                        android.R.anim.quick_exit_in,
+                        android.R.anim.quick_exit_out);
+            }
+        });
 		createLoader();
 
 		return v;
