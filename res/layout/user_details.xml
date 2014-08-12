@@ -85,6 +85,14 @@
             android:inputType="textPassword" />
 
         <CheckBox
+            android:id="@+id/showPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:checked="false"
+            android:text="@string/show_password" />
+
+        <CheckBox
             android:id="@+id/auth_preemptive"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

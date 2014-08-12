@@ -160,4 +160,5 @@
     <string name="account_name_empty">Couldn\'t create account, account name empty</string>
     <string name="account_already_exists">Couldn\'t create account (account with this name already existing?)</string>
     <string name="id_or_password_missing">User Name or Password empty</string>
+    <string name="show_password">Show password</string>
 </resources>

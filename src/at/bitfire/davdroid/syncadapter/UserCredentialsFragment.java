@@ -29,6 +29,7 @@ import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -173,6 +174,20 @@ public class UserCredentialsFragment extends Fragment {
                     else
                         editPassword.requestFocus();
                 }
+            }
+        });
+        CheckBox showPassword = (CheckBox) v.findViewById(R.id.showPassword);
+        showPassword.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    editPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD );
+                }
+                else{
+                    editPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                }
+                editPassword.setSelection(editPassword.getText().length());
             }
         });
 
