@@ -44,6 +44,7 @@ public class UserCredentialsFragment extends Fragment {
 	
 	EditText editBaseURL, editUserName, editPassword;
 	CheckBox checkboxPreemptive;
+	CheckBox showPassword;
 
 	ServerInfo serverInfo;
 	Account reauth_account = null;
@@ -128,10 +129,12 @@ public class UserCredentialsFragment extends Fragment {
                         return false;
                     }
                 });
+        showPassword = (CheckBox) v.findViewById(R.id.showPassword);
 
         if (serverInfo.getAccountServer().equals("Google")) {
             editUserName.setVisibility(View.GONE);
             editPassword.setVisibility(View.GONE);
+            showPassword.setVisibility(View.GONE);
             Intent intent = new Intent(getActivity(),
                     AuthenticatorActivity.class);
             intent.putExtra(Constants.KEY_SERVER_INFO, serverInfo);
@@ -176,7 +179,6 @@ public class UserCredentialsFragment extends Fragment {
                 }
             }
         });
-        CheckBox showPassword = (CheckBox) v.findViewById(R.id.showPassword);
         showPassword.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             
             @Override

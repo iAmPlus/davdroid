@@ -89,29 +89,25 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		// step 1: get view (either by creating or recycling)
+		LayoutInflater inflater = LayoutInflater.from(parent.getContext());
 		if (convertView == null) {
-			LayoutInflater inflater = LayoutInflater.from(parent.getContext());
 			switch (getItemViewType(position)) {
 			case TYPE_ADDRESS_BOOKS_HEADING:
 				convertView = inflater.inflate(R.layout.address_books_heading, parent, false);
 				break;
-			case TYPE_ADDRESS_BOOKS_ROW:
-				convertView = inflater.inflate(android.R.layout.simple_list_item_single_choice, null);
-				break;
 			case TYPE_CALENDARS_HEADING:
 				convertView = inflater.inflate(R.layout.calendars_heading, parent, false);
-				break;
-			case TYPE_CALENDARS_ROW:
-				convertView = inflater.inflate(android.R.layout.simple_list_item_multiple_choice, null);
 			}
 		}
 		
 		// step 2: fill view with content
 		switch (getItemViewType(position)) {
 		case TYPE_ADDRESS_BOOKS_ROW:
+			convertView = inflater.inflate(android.R.layout.simple_list_item_single_choice, null);
 			setContent((CheckedTextView)convertView, R.drawable.addressbook, (ServerInfo.ResourceInfo)getItem(position));
 			break;
 		case TYPE_CALENDARS_ROW:
+			convertView = inflater.inflate(android.R.layout.simple_list_item_multiple_choice, null);
 			setContent((CheckedTextView)convertView, R.drawable.calendar, (ServerInfo.ResourceInfo)getItem(position));
 		}
 		/*if(getItemViewType(position) == TYPE_ADDRESS_BOOKS_ROW
