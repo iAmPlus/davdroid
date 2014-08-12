@@ -168,7 +168,10 @@ public class UserCredentialsFragment extends Fragment {
                                 .isEmpty(editPassword.getText().toString())) {
                     queryServer();
                 } else {
-                    Toast.makeText(getActivity(), R.string.id_or_password_missing, Toast.LENGTH_SHORT).show();
+                    if (TextUtils.isEmpty(editUserName.getText().toString()) || editPassword.hasFocus())
+                        Toast.makeText(getActivity(), R.string.id_or_password_missing, Toast.LENGTH_SHORT).show();
+                    else
+                        editPassword.requestFocus();
                 }
             }
         });
