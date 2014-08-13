@@ -64,7 +64,7 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 			resultIntent.setAction("at.bitfire.davdroid.ADD_ACCOUNT_RESPONSE");
 			resultIntent.addCategory(Intent.CATEGORY_DEFAULT);
 			
-			for (Account acc : accountManager.getAccounts()) {
+			for (Account acc : accountManager.getAccountsByType(Constants.ACCOUNT_TYPE)) {
 				if(acc.name.equals(accountName)) {
 					account = acc;
 					break;
