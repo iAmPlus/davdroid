@@ -17,6 +17,7 @@ import android.app.Activity;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
@@ -25,6 +26,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.view.WindowManager;
@@ -53,7 +55,6 @@ public class UserCredentialsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.user_details, container, false);
-        getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE|WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
 
         final AccountManager mgr = AccountManager.get(getActivity()
                 .getApplicationContext());
@@ -156,10 +157,12 @@ public class UserCredentialsFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 final Activity activity = getActivity();
-                activity.onBackPressed();
+                hideKeyboard();
                 activity.overridePendingTransition(
                         android.R.anim.quick_exit_in,
                         android.R.anim.quick_exit_out);
+                activity.onBackPressed();
+
             }
         });
 
@@ -194,6 +197,15 @@ public class UserCredentialsFragment extends Fragment {
         });
 
         return v;
+    }
+
+    private void hideKeyboard() {
+        InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm == null) {
+            return;
+        }
+        imm.hideSoftInputFromWindow(editUserName.getWindowToken(), 0);
+        imm.hideSoftInputFromWindow(editPassword.getWindowToken(), 0);
     }
 
 	void queryServer() {
