@@ -11,22 +11,25 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
 import at.bitfire.davdroid.R;
 
 public class GeneralSettingsActivity extends Activity {
 	final static String URL_REPORT_ISSUE = "https://github.com/rfc2822/davdroid/blob/master/CONTRIBUTING.md"; 
-	
+	private static final String KEY_TITLE = "title";
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+        overridePendingTransition(android.R.anim.quick_enter_in,
+                android.R.anim.quick_enter_out);
 		super.onCreate(savedInstanceState);
         setContentView(R.layout.pref_settings);
         View quickFrame = findViewById(R.id.quick_frame);
         quickFrame.setBackgroundColor(getApplicationColor());
 
         TextView title = (TextView) findViewById(R.id.quick_title);
-        title.setText(getTitle());
+        title.setText(TextUtils.isEmpty(getIntent().getStringExtra(KEY_TITLE)) ? getTitle() : getIntent().getStringExtra(KEY_TITLE));
 
         quickFrame.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -46,6 +49,8 @@ public class GeneralSettingsActivity extends Activity {
 	public static class GeneralSettingsFragment extends PreferenceFragment {
 	    @Override
 	    public void onCreate(Bundle savedInstanceState) {
+	        getActivity().overridePendingTransition(android.R.anim.quick_enter_in,
+	                android.R.anim.quick_enter_out);
 	        super.onCreate(savedInstanceState);
 	        
 			getPreferenceManager().setSharedPreferencesMode(Context.MODE_MULTI_PROCESS);
