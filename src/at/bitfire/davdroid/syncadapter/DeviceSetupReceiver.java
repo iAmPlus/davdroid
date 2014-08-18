@@ -42,12 +42,14 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 		Context mContext;
 		Boolean hasAddressBook = false;
 		Boolean hasCalendar = false;
+		String sync_type;
 		
-		public UpdateAccount(String accountName, String accountType, PendingResult result, Context context) {
+		public UpdateAccount(String accountName, String accountType, PendingResult result, Context context, String sync_type) {
 			this.accountName = accountName;
 			this.accountServer = accountType;
 			this.result = result;
 			this.mContext = context;
+			this.sync_type = sync_type;
 		}
 
 		@Override
@@ -149,14 +151,16 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 			}
 
 			if((!serverInfo.getCalendars().isEmpty()) || (!serverInfo.getAddressBooks().isEmpty()) ) {
-						
+
 				boolean syncContacts = false;
-				for (ServerInfo.ResourceInfo addressBook : serverInfo.getAddressBooks()) {
-					addressBook.setEnabled(true);
-					ContentResolver.setIsSyncable(account, ContactsContract.AUTHORITY, 1);
-					syncContacts = true;
-					hasAddressBook = true;
-					continue;
+				if(sync_type.equalsIgnoreCase("both") || sync_type.equalsIgnoreCase("contacts")) {
+					for (ServerInfo.ResourceInfo addressBook : serverInfo.getAddressBooks()) {
+						addressBook.setEnabled(true);
+						ContentResolver.setIsSyncable(account, ContactsContract.AUTHORITY, 1);
+						syncContacts = true;
+						hasAddressBook = true;
+						continue;
+					}
 				}
 
 				Bundle accountData = AccountSettings.createBundle(serverInfo);
@@ -184,13 +188,15 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 					ContentResolver.setIsSyncable(account, ContactsContract.AUTHORITY, 0);
 		
 				boolean syncCalendars = false;
-				for (ServerInfo.ResourceInfo calendar : serverInfo.getCalendars()) {
-					try {
-						LocalCalendar.create(account, mContext.getContentResolver(), calendar);
-						syncCalendars = true;
-						hasCalendar = true;
-					} catch (LocalStorageException e) {
-						e.printStackTrace();
+				if(sync_type.equalsIgnoreCase("both") || sync_type.equalsIgnoreCase("calendar")) {
+					for (ServerInfo.ResourceInfo calendar : serverInfo.getCalendars()) {
+						try {
+							LocalCalendar.create(account, mContext.getContentResolver(), calendar);
+							syncCalendars = true;
+							hasCalendar = true;
+						} catch (LocalStorageException e) {
+							e.printStackTrace();
+						}
 					}
 				}
 				if (syncCalendars) {
@@ -226,10 +232,14 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent addAccount) {
 		PendingResult result = goAsync();
+		String sync_type = "both";
+		if(addAccount.hasExtra("sync_type")) {
+			sync_type = addAccount.getStringExtra("sync_type");
+		}
 		UpdateAccount account_task = new UpdateAccount(
-				addAccount.getStringExtra(Constants.ACCOUNT_KEY_ACCOUNT_NAME), 
+				addAccount.getStringExtra(Constants.ACCOUNT_KEY_ACCOUNT_NAME),
 				addAccount.getStringExtra(Constants.ACCOUNT_KEY_ACCOUNT_TYPE),
-				result, context);
+				result, context, sync_type);
 		account_task.execute();
 	}
 
