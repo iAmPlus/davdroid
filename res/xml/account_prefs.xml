@@ -10,12 +10,14 @@
 
     
     <PreferenceCategory android:title="@string/general_settings" />
-    
+
     <PreferenceScreen android:title="@string/debug_settings">
         <intent
             android:targetPackage="at.bitfire.davdroid"
             android:targetClass="at.bitfire.davdroid.syncadapter.GeneralSettingsActivity"
-            android:action="ACTION_VIEW" />
+            android:action="ACTION_VIEW" >
+            <extra android:name="title" android:value="@string/debug_settings" />
+        </intent>
     </PreferenceScreen>
-    
+
 </PreferenceScreen>
