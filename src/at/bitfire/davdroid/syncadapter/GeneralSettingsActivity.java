@@ -29,6 +29,7 @@ public class GeneralSettingsActivity extends Activity {
         quickFrame.setBackgroundColor(getApplicationColor());
 
         TextView title = (TextView) findViewById(R.id.quick_title);
+        title.setSelected(true);
         title.setText(TextUtils.isEmpty(getIntent().getStringExtra(KEY_TITLE)) ? getTitle() : getIntent().getStringExtra(KEY_TITLE));
 
         quickFrame.setOnClickListener(new View.OnClickListener() {

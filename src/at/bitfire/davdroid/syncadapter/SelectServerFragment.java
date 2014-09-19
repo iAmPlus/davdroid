@@ -51,6 +51,7 @@ public class SelectServerFragment extends Fragment {
         quickFrame.setBackgroundColor(activity.getApplicationColor());
 
         TextView title = (TextView) v.findViewById(R.id.quick_title);
+        title.setSelected(true);
         title.setText(activity.getTitle());
 
         quickFrame.setOnClickListener(new View.OnClickListener() {
