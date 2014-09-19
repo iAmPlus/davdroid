@@ -104,11 +104,13 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 		switch (getItemViewType(position)) {
 		case TYPE_ADDRESS_BOOKS_ROW:
 			convertView = inflater.inflate(android.R.layout.simple_list_item_single_choice, null);
-			setContent((CheckedTextView)convertView, R.drawable.addressbook, (ServerInfo.ResourceInfo)getItem(position));
+			CheckedTextView cView = (CheckedTextView)convertView;
+			setContent((CheckedTextView)convertView, R.drawable.btn_radio, (ServerInfo.ResourceInfo)getItem(position));
 			break;
 		case TYPE_CALENDARS_ROW:
 			convertView = inflater.inflate(android.R.layout.simple_list_item_multiple_choice, null);
-			setContent((CheckedTextView)convertView, R.drawable.calendar, (ServerInfo.ResourceInfo)getItem(position));
+			CheckedTextView cView2 = (CheckedTextView)convertView;
+			setContent((CheckedTextView)convertView, R.drawable.btn_check, (ServerInfo.ResourceInfo)getItem(position));
 		}
 		/*if(getItemViewType(position) == TYPE_ADDRESS_BOOKS_ROW
 				|| getItemViewType(position) == TYPE_CALENDARS_ROW) {
@@ -122,6 +124,7 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 	protected void setContent(CheckedTextView view, int collectionIcon, ServerInfo.ResourceInfo info) {
 		// set layout and icons
 		view.setPadding(10, 10, 10, 10);
+		view.setCheckMarkDrawable(collectionIcon);
 		//view.setCompoundDrawablesWithIntrinsicBounds(collectionIcon, 0, info.isReadOnly() ? R.drawable.ic_read_only : 0, 0);
 		//view.setCompoundDrawablePadding(10);
 
