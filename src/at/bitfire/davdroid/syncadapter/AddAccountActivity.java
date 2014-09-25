@@ -19,12 +19,23 @@ public class AddAccountActivity extends AccountAuthenticatorActivity {
 	public static final String ARG_AUTH_TYPE = null;
 	public static final String ARG_ACCOUNT_NAME = null;
 
+ 	// this boolean extra specifies whether in app menu needs to be displayed for this screen 
+    	private static final String EXTRA_IS_DEVICE_SETUP = "isDeviceSetup";
+    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.add_account);
 		
+		boolean isDeviceSetup = false;
+		isDeviceSetup = getIntent().getExtras().getBoolean(EXTRA_IS_DEVICE_SETUP);
+		
+		if(isDeviceSetup) {
+			/* Disable In-app menu */
+			disableInAppMenu();
+		}
+
 		if(getIntent().hasExtra(Constants.ACCOUNT_KEY_ACCESS_TOKEN)) {
 			getFragmentManager().beginTransaction()
 			.add(R.id.fragment_container, new UserCredentialsFragment(), "user_details")
