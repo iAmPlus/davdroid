@@ -20,8 +20,9 @@ public class MyWebView extends WebView {
 	public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
 		InputConnection connection = super.onCreateInputConnection(outAttrs);
 
-		outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_ENTER_ACTION | EditorInfo.IME_FLAG_NO_EXTRACT_UI
-						| EditorInfo.IME_FLAG_NO_FULLSCREEN | (EditorInfo.IME_MASK_ACTION & EditorInfo.IME_ACTION_NEXT);
+		outAttrs.imeOptions = (EditorInfo.IME_MASK_ACTION & EditorInfo.IME_ACTION_DONE) | EditorInfo.IME_FLAG_NO_EXTRACT_UI
+				        | EditorInfo.IME_FLAG_NO_FULLSCREEN | (EditorInfo.IME_MASK_ACTION & EditorInfo.IME_FLAG_NO_ENTER_ACTION) 
+				        | EditorInfo.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
 		return connection;
 	}
 
