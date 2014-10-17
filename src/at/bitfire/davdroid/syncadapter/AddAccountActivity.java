@@ -29,7 +29,10 @@ public class AddAccountActivity extends AccountAuthenticatorActivity {
 		setContentView(R.layout.add_account);
 		
 		boolean isDeviceSetup = false;
-		isDeviceSetup = getIntent().getExtras().getBoolean(EXTRA_IS_DEVICE_SETUP);
+		if(getIntent() != null){
+			if(getIntent().getExtras() != null)
+			    isDeviceSetup = getIntent().getExtras().getBoolean(EXTRA_IS_DEVICE_SETUP);
+		}
 		
 		if(isDeviceSetup) {
 			/* Disable In-app menu */
