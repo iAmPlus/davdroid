@@ -76,7 +76,7 @@ public class CalendarsSyncAdapterService extends Service {
 				String	userName = null,
 						password = null;
 				String accessToken = null;
-				if(accountManager.getUserData(account, Constants.ACCOUNT_SERVER).equals("Google")) {
+				if("Google".equals(accountManager.getUserData(account, Constants.ACCOUNT_SERVER))) {
 					AccountManagerFuture<Bundle> authBundle = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, null, null, null);
 					accessToken = authBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
 					accessToken = "Bearer " + accessToken;
