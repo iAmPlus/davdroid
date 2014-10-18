@@ -34,4 +34,5 @@ public class Constants {
 	public static final String ACCOUNT_KEY_ACCOUNT_NAME = "account_name";
 	public static final String ACCOUNT_KEY_ACCOUNT_TYPE = "account_type";
 	public static final String KEY_SERVER_INFO = "server_info";
+	public static final String EXTRA_IS_DEVICE_SETUP = "isDeviceSetup";
 }

@@ -184,6 +184,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 		AccountDeatilsReader reader = new AccountDeatilsReader(this);
 		Bundle bnd = getIntent().getExtras();
 		ServerInfo serverInfo = null;
+	
 		//Check for re-authentication intent
 		if(getIntent().hasExtra(Constants.ACCOUNT_KEY_ACCESS_TOKEN)) {
 			AccountManager mgr = AccountManager.get(getApplicationContext());
@@ -256,6 +257,12 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 			browser.loadUrl( auth_url);
 		}
 
+		if((getIntent()!= null) && 
+				(getIntent().getBooleanExtra(Constants.EXTRA_IS_DEVICE_SETUP, false))) {
+
+			/* Disable In-app menu */
+			disableInAppMenu();
+		} 
 	}
 
 	@Override

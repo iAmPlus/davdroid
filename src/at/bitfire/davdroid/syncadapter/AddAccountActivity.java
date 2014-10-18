@@ -19,9 +19,6 @@ public class AddAccountActivity extends AccountAuthenticatorActivity {
 	public static final String ARG_AUTH_TYPE = null;
 	public static final String ARG_ACCOUNT_NAME = null;
 
- 	// this boolean extra specifies whether in app menu needs to be displayed for this screen 
-    	private static final String EXTRA_IS_DEVICE_SETUP = "isDeviceSetup";
-    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -29,24 +26,37 @@ public class AddAccountActivity extends AccountAuthenticatorActivity {
 		setContentView(R.layout.add_account);
 		
 		boolean isDeviceSetup = false;
+
 		if(getIntent() != null){
-			if(getIntent().getExtras() != null)
-			    isDeviceSetup = getIntent().getExtras().getBoolean(EXTRA_IS_DEVICE_SETUP);
+
+			isDeviceSetup = getIntent().getBooleanExtra(Constants.EXTRA_IS_DEVICE_SETUP, false);
+			if(isDeviceSetup) {
+				/* Disable In-app menu */
+				disableInAppMenu();
+			}
+
+			if(getIntent().hasExtra(Constants.ACCOUNT_KEY_ACCESS_TOKEN)) {
+
+				UserCredentialsFragment ucFrag = new UserCredentialsFragment();
+				Bundle b = new Bundle();
+				b.putBoolean(Constants.EXTRA_IS_DEVICE_SETUP, isDeviceSetup);
+				ucFrag.setArguments(b);
+
+				getFragmentManager().beginTransaction()
+				.add(R.id.fragment_container, ucFrag, "user_details")
+				.commit();
+			}
 		}
 		
-		if(isDeviceSetup) {
-			/* Disable In-app menu */
-			disableInAppMenu();
-		}
-
-		if(getIntent().hasExtra(Constants.ACCOUNT_KEY_ACCESS_TOKEN)) {
-			getFragmentManager().beginTransaction()
-			.add(R.id.fragment_container, new UserCredentialsFragment(), "user_details")
-			.commit();
-		}
 		if (savedInstanceState == null) {	// first call
+
+			SelectServerFragment ssFrag = new SelectServerFragment();
+			Bundle b = new Bundle();
+			b.putBoolean(Constants.EXTRA_IS_DEVICE_SETUP, isDeviceSetup);
+			ssFrag.setArguments(b);
+
 			getFragmentManager().beginTransaction()
-				.add(R.id.fragment_container, new SelectServerFragment(), "select_server")
+				.add(R.id.fragment_container, ssFrag, "select_server")
 				.commit();
 		}
 

@@ -136,9 +136,16 @@ public class UserCredentialsFragment extends Fragment {
             editUserName.setVisibility(View.GONE);
             editPassword.setVisibility(View.GONE);
             showPassword.setVisibility(View.GONE);
+		
+            boolean isDeviceSetup = false;
+            if(getArguments() != null)
+            	isDeviceSetup = getArguments().getBoolean(Constants.EXTRA_IS_DEVICE_SETUP, false);
+        
             Intent intent = new Intent(getActivity(),
                     AuthenticatorActivity.class);
             intent.putExtra(Constants.KEY_SERVER_INFO, serverInfo);
+            intent.putExtra(Constants.EXTRA_IS_DEVICE_SETUP, isDeviceSetup);
+
             if (reauth_account != null)
                 intent.putExtra(Constants.ACCOUNT_PARCEL, reauth_account);
             startActivityForResult(intent, 0);

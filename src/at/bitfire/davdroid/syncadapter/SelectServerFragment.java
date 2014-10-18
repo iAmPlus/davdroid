@@ -30,9 +30,11 @@ import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 import at.bitfire.davdroid.resource.ServerInfo;
 
+
 public class SelectServerFragment extends Fragment {
 
-    ServerInfo serverInfo;
+    ServerInfo serverInfo;		
+	boolean isDeviceSetup;
 
     @Override
     public void onAttach(Activity activity) {
@@ -79,6 +81,7 @@ public class SelectServerFragment extends Fragment {
                     serverInfo = new ServerInfo(account_server);
                     Bundle args = new Bundle();
                     args.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
+                    args.putBoolean(Constants.EXTRA_IS_DEVICE_SETUP, isDeviceSetup);
                     UserCredentialsFragment ucf = new UserCredentialsFragment();
                     ucf.setArguments(args);
                     getFragmentManager().beginTransaction()
@@ -99,7 +102,7 @@ public class SelectServerFragment extends Fragment {
                                     new DialogInterface.OnClickListener() {
                                         public void onClick(
                                                 DialogInterface dialog, int id) {
-                                            // if this button is clicked, just
+                                           // if this button is clicked, just
                                             // close
                                             // the dialog box and do nothing
                                             dialog.cancel();
@@ -111,6 +114,11 @@ public class SelectServerFragment extends Fragment {
             }
 
         });
+
+	isDeviceSetup = false;
+	if(getArguments() != null)
+		isDeviceSetup = getArguments().getBoolean(Constants.EXTRA_IS_DEVICE_SETUP, false);
+		
         return v;
     }
 
