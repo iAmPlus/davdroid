@@ -21,8 +21,10 @@ import at.bitfire.davdroid.webdav.HttpPropfind.Mode;
 public class DavResourceFinder {
 	private final static String TAG = "davdroid.DavResourceFinder";
 	
-	
 	public static void findResources(Context context, ServerInfo serverInfo) throws URISyntaxException, DavException, HttpException, IOException {
+		findResources(context, serverInfo, "both");
+	}
+	public static void findResources(Context context, ServerInfo serverInfo, String sync_type) throws URISyntaxException, DavException, HttpException, IOException {
 		// disable compression and enable network logging for debugging purposes 
 		CloseableHttpClient httpClient = DavHttpClient.create(true, true);
 
@@ -39,7 +41,7 @@ public class DavResourceFinder {
 			carddavUrl = serverInfo.getBaseURL();
 		}
 
-		if(carddavUrl != null) {
+		if( (sync_type.equalsIgnoreCase("both") || sync_type.equalsIgnoreCase("contacts")) && (carddavUrl != null)) {
 
 			WebDavResource base = null;
 			if(serverInfo.getAccessToken() != null)
@@ -98,7 +100,7 @@ public class DavResourceFinder {
 		}
 
 		// CalDAV
-		if(caldavUrl != null) {
+		if( (sync_type.equalsIgnoreCase("both") || sync_type.equalsIgnoreCase("calendar")) && (caldavUrl != null) ) {
 
 			WebDavResource base = null;
 			if(serverInfo.getAccessToken() != null)

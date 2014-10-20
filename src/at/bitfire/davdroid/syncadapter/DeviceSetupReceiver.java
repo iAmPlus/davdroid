@@ -137,7 +137,7 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 			
 			
 			try {
-				DavResourceFinder.findResources(mContext, serverInfo);
+				DavResourceFinder.findResources(mContext, serverInfo, sync_type);
 			} catch (URISyntaxException e) {
 				serverInfo.setErrorMessage(mContext.getString(R.string.exception_uri_syntax, e.getMessage()));
 			}  catch (IOException e) {
