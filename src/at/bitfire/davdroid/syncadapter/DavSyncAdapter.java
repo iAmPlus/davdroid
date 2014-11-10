@@ -180,6 +180,7 @@ public abstract class DavSyncAdapter extends AbstractThreadedSyncAdapter impleme
 			// allow httpClient shutdown
 			httpClientLock.readLock().unlock();
 		}
+		Log.i(TAG, "Sync complete for " + authority);
 	}
 
 }

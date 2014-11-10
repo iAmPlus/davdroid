@@ -95,6 +95,8 @@ public class HttpPropfind extends HttpEntityEnclosingRequestBase {
 			StringWriter writer = new StringWriter();
 			serializer.write(propfind, writer);
 		
+			setHeader("Content-Type", "text/xml; charset=UTF-8");
+			setHeader("Accept", "text/xml");
 			setHeader("Depth", String.valueOf(depth));
 			setEntity(new StringEntity(writer.toString(), "UTF-8"));
 		} catch(Exception ex) {

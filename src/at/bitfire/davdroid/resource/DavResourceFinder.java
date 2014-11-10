@@ -12,9 +12,11 @@ import ezvcard.VCardVersion;
 import android.content.Context;
 import android.util.Log;
 import at.bitfire.davdroid.R;
+import at.bitfire.davdroid.URIUtils;
 import at.bitfire.davdroid.webdav.DavException;
 import at.bitfire.davdroid.webdav.DavHttpClient;
 import at.bitfire.davdroid.webdav.DavIncapableException;
+import at.bitfire.davdroid.webdav.NotAuthorizedException;
 import at.bitfire.davdroid.webdav.WebDavResource;
 import at.bitfire.davdroid.webdav.HttpPropfind.Mode;
 
@@ -45,11 +47,12 @@ public class DavResourceFinder {
 
 			WebDavResource base = null;
 			if(serverInfo.getAccessToken() != null)
-					base = new WebDavResource(httpClient,
-							new URI(carddavUrl), serverInfo.getAccessToken());
-				else
-					base = new WebDavResource(httpClient,
-							new URI(carddavUrl), userName, serverInfo.getPassword(), true);
+				base = new WebDavResource(httpClient,
+						new URI(URIUtils.ensureTrailingSlash(carddavUrl)), serverInfo.getAccessToken());
+			else {
+				base = new WebDavResource(httpClient,
+						new URI(URIUtils.ensureTrailingSlash(carddavUrl)), userName, serverInfo.getPassword(), true);
+			}
 
 			WebDavResource principal = getCurrentUserPrincipal(base, "carddav");
 			if (principal != null) {
@@ -105,10 +108,10 @@ public class DavResourceFinder {
 			WebDavResource base = null;
 			if(serverInfo.getAccessToken() != null)
 					base = new WebDavResource(httpClient,
-							new URI(caldavUrl), serverInfo.getAccessToken());
+							new URI(URIUtils.ensureTrailingSlash(caldavUrl)), serverInfo.getAccessToken());
 				else
 					base = new WebDavResource(httpClient,
-							new URI(caldavUrl), userName, serverInfo.getPassword(), true);
+							new URI(URIUtils.ensureTrailingSlash(caldavUrl)), userName, serverInfo.getPassword(), true);
 		
 			WebDavResource principal = getCurrentUserPrincipal(base, "caldav");
 			if (principal != null) {
@@ -168,23 +171,36 @@ public class DavResourceFinder {
 	 * @param serviceName	Well-known service name ("carddav", "caldav")
 	 * @return	WebDavResource of current-user-principal for the given service, or null if it can't be found
 	 */
-	private static WebDavResource getCurrentUserPrincipal(WebDavResource resource, String serviceName) throws IOException, HttpException, DavException {
+	private static WebDavResource getCurrentUserPrincipal(WebDavResource resource, String serviceName) throws IOException, NotAuthorizedException {
 		// look for well-known service (RFC 5785)
 		try {
 			WebDavResource wellKnown = new WebDavResource(resource, "/.well-known/" + serviceName);
 			wellKnown.propfind(Mode.CURRENT_USER_PRINCIPAL);
 			if (wellKnown.getCurrentUserPrincipal() != null)
 				return new WebDavResource(wellKnown, wellKnown.getCurrentUserPrincipal());
+		} catch (NotAuthorizedException e) {
+			Log.d(TAG, "Well-known " + serviceName + " service detection not authorized", e);
+			throw e;
 		} catch (HttpException e) {
-			Log.d(TAG, "Well-known service detection failed with HTTP error", e);
+			Log.d(TAG, "Well-known " + serviceName + " service detection failed with HTTP error", e);
 		} catch (DavException e) {
-			Log.d(TAG, "Well-known service detection failed at DAV level", e);
+			Log.d(TAG, "Well-known " + serviceName + " service detection failed at DAV level", e);
 		}
 
-		// fall back to user-given initial context path 
-		resource.propfind(Mode.CURRENT_USER_PRINCIPAL);
-		if (resource.getCurrentUserPrincipal() != null)
-			return new WebDavResource(resource, resource.getCurrentUserPrincipal());
+		// fall back to user-given initial context path
+		try {
+			resource.propfind(Mode.CURRENT_USER_PRINCIPAL);
+			if (resource.getCurrentUserPrincipal() != null)
+				return new WebDavResource(resource, resource.getCurrentUserPrincipal());
+		} catch (NotAuthorizedException e) {
+			Log.d(TAG, "Not authorized for querying principal for " + serviceName + " service", e);
+			throw e;
+		} catch (HttpException e) {
+			Log.d(TAG, "HTTP error when querying principal for " + serviceName + " service", e);
+		} catch (DavException e) {
+			Log.d(TAG, "DAV error when querying principal for " + serviceName + " service", e);
+		}
+		Log.i(TAG, "Couldn't find current-user-principal for service " + serviceName);
 		return null;
 	}
 	

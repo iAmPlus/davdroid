@@ -68,7 +68,8 @@ public class WebDavResource {
 		CURRENT_USER_PRINCIPAL,							// resource detection
 		ADDRESSBOOK_HOMESET, CALENDAR_HOMESET,
 		CONTENT_TYPE, READ_ONLY,						// WebDAV (common)
-		DISPLAY_NAME, DESCRIPTION, CTAG, ETAG,
+		DISPLAY_NAME, DESCRIPTION, ETAG,
+		IS_COLLECTION, CTAG,							// collections
 		IS_CALENDAR, COLOR, TIMEZONE, 					// CalDAV
 		IS_ADDRESSBOOK, VCARD_VERSION					// CardDAV
 	}
@@ -341,8 +342,10 @@ public class WebDavResource {
 	
 	/* resource operations */
 	
-	public void get() throws IOException, HttpException, DavException {
+	public void get(String acceptedType) throws IOException, HttpException, DavException {
 		HttpGet get = new HttpGet(location);
+		get.addHeader("Accept", acceptedType);
+
 		if(authBearer != null)
 			get.addHeader("Authorization", authBearer);
 		CloseableHttpResponse response = httpClient.execute(get, context);
@@ -434,6 +437,8 @@ public class WebDavResource {
 		
 		String reason = code + " " + statusLine.getReasonPhrase();
 		switch (code) {
+		case HttpStatus.SC_UNAUTHORIZED:
+			throw new NotAuthorizedException(reason);
 		case HttpStatus.SC_NOT_FOUND:
 			throw new NotFoundException(reason);
 		case HttpStatus.SC_PRECONDITION_FAILED:
@@ -466,6 +471,7 @@ public class WebDavResource {
 		// member list will be built from response
 		List<WebDavResource> members = new LinkedList<WebDavResource>();
 		
+		// iterate through all resources (either ourselves or member)
 		for (DavResponse singleResponse : multiStatus.response) {
 			URI href;
 			try {
@@ -508,9 +514,7 @@ public class WebDavResource {
 				// ignore information about missing properties etc.
 				if (status.getStatusCode()/100 != 1 && status.getStatusCode()/100 != 2)
 					continue;
-				
 				DavProp prop = singlePropstat.prop;
-				properties = referenced.properties;
 
 				if (prop.currentUserPrincipal != null && prop.currentUserPrincipal.getHref() != null)
 					properties.put(Property.CURRENT_USER_PRINCIPAL, prop.currentUserPrincipal.getHref().href);
@@ -534,15 +538,20 @@ public class WebDavResource {
 				}
 				
 				if (prop.addressbookHomeSet != null && prop.addressbookHomeSet.getHref() != null)
-					properties.put(Property.ADDRESSBOOK_HOMESET, prop.addressbookHomeSet.getHref().href);
+					properties.put(Property.ADDRESSBOOK_HOMESET, URIUtils.ensureTrailingSlash(prop.addressbookHomeSet.getHref().href));
 				
 				if (prop.calendarHomeSet != null && prop.calendarHomeSet.getHref() != null)
-					properties.put(Property.CALENDAR_HOMESET, prop.calendarHomeSet.getHref().href);
+					properties.put(Property.CALENDAR_HOMESET, URIUtils.ensureTrailingSlash(prop.calendarHomeSet.getHref().href));
 				
 				if (prop.displayname != null)
 					properties.put(Property.DISPLAY_NAME, prop.displayname.getDisplayName());
 				
 				if (prop.resourcetype != null) {
+					if (prop.resourcetype.getCollection() != null) {
+						properties.put(Property.IS_COLLECTION, "1");
+						// is a collection, ensure trailing slash
+						href = URIUtils.ensureTrailingSlash(href);
+					}
 					if (prop.resourcetype.getAddressbook() != null) {	// CardDAV collection properties
 						properties.put(Property.IS_ADDRESSBOOK, "1");
 						
@@ -586,8 +595,24 @@ public class WebDavResource {
 				else if (prop.addressData != null && prop.addressData.vcard != null)
 					referenced.content = prop.addressData.vcard.getBytes();
 			}
+
+			// about which resource is this response?
+			if (location.equals(href)) {	// about ourselves
+				this.properties.putAll(properties);
+				if (supportedComponents != null)
+					this.supportedComponents = supportedComponents;
+				this.content = referenced.content;
+
+			} else {						// about a member
+				WebDavResource member = new WebDavResource(this, href);
+				member.properties = properties;
+				member.supportedComponents = supportedComponents;
+				member.content = referenced.content;
+
+				members.add(member);
+			}
 		}
-		
+
 		this.members = members;
 	}
 
