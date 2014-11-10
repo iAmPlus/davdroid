@@ -221,10 +221,10 @@ public class UserCredentialsFragment extends Fragment {
 			if(!TextUtils.isEmpty(host_path) && protocol != null) {
 				serverInfo.setBaseURL(URIUtils.sanitize(protocol + host_path));
 			}
-		//Fix For Yahoo Not Syncing Contacts
-	        String userName = editUserName.getText().toString();
-	        int atIndex = userName.indexOf('@');
-	        userName = atIndex != -1 ? userName.substring(0, atIndex) : userName;
+			String userName = editUserName.getText().toString();
+			if(serverInfo.getAccountServer().equals("Yahoo") && userName.indexOf("@") != -1) {
+				userName = userName.substring(0, userName.indexOf("@"));
+			}
 
 			serverInfo.setAccountName(editUserName.getText().toString());
 			serverInfo.setUserName(userName);

@@ -98,8 +98,9 @@ public class CalendarsSyncAdapterService extends Service {
 					if(accountManager.getUserData(account, Constants.ACCOUNT_SERVER).equals("Google")) {
 						dav = new CalDavCalendar(httpClient, uri.toString(), accessToken);
 					}
-					if(accountManager.getUserData(account, Constants.ACCOUNT_SERVER).equals("Yahoo")) {
-						dav = new CalDavCalendar(httpClient, uri.toString(), userName, password, true);
+					if(accountManager.getUserData(account, Constants.ACCOUNT_SERVER).equals("Yahoo")
+					|| accountManager.getUserData(account, Constants.ACCOUNT_SERVER).equals("iCloud")) {
+						dav = new CalDavCalendar(httpClient, uri.toString(), userName, password, preemptive);
 					}
 					map.put(calendar, dav);
 				}

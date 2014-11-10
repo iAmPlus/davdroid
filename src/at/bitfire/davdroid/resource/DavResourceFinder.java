@@ -33,8 +33,10 @@ public class DavResourceFinder {
 
 		String userName = serverInfo.getUserName();
 
-		if(serverInfo.getAccountServer().equals("Yahoo") && userName.indexOf("@") != -1)
+		if(serverInfo.getAccountServer().equals("Yahoo") && userName.indexOf("@") != -1) {
 			userName = userName.substring(0, userName.indexOf("@"));
+			serverInfo.setUserName(userName);
+		}
 		// CardDAV
 		String carddavUrl = null;
 		if(serverInfo.getCarddavURL() != null) {

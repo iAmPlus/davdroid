@@ -111,7 +111,7 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 				//serverInfo.setUserName(accountManager.getUserData(account, Constants.ACCOUNT_KEY_USERNAME));
 
 				String userName = accountName;
-				if(userName.indexOf("@") != -1) {
+				if(serverInfo.getAccountServer().equals("Yahoo") && userName.indexOf("@") != -1) {
 					userName = userName.substring(0, userName.indexOf("@"));
 				}
 				serverInfo.setUserName(userName);
