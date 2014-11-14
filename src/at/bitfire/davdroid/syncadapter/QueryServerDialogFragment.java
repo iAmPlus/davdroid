@@ -157,8 +157,8 @@ public class QueryServerDialogFragment extends DialogFragment
 			if (!TextUtils.isEmpty(properties.getProperty(Constants.ACCOUNT_KEY_CALDAV_URL))) {
 				serverInfo.setCaldavURL(properties.getProperty(Constants.ACCOUNT_KEY_CALDAV_URL));
 			}
-			
-			
+
+			serverInfo.setErrorMessage("");
 			try {
 				DavResourceFinder.findResources(context, serverInfo);
 			} catch (URISyntaxException e) {
