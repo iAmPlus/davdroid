@@ -225,7 +225,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 						nameValuePairs.add(new BasicNameValuePair(properties.getProperty("redirect_uri_name"), properties.getProperty("redirect_uri_value")));
 						nameValuePairs.add(new BasicNameValuePair(properties.getProperty("grant_type_name"), properties.getProperty("grant_type_value")));
 						new GetAuthCode(nameValuePairs).execute("");
-						String html="<html><head></head><body> Please wait</body></html>";
+						String html="<html><head></head><body><font size=\"32\">Signing in to " + properties.getProperty("type") + ". Please wait</font></body></html>";
 						browser.loadData(html, "text/html", "utf-8");
 					}
 
