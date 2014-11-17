@@ -78,12 +78,12 @@ public class SelectCollectionsFragment extends ListFragment {
 		listView.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				int itemPosition = position - 1;	// one list header view at pos. 0
+				int itemPosition = position;	// one list header view at pos. 0
 				if (adapter.getItemViewType(itemPosition) == SelectCollectionsAdapter.TYPE_ADDRESS_BOOKS_ROW) {
 					// unselect all other address books
-					for (int pos = 1; pos <= adapter.getNAddressBooks(); pos++)
+					for (int pos = 0; pos <= (adapter.getNAddressBooks() - 1); pos++)
 						if (pos != itemPosition)
-							listView.setItemChecked(pos + 1, false);
+							listView.setItemChecked(pos, false);
 				}
 				boolean next_visible = (listView.getCheckedItemCount() > 0);
 				Button next = (Button) getView().findViewById(R.id.next_action);
