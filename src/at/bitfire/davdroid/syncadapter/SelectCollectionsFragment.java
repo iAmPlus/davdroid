@@ -88,6 +88,7 @@ public class SelectCollectionsFragment extends ListFragment {
 				boolean next_visible = (listView.getCheckedItemCount() > 0);
 				Button next = (Button) getView().findViewById(R.id.next_action);
 				next.setVisibility(next_visible?View.VISIBLE:View.GONE);
+				listView.refreshDrawableState();
 			}
 		});
 	}

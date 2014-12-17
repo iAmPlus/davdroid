@@ -97,26 +97,21 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 				break;
 			case TYPE_CALENDARS_HEADING:
 				convertView = inflater.inflate(R.layout.calendars_heading, parent, false);
+			case TYPE_ADDRESS_BOOKS_ROW:
+				convertView = inflater.inflate(android.R.layout.simple_list_item_single_choice, parent, false);
+			case TYPE_CALENDARS_ROW:
+				convertView = inflater.inflate(android.R.layout.simple_list_item_multiple_choice, parent, false);
 			}
 		}
 		
 		// step 2: fill view with content
 		switch (getItemViewType(position)) {
 		case TYPE_ADDRESS_BOOKS_ROW:
-			convertView = inflater.inflate(android.R.layout.simple_list_item_single_choice, null);
-			CheckedTextView cView = (CheckedTextView)convertView;
 			setContent((CheckedTextView)convertView, R.drawable.btn_radio, (ServerInfo.ResourceInfo)getItem(position));
 			break;
 		case TYPE_CALENDARS_ROW:
-			convertView = inflater.inflate(android.R.layout.simple_list_item_multiple_choice, null);
-			CheckedTextView cView2 = (CheckedTextView)convertView;
 			setContent((CheckedTextView)convertView, R.drawable.btn_check, (ServerInfo.ResourceInfo)getItem(position));
 		}
-		/*if(getItemViewType(position) == TYPE_ADDRESS_BOOKS_ROW
-				|| getItemViewType(position) == TYPE_CALENDARS_ROW) {
-			((CheckedTextView)convertView).setChecked(
-					!((CheckedTextView)convertView).isChecked());
-		}*/
 		
 		return convertView;
 	}
