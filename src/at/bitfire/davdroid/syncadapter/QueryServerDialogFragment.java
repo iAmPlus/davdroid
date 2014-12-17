@@ -96,7 +96,7 @@ public class QueryServerDialogFragment extends DialogFragment
 	@Override
 	public void onLoadFinished(Loader<ServerInfo> loader,
 			ServerInfo serverInfo) {
-		if (serverInfo.getErrorMessage() != null)
+		if (serverInfo.getErrorMessage() != null && !! !(serverInfo.getErrorMessage().isEmpty()))
 			Toast.makeText(getActivity(),
 				serverInfo.getErrorMessage(), Toast.LENGTH_LONG).show();
 		if ((!serverInfo.getAddressBooks().isEmpty()) || (!serverInfo.getCalendars().isEmpty())) {
@@ -138,6 +138,7 @@ public class QueryServerDialogFragment extends DialogFragment
 			AccountDeatilsReader reader = new AccountDeatilsReader(context);
 			Properties properties =
 				reader.getProperties(serverInfo.getAccountServer());
+			serverInfo.setErrorMessage("");
 
 			if(serverInfo.getAccountServer().equals("Google")) {
 				userData.putString("client_id", properties.getProperty("client_id_value"));
