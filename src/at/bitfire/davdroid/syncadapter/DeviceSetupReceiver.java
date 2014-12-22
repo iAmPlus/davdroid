@@ -61,6 +61,7 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 				reader.getProperties(serverInfo.getAccountServer());
 			Account account = null;
 			String errorMessage = "";
+			Boolean valid_credentials = true;
 			
 			Intent resultIntent = new Intent();
 			resultIntent.setAction("at.bitfire.davdroid.ADD_ACCOUNT_RESPONSE");
@@ -101,10 +102,13 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 					String authBearer = "Bearer " + token;
 					serverInfo.setAccessToken(authBearer);
 				} catch (OperationCanceledException e) {
+					valid_credentials = false;
 					errorMessage.concat(e.getMessage());
 				} catch (AuthenticatorException e) {
+					valid_credentials = false;
 					errorMessage.concat(e.getMessage());
 				} catch (IOException e) {
+					valid_credentials = false;
 					errorMessage.concat(e.getMessage());
 				}
 			} else {
@@ -139,15 +143,25 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 			try {
 				DavResourceFinder.findResources(mContext, serverInfo, sync_type);
 			} catch (URISyntaxException e) {
+				valid_credentials = false;
 				serverInfo.setErrorMessage(mContext.getString(R.string.exception_uri_syntax, e.getMessage()));
 			}  catch (IOException e) {
+				valid_credentials = false;
 				serverInfo.setErrorMessage(mContext.getString(R.string.exception_io, e.getLocalizedMessage()));
 			} catch (HttpException e) {
+				valid_credentials = false;
 				Log.e(TAG, "HTTP error while querying server info", e);
 				serverInfo.setErrorMessage(mContext.getString(R.string.exception_http, e.getLocalizedMessage()));
 			} catch (DavException e) {
+				valid_credentials = false;
 				Log.e(TAG, "DAV error while querying server info", e);
 				serverInfo.setErrorMessage(mContext.getString(R.string.exception_incapable_resource, e.getLocalizedMessage()));
+			}
+
+			if(!valid_credentials) {
+				resultIntent.putExtra(status, "Failed");
+				accountManager.removeAccount(account, null, null);
+				return errorMessage;
 			}
 
 			if((!serverInfo.getCalendars().isEmpty()) || (!serverInfo.getAddressBooks().isEmpty()) ) {
