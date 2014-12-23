@@ -245,8 +245,8 @@ public class UserCredentialsFragment extends Fragment {
 			arguments.putSerializable(Constants.KEY_SERVER_INFO, serverInfo);
 			arguments.putBundle(Constants.ACCOUNT_BUNDLE, data.getBundleExtra(Constants.ACCOUNT_BUNDLE));
 			nextTransaction(arguments);
-		} else
-			getActivity().onBackPressed();
+		} else //OAuth did not succeed
+			getFragmentManager().popBackStackImmediate();
 	}
 	
 	void nextTransaction(Bundle arguments) {

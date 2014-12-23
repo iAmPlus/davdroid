@@ -18,10 +18,16 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import ch.boye.httpclientandroidlib.util.TextUtils;
+
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.accounts.Account;
@@ -57,7 +63,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 
 		List<NameValuePair> nameValuePairs;
 		String data = "";
-		String token_secret = "";
 
 		public GetAuthCode(List<NameValuePair> postData){
 			nameValuePairs = postData;
@@ -66,7 +71,10 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 		@Override
 		protected HttpResponse doInBackground(String... params) {
 
-			HttpClient httpclient = new DefaultHttpClient();
+			HttpParams httpParams = new BasicHttpParams();
+			HttpConnectionParams.setConnectionTimeout(httpParams, 5000);
+			HttpConnectionParams.setSoTimeout(httpParams, 5000);
+			HttpClient httpclient = new DefaultHttpClient(httpParams);
 			HttpPost httppost = null;
 			HttpGet httpget = null;
 			if(properties.getProperty("type") != null && properties.getProperty("type").equals("Google")) {
@@ -102,6 +110,30 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 			return response;
 		}
 
+        private void showErrorDialog() {
+            AlertDialog dialog;
+            AlertDialog.Builder builder = new AlertDialog.Builder(
+                    myApp);
+            builder.setTitle(
+                    myApp.getResources().getString(
+                            R.string.no_token))
+                    .setMessage(
+                            myApp.getResources().getString(
+                                    R.string.oauth_token_error))
+                    .setCancelable(false)
+                    .setNegativeButton(R.string.network_dialog_back,
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(
+                                        DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                    setResult(RESULT_CANCELED);
+                                    finish();
+                                }
+                            });
+            dialog = builder.create();
+            dialog.show();
+        }
+
 		@SuppressLint("SetJavaScriptEnabled")
 		@Override
 		protected void onPostExecute(HttpResponse result) {
@@ -133,12 +165,14 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 		
 						} catch (JSONException e) {
 							e.printStackTrace();
+							showErrorDialog();
 						}
 						new GetAuthCode(nameValuePairs).execute("get_email");
+					} else {
+						showErrorDialog();
 					}
 				} else {
 					AccountManager mAccountManager = AccountManager.get(myApp.getApplicationContext());
-					setResult(RESULT_CANCELED);
 					if(authCode != null) {
 						if(reauth_account != null) {
 							mAccountManager.setAuthToken(reauth_account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, authCode);
@@ -147,6 +181,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 								if(expires != null)
 									mAccountManager.setUserData(reauth_account, "oauth_expires_in", expires);
 							}
+							setResult(RESULT_OK);
 						} else {
 							Bundle userData = new Bundle();
 
@@ -166,8 +201,10 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 								userData.putString("oauth_expires_in", expires);
 							intent.putExtra(Constants.ACCOUNT_BUNDLE, userData);
 						}
+						finish();
+					} else {
+						showErrorDialog();
 					}
-					finish();
 				}
 
 			}
@@ -226,6 +263,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 						nameValuePairs.add(new BasicNameValuePair(properties.getProperty("grant_type_name"), properties.getProperty("grant_type_value")));
 						new GetAuthCode(nameValuePairs).execute("");
 						String html="<html><head></head><body><font size=\"32\">Signing in to " + properties.getProperty("type") + ". Please wait</font></body></html>";
+						browser.clearHistory();
 						browser.loadData(html, "text/html", "utf-8");
 					}
 

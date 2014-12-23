@@ -41,6 +41,7 @@ public class QueryServerDialogFragment extends DialogFragment
 	static ServerInfo serverInfo = null;
 	static Context mContext;
 	static Bundle userData = null;
+	Loader<ServerInfo> loader = null;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -51,7 +52,7 @@ public class QueryServerDialogFragment extends DialogFragment
 
 	public void createLoader() {
 
-		Loader<ServerInfo> loader =
+		loader =
 				getLoaderManager().initLoader(0, getArguments(), this);
 		loader.forceLoad();
 	}
@@ -74,8 +75,10 @@ public class QueryServerDialogFragment extends DialogFragment
             @Override
             public void onClick(View v) {
                 final Activity activity = getActivity();
+                loader.cancelLoad();
+                getLoaderManager().destroyLoader(0);
                 getDialog().dismiss();
-                activity.onBackPressed();
+                getFragmentManager().popBackStackImmediate();
                 //((FragmentAlertDialog)activity).doNegativeClick();
                 activity.overridePendingTransition(
                         android.R.anim.quick_exit_in,
@@ -96,7 +99,7 @@ public class QueryServerDialogFragment extends DialogFragment
 	@Override
 	public void onLoadFinished(Loader<ServerInfo> loader,
 			ServerInfo serverInfo) {
-		if (serverInfo.getErrorMessage() != null && !! !(serverInfo.getErrorMessage().isEmpty()))
+		if (serverInfo.getErrorMessage() != null && !(serverInfo.getErrorMessage().isEmpty()))
 			Toast.makeText(getActivity(),
 				serverInfo.getErrorMessage(), Toast.LENGTH_LONG).show();
 		if ((!serverInfo.getAddressBooks().isEmpty()) || (!serverInfo.getCalendars().isEmpty())) {
