@@ -107,23 +107,30 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 		// step 2: fill view with content
 		switch (getItemViewType(position)) {
 		case TYPE_ADDRESS_BOOKS_ROW:
-			setContent((CheckedTextView)convertView, R.drawable.btn_radio, (ServerInfo.ResourceInfo)getItem(position));
+			setContent((CheckedTextView)convertView, R.drawable.btn_radio, (ServerInfo.ResourceInfo)getItem(position), TYPE_ADDRESS_BOOKS_ROW);
 			break;
 		case TYPE_CALENDARS_ROW:
-			setContent((CheckedTextView)convertView, R.drawable.btn_check, (ServerInfo.ResourceInfo)getItem(position));
+			setContent((CheckedTextView)convertView, R.drawable.btn_check, (ServerInfo.ResourceInfo)getItem(position), TYPE_CALENDARS_ROW);
 		}
 		
 		return convertView;
 	}
 	
-	protected void setContent(CheckedTextView view, int collectionIcon, ServerInfo.ResourceInfo info) {
+	protected void setContent(CheckedTextView view, int collectionIcon, ServerInfo.ResourceInfo info, int type) {
 		// set layout and icons
 		view.setPadding(10, 10, 10, 10);
 		view.setCheckMarkDrawable(collectionIcon);
 		//view.setCompoundDrawablesWithIntrinsicBounds(collectionIcon, 0, info.isReadOnly() ? R.drawable.ic_read_only : 0, 0);
 		//view.setCompoundDrawablePadding(10);
-
-		view.setText(info.getTitle());
+		String title = info.getTitle();
+		if (title == null ) {
+			if (type == TYPE_ADDRESS_BOOKS_ROW) {
+				title = "Address Book";
+			} else {
+				title = "Calendar";
+			}
+		}
+		view.setText(title);
 	}
 
 	@Override
