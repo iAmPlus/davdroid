@@ -1,6 +1,8 @@
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
+ifdef DO_NOT_BUILD
+
 LOCAL_MODULE_TAGS := optional
 
 #LOCAL_JAVA_LIBRARIES := com.iamplus
@@ -51,3 +53,5 @@ include $(BUILD_MULTI_PREBUILT)
 
 # Use the folloing include to make our test apk.
 include $(call all-makefiles-under,$(LOCAL_PATH))
+
+endif
