@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Contacts &amp; Calendars</string>
+    <string name="app_title">Accounts</string>
+
+    <string-array name="http_protocols">
+        <item>http://</item>
+        <item>https://</item>
+    </string-array>
+    <string-array name="server_names">
+        <item>Google</item>
+        <!-- <item>Apple</item> -->
+        <item>Yahoo</item>
+        <item>iCloud</item>
+        <!-- <item>https://</item> -->
+    </string-array>
+    <string-array name="main_activity_actions">
+        <item>Add account</item>
+        <item>Manage accounts</item>
+    </string-array>
+
+    <string name="next_action">Next</string>
+    <string name="done_action">Done</string>
+    <string name="message_cancel_text">Back</string>
+    <string name="help">Help</string>
+    <string name="exception_account">Failed to retrieve account</string>
+    <string name="exception_token">Failed to retrieve AuthToken</string>
+    <string name="exception_io">I/O error: %s</string>
+    <string name="exception_uri_syntax">Invalid URI: %s</string>
+    <string name="exception_incapable_resource">Missing capabilities: %s</string>
+    <string name="neither_caldav_nor_carddav">Neither CalDAV nor CardDAV available</string>
+    <string name="querying_server">Querying server. Please wait…</string>
+    <string name="exception_http">HTTP error: %s</string>
+    <string name="address_books">Address books</string>
+    <string name="calendars">Calendars</string>
+    <string name="select_address_book">Select up to one address book (tap again to unselect):</string>
+    <string name="select_calendars">Select your calendars:</string>
+    <string name="auth_preemptive">Preemptive authentication (recommended, but incompatible with Digest auth)</string>
+    
+    <string name="davdroid_help">DAVdroid Help</string>
+    <string name="user_name_hint">User Name</string>
+    <string name="user_password_hint">Password</string>
+    <string name="url_hint">Webdav URL</string>
+    <string name="connect_to_network">Please connect to internet to add an account</string>
+    <string name="no_network">Network error</string>
+    <string name="no_token">Token error</string>
+    <string name="network_dialog_back">Back</string>
+    <string name="error_account_name_exist">Account with same name already added</string>
+    
+    <string name="general_settings">General settings</string>
+    <string name="debug_settings">Debug settings</string>
+    <string name="disable_http_compression">Disable HTTP compression</string>
+    <string name="http_compression_disabled">HTTP compression is disabled (debug mode)</string>
+    <string name="http_compression_enabled">HTTP compression is used whenever possible</string>
+    <string name="network_logging">Log network traffic</string>
+    <string name="network_logging_enabled">All network traffic is being logged verbosely (debug mode)</string>
+    <string name="network_logging_disabled">Network traffic is not being logged</string>
+
+    <string name="account_name_empty">Couldn\'t create account, account name empty</string>
+    <string name="account_already_exists">Couldn\'t create account (account with this name already existing?)</string>
+    <string name="id_or_password_missing">User Name or Password empty</string>
+    <string name="show_password">Show password</string>
+    <string name="oauth_token_error">Failed to retrieve Authorization Token</string>
+    
+</resources>
