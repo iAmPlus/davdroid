@@ -1,8 +1,6 @@
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
-ifdef DO_NOT_BUILD
-
 LOCAL_MODULE_TAGS := optional
 
 #LOCAL_JAVA_LIBRARIES := com.iamplus
@@ -31,6 +29,8 @@ LOCAL_CERTIFICATE := platform
 
 LOCAL_PROGUARD_FLAG_FILES := proguard.flags
 
+LOCAL_X_JAVA_RESOURCE_DIR := jarresource
+
 include $(BUILD_PACKAGE)
 
 include $(CLEAR_VARS)
@@ -53,5 +53,3 @@ include $(BUILD_MULTI_PREBUILT)
 
 # Use the folloing include to make our test apk.
 include $(call all-makefiles-under,$(LOCAL_PATH))
-
-endif

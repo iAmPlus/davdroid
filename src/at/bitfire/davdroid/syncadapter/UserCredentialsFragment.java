@@ -165,9 +165,9 @@ public class UserCredentialsFragment extends Fragment {
             public void onClick(View v) {
                 final Activity activity = getActivity();
                 hideKeyboard();
-                activity.overridePendingTransition(
+                /*activity.overridePendingTransition(
                         android.R.anim.quick_exit_in,
-                        android.R.anim.quick_exit_out);
+                        android.R.anim.quick_exit_out);*/
                 activity.onBackPressed();
 
             }

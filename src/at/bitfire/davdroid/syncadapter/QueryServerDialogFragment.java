@@ -80,9 +80,9 @@ public class QueryServerDialogFragment extends DialogFragment
                 getDialog().dismiss();
                 getFragmentManager().popBackStackImmediate();
                 //((FragmentAlertDialog)activity).doNegativeClick();
-                activity.overridePendingTransition(
+                /*activity.overridePendingTransition(
                         android.R.anim.quick_exit_in,
-                        android.R.anim.quick_exit_out);
+                        android.R.anim.quick_exit_out);*/
             }
         });
 		createLoader();

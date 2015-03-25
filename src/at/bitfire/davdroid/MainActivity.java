@@ -17,13 +17,11 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import com.iamplus.aware.AwareSlidingLayout;
 import at.bitfire.davdroid.syncadapter.AddAccountActivity;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
-	AwareSlidingLayout mSlidingLayer = null;
 	Context mContext;
 
 	@Override
@@ -72,23 +70,11 @@ public class MainActivity extends Activity {
 			}
 
 		});
-
-		mSlidingLayer = (AwareSlidingLayout)findViewById(R.id.slidinglayout_main);
-		mSlidingLayer.setOnActionListener(new AwareSlidingLayout.OnActionListener(){
-			@Override
-			public void onAction(int type){
-				if(type == AwareSlidingLayout.NEGATIVE) {
-					finish();
-				}
-			}
-		});
 	}
 	
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if(mSlidingLayer != null)
-			mSlidingLayer.reset();
 	}
 
 }

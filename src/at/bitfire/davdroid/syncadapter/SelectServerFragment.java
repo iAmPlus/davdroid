@@ -38,8 +38,8 @@ public class SelectServerFragment extends Fragment {
 
     @Override
     public void onAttach(Activity activity) {
-        activity.overridePendingTransition(android.R.anim.quick_enter_in,
-                android.R.anim.quick_enter_out);
+        /*activity.overridePendingTransition(android.R.anim.quick_enter_in,
+                android.R.anim.quick_enter_out);*/
         super.onAttach(activity);
     }
 
@@ -59,9 +59,9 @@ public class SelectServerFragment extends Fragment {
         quickFrame.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 activity.finish();
-                activity.overridePendingTransition(
+                /*activity.overridePendingTransition(
                         android.R.anim.quick_exit_in,
-                        android.R.anim.quick_exit_out);
+                        android.R.anim.quick_exit_out);*/
             }
         });
 

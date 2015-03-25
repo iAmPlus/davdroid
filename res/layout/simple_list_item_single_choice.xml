@@ -21,7 +21,6 @@
     android:textAppearance="?android:attr/textAppearanceListItemSmall"
     android:gravity="center_vertical"
     android:checkMark="?android:attr/listChoiceIndicatorSingle"
-    android:awareIsSingleChoice="true"
     android:paddingLeft="10dip"
     android:paddingRight="10dip"
     android:maxLines="5"

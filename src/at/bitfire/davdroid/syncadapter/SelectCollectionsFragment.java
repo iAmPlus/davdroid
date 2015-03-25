@@ -51,9 +51,9 @@ public class SelectCollectionsFragment extends ListFragment {
 			public void onClick(View v) {
 				final Activity activity = getActivity();
 				activity.onBackPressed();
-				activity.overridePendingTransition(
+				/*activity.overridePendingTransition(
 					android.R.anim.quick_exit_in,
-					android.R.anim.quick_exit_out);
+					android.R.anim.quick_exit_out);*/
 			}
 		});
 

@@ -214,8 +214,8 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-	    overridePendingTransition(android.R.anim.quick_enter_in,
-                android.R.anim.quick_enter_out);
+	    /*overridePendingTransition(android.R.anim.quick_enter_in,
+                android.R.anim.quick_enter_out);*/
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		AccountDeatilsReader reader = new AccountDeatilsReader(this);
@@ -349,8 +349,8 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 	
     public void finish(View view) {
         finish();
-        overridePendingTransition(android.R.anim.quick_exit_in,
-                android.R.anim.quick_exit_out);
+        /*overridePendingTransition(android.R.anim.quick_exit_in,
+                android.R.anim.quick_exit_out);*/
     }
 
 }
