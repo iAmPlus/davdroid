@@ -30,6 +30,8 @@ import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 import at.bitfire.davdroid.resource.ServerInfo;
 
+import aneeda.content.ContextHelper;
+
 
 public class SelectServerFragment extends Fragment {
 
@@ -50,7 +52,7 @@ public class SelectServerFragment extends Fragment {
 
         View quickFrame = v.findViewById(R.id.quick_frame);
         final Activity activity = getActivity();
-        quickFrame.setBackgroundColor(activity.getApplicationColor());
+        quickFrame.setBackgroundColor(ContextHelper.getApplicationColor(activity));
 
         TextView title = (TextView) v.findViewById(R.id.quick_title);
         title.setSelected(true);

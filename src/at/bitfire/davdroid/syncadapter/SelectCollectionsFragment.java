@@ -22,6 +22,8 @@ import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 import at.bitfire.davdroid.resource.ServerInfo;
 
+import aneeda.content.ContextHelper;
+
 public class SelectCollectionsFragment extends ListFragment {
 
 	@Override
@@ -42,8 +44,8 @@ public class SelectCollectionsFragment extends ListFragment {
 		super.onViewCreated(view, savedInstanceState);
 		Button cancel = (Button) view.findViewById(R.id.cancel);
 		Button next = (Button) view.findViewById(R.id.next_action);
-		cancel.setBackgroundColor(getActivity().getApplicationColor());
-		next.setBackgroundColor(getActivity().getApplicationColor());
+		cancel.setBackgroundColor(ContextHelper.getApplicationColor(getActivity()));
+		next.setBackgroundColor(ContextHelper.getApplicationColor(getActivity()));
 
 		cancel.setOnClickListener(new Button.OnClickListener() {
 

@@ -16,6 +16,8 @@ import android.view.View;
 import android.widget.TextView;
 import at.bitfire.davdroid.R;
 
+import aneeda.content.ContextHelper;
+
 public class GeneralSettingsActivity extends Activity {
 	final static String URL_REPORT_ISSUE = "https://github.com/rfc2822/davdroid/blob/master/CONTRIBUTING.md"; 
 	private static final String KEY_TITLE = "title";
@@ -26,7 +28,7 @@ public class GeneralSettingsActivity extends Activity {
 		super.onCreate(savedInstanceState);
         setContentView(R.layout.pref_settings);
         View quickFrame = findViewById(R.id.quick_frame);
-        quickFrame.setBackgroundColor(getApplicationColor());
+        quickFrame.setBackgroundColor(ContextHelper.getApplicationColor(this));
 
         TextView title = (TextView) findViewById(R.id.quick_title);
         title.setSelected(true);

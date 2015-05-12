@@ -41,6 +41,8 @@ import at.bitfire.davdroid.R;
 import at.bitfire.davdroid.URIUtils;
 import at.bitfire.davdroid.resource.ServerInfo;
 
+import aneeda.content.ContextHelper;
+
 public class UserCredentialsFragment extends Fragment {
 	String protocol;
 	
@@ -154,8 +156,8 @@ public class UserCredentialsFragment extends Fragment {
 
         Button cancel = (Button) v.findViewById(R.id.cancel);
         Button next = (Button) v.findViewById(R.id.next_action);
-        cancel.setBackgroundColor(getActivity().getApplicationColor());
-        next.setBackgroundColor(getActivity().getApplicationColor());
+        cancel.setBackgroundColor(ContextHelper.getApplicationColor(getActivity()));
+        next.setBackgroundColor(ContextHelper.getApplicationColor(getActivity()));
         cancel.setVisibility(View.VISIBLE);
         next.setVisibility(View.VISIBLE);
 

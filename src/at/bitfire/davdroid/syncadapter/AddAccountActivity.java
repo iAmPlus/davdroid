@@ -13,6 +13,8 @@ import android.os.Bundle;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 
+import aneeda.app.ActivityHelper;
+
 public class AddAccountActivity extends AccountAuthenticatorActivity {
 
 	public static final String ARG_ACCOUNT_TYPE = null;
@@ -32,7 +34,7 @@ public class AddAccountActivity extends AccountAuthenticatorActivity {
 			isDeviceSetup = getIntent().getBooleanExtra(Constants.EXTRA_IS_DEVICE_SETUP, false);
 			if(isDeviceSetup) {
 				/* Disable In-app menu */
-				disableInAppMenu();
+				ActivityHelper.disableInAppMenu(this);
 			}
 
 			if(getIntent().hasExtra(Constants.ACCOUNT_KEY_ACCESS_TOKEN)) {

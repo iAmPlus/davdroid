@@ -48,6 +48,9 @@ import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 import at.bitfire.davdroid.resource.ServerInfo;
 
+import aneeda.app.ActivityHelper;
+import aneeda.content.ContextHelper;
+
 public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 
 	//private static final String TAG = "AccountAuthenticatorActivity";
@@ -299,7 +302,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 				(getIntent().getBooleanExtra(Constants.EXTRA_IS_DEVICE_SETUP, false))) {
 
 			/* Disable In-app menu */
-			disableInAppMenu();
+			ActivityHelper.disableInAppMenu(this);
 		} 
 	}
 
@@ -322,7 +325,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 		setContentView(R.layout.browser);
 		browser = (MyWebView) findViewById(R.id.browser_view);
 		Button cancel = (Button) findViewById(R.id.cancel);
-		cancel.setBackgroundColor(getApplicationColor());
+		cancel.setBackgroundColor(ContextHelper.getApplicationColor(myApp));
 
 		//Make sure No cookies are created
 		CookieManager.getInstance().removeAllCookie();
