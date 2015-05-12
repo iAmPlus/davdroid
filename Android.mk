@@ -3,7 +3,7 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE_TAGS := optional
 
-#LOCAL_JAVA_LIBRARIES := com.iamplus
+LOCAL_RES_LIBRARIES = aneeda-lib
 
 LOCAL_STATIC_JAVA_LIBRARIES := android-common \
 		android-support-v4 \
