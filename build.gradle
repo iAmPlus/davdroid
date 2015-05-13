@@ -73,7 +73,7 @@ android {
         shared {
             storeFile file("android.keystore")
             storePassword "android"
-            keyAlias "shared"
+            keyAlias "platform"
             keyPassword "android"
         }
     }
