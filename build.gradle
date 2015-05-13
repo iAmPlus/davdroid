@@ -41,7 +41,7 @@ dependencies {
 
 android {
     compileSdkVersion 'AneedA:AneedA mPuls Add-On:21'
-    buildToolsVersion '20.0.0'
+    buildToolsVersion '22.0.1'
 
     packagingOptions {
 	    exclude 'META-INF/LICENSE.txt'
