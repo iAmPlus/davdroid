@@ -74,6 +74,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="fill_horizontal"
             android:hint="@string/user_name_hint"
+            android:contentDescription="@string/user_name_desc"
             android:inputType="textNoSuggestions|textEmailAddress" />
 
         <EditText
@@ -82,6 +83,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="fill_horizontal"
             android:hint="@string/user_password_hint"
+            android:contentDescription="@string/user_password_desc"
             android:inputType="textPassword" />
 
         <CheckBox

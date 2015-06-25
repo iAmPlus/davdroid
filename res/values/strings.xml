@@ -137,6 +137,8 @@
     <string name="account_name_hint">Account Name</string>
     <string name="user_name_hint">User Name</string>
     <string name="user_password_hint">Password</string>
+    <string name="user_name_desc">Enter username</string>
+    <string name="user_password_desc">Enter password</string>
     <string name="url_hint">Webdav URL</string>
     <string name="email_address">Email address:</string>
     <string name="organizer_hint">"ORGANIZER of your events; required if you use attendee info"</string>
