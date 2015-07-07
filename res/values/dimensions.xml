@@ -111,5 +111,6 @@
     <dimen name="layout_view_message_height">115dp</dimen>
     <dimen name="layout_edittext_height">30dp</dimen>
     <dimen name="item_margin">22px</dimen>
+    <dimen name="bottom_thickness">3px</dimen>
     <!-- iamwatch dimensions-->
 </resources>

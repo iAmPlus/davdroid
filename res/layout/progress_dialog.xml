@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aneeda="http://schemas.android.com/apk/res/aneeda.lib"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#ff000000" >
 
-    <Button
+    <aneeda.widget.BorderButton
         android:id="@+id/cancel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:paddingBottom="@dimen/item_margin"
-        android:paddingTop="@dimen/item_margin"
+        aneeda:bottomBorderThickness="@dimen/bottom_thickness"
         android:text="@android:string/cancel"
-        android:textColor="@android:color/black"
         android:textSize="@dimen/font_size_normal" />
 
     <TextView

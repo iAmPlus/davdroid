@@ -18,6 +18,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import at.bitfire.davdroid.activity.TwoButtonLayout;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 import at.bitfire.davdroid.resource.ServerInfo;
@@ -42,33 +43,28 @@ public class SelectCollectionsFragment extends ListFragment {
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
-		Button cancel = (Button) view.findViewById(R.id.cancel);
-		Button next = (Button) view.findViewById(R.id.next_action);
-		cancel.setBackgroundColor(ContextHelper.getApplicationColor(getActivity()));
-		next.setBackgroundColor(ContextHelper.getApplicationColor(getActivity()));
+		TwoButtonLayout buttonLayout = (TwoButtonLayout)view.findViewById(R.id.buttonPanel);
 
-		cancel.setOnClickListener(new Button.OnClickListener() {
+        buttonLayout.setRightButtonClickListener(new Button.OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
 				final Activity activity = getActivity();
 				activity.onBackPressed();
-				/*activity.overridePendingTransition(
-					android.R.anim.quick_exit_in,
-					android.R.anim.quick_exit_out);*/
 			}
 		});
 
-		next.setVisibility(View.GONE);
-		next.setOnClickListener(new Button.OnClickListener() {
+        buttonLayout.setLeftButtonClickListener(new Button.OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
 				if (getListView().getCheckedItemCount() > 0) {
-				onDone();
+					onDone();
 				}
 			}
 		});
+
+		buttonLayout.setLeftButtonVisibility(false);
 
 		final ListView listView = getListView();
 
@@ -88,8 +84,8 @@ public class SelectCollectionsFragment extends ListFragment {
 							listView.setItemChecked(pos, false);
 				}
 				boolean next_visible = (listView.getCheckedItemCount() > 0);
-				Button next = (Button) getView().findViewById(R.id.next_action);
-				next.setVisibility(next_visible?View.VISIBLE:View.GONE);
+				TwoButtonLayout buttonLayout = (TwoButtonLayout)getView().findViewById(R.id.buttonPanel);
+				buttonLayout.setLeftButtonVisibility(next_visible);
 				listView.refreshDrawableState();
 			}
 		});

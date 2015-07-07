@@ -69,7 +69,6 @@ public class QueryServerDialogFragment extends DialogFragment
 				getArguments().getSerializable(Constants.KEY_SERVER_INFO);
 		userData = getArguments().getBundle(Constants.ACCOUNT_BUNDLE);
 		Button cancel = (Button) v.findViewById(R.id.cancel);
-        cancel.setBackgroundColor(ContextHelper.getApplicationColor(getActivity()));
         cancel.setVisibility(View.VISIBLE);
 
         cancel.setOnClickListener(new Button.OnClickListener() {

@@ -24,6 +24,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import at.bitfire.davdroid.Constants;
@@ -52,20 +53,16 @@ public class SelectServerFragment extends Fragment {
 
         View quickFrame = v.findViewById(R.id.quick_frame);
         final Activity activity = getActivity();
-        quickFrame.setBackgroundColor(ContextHelper.getApplicationColor(activity));
 
-        TextView title = (TextView) v.findViewById(R.id.quick_title);
-        title.setSelected(true);
-        title.setText(activity.getTitle());
+        Button backButton = (Button)v.findViewById(R.id.backButton);
+        backButton.setOnClickListener(new Button.OnClickListener() {
 
-        quickFrame.setOnClickListener(new View.OnClickListener() {
+            @Override
             public void onClick(View v) {
                 activity.finish();
-                /*activity.overridePendingTransition(
-                        android.R.anim.quick_exit_in,
-                        android.R.anim.quick_exit_out);*/
             }
         });
+
 
         ListView listView = (ListView) v.findViewById(android.R.id.list);
         String[] values = getResources().getStringArray(R.array.server_names);

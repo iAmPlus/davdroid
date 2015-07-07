@@ -325,7 +325,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 		setContentView(R.layout.browser);
 		browser = (MyWebView) findViewById(R.id.browser_view);
 		Button cancel = (Button) findViewById(R.id.cancel);
-		cancel.setBackgroundColor(ContextHelper.getApplicationColor(myApp));
 
 		//Make sure No cookies are created
 		CookieManager.getInstance().removeAllCookie();

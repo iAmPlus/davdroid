@@ -1,45 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:davdroid="http://schemas.android.com/apk/res-auto"
     android:id="@+id/slidinglayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:scrollbars="vertical" >
-
-    <LinearLayout
-        android:id="@+id/buttons_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal" >
-
-        <Button
-            android:id="@+id/next_action"
-            android:layout_width="0dp"
+        
+    <at.bitfire.davdroid.activity.TwoButtonLayout
+            android:id="@+id/buttonPanel"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:paddingBottom="@dimen/item_margin"
-            android:paddingTop="@dimen/item_margin"
-            android:text="@string/next_action"
-            android:textColor="@android:color/black"
-            android:textSize="@dimen/font_size_normal" />
-
-        <Button
-            android:id="@+id/cancel"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:alpha="0.7"
-            android:paddingBottom="@dimen/item_margin"
-            android:paddingTop="@dimen/item_margin"
-            android:text="@string/message_cancel_text"
-            android:textColor="@android:color/black"
-            android:textSize="@dimen/font_size_normal" />
-    </LinearLayout>
+            davdroid:leftButtonText="@string/next_action"
+            davdroid:rightButtonText="@string/message_cancel_text"
+            davdroid:leftButtonVisibility="false"
+            android:layout_alignParentTop="true"
+            android:orientation="horizontal" >
+    </at.bitfire.davdroid.activity.TwoButtonLayout>
 
     <ListView
         android:id="@android:id/list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/buttons_layout"
+        android:layout_below="@id/buttonPanel"
         android:layout_alignParentBottom="true" />
 
 </RelativeLayout>

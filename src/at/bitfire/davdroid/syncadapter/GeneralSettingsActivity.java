@@ -13,7 +13,7 @@ import android.os.Bundle;
 import android.preference.PreferenceFragment;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.Button;
 import at.bitfire.davdroid.R;
 
 import aneeda.content.ContextHelper;
@@ -30,11 +30,9 @@ public class GeneralSettingsActivity extends Activity {
         View quickFrame = findViewById(R.id.quick_frame);
         quickFrame.setBackgroundColor(ContextHelper.getApplicationColor(this));
 
-        TextView title = (TextView) findViewById(R.id.quick_title);
-        title.setSelected(true);
-        title.setText(TextUtils.isEmpty(getIntent().getStringExtra(KEY_TITLE)) ? getTitle() : getIntent().getStringExtra(KEY_TITLE));
+        Button backButton = (Button) findViewById(R.id.backButton);
 
-        quickFrame.setOnClickListener(new View.OnClickListener() {
+        backButton.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
                 finish();
                 /*overridePendingTransition(

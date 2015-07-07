@@ -21,6 +21,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,6 +38,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import at.bitfire.davdroid.activity.TwoButtonLayout;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 import at.bitfire.davdroid.URIUtils;
@@ -43,7 +46,7 @@ import at.bitfire.davdroid.resource.ServerInfo;
 
 import aneeda.content.ContextHelper;
 
-public class UserCredentialsFragment extends Fragment {
+public class UserCredentialsFragment extends Fragment implements TextWatcher {
 	String protocol;
 	
 	EditText editBaseURL, editUserName, editPassword;
@@ -51,6 +54,7 @@ public class UserCredentialsFragment extends Fragment {
 	CheckBox showPassword;
 
 	ServerInfo serverInfo;
+    TwoButtonLayout buttonLayout;
 	Account reauth_account = null;
 
 	@Override
@@ -102,6 +106,7 @@ public class UserCredentialsFragment extends Fragment {
         }
 
         editUserName = (EditText) v.findViewById(R.id.user_name);
+        editUserName.addTextChangedListener(this);
         if (reauth_account != null) {
             editUserName.setText(reauth_account.name);
             editUserName.setInputType(InputType.TYPE_NULL);
@@ -109,6 +114,7 @@ public class UserCredentialsFragment extends Fragment {
 
         editPassword = (EditText) v.findViewById(R.id.password);
         editPassword.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        editPassword.addTextChangedListener(this);
         editPassword
                 .setOnEditorActionListener(new TextView.OnEditorActionListener() {
                     @Override
@@ -154,28 +160,27 @@ public class UserCredentialsFragment extends Fragment {
             return v;
         }
 
-        Button cancel = (Button) v.findViewById(R.id.cancel);
+        /*Button cancel = (Button) v.findViewById(R.id.cancel);
         Button next = (Button) v.findViewById(R.id.next_action);
-        cancel.setBackgroundColor(ContextHelper.getApplicationColor(getActivity()));
-        next.setBackgroundColor(ContextHelper.getApplicationColor(getActivity()));
+        cancel.setTextColor(ContextHelper.getApplicationColor(getActivity()));
+        next.setTextColor(ContextHelper.getApplicationColor(getActivity()));
         cancel.setVisibility(View.VISIBLE);
-        next.setVisibility(View.VISIBLE);
+        next.setVisibility(View.VISIBLE);*/
+        buttonLayout = (TwoButtonLayout)v.findViewById(R.id.buttonPanel);
 
-        cancel.setOnClickListener(new Button.OnClickListener() {
+        buttonLayout.setRightButtonClickListener(new Button.OnClickListener() {
 
             @Override
             public void onClick(View v) {
                 final Activity activity = getActivity();
                 hideKeyboard();
-                /*activity.overridePendingTransition(
-                        android.R.anim.quick_exit_in,
-                        android.R.anim.quick_exit_out);*/
                 activity.onBackPressed();
 
             }
         });
+        buttonLayout.setLeftButtonVisibility(false);
 
-        next.setOnClickListener(new Button.OnClickListener() {
+        buttonLayout.setLeftButtonClickListener(new Button.OnClickListener() {
 
             @Override
             public void onClick(View v) {
@@ -191,6 +196,7 @@ public class UserCredentialsFragment extends Fragment {
                 }
             }
         });
+
         showPassword.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             
             @Override
@@ -223,10 +229,8 @@ public class UserCredentialsFragment extends Fragment {
 			if(!TextUtils.isEmpty(host_path) && protocol != null) {
 				serverInfo.setBaseURL(URIUtils.sanitize(protocol + host_path));
 			}
-			String userName = editUserName.getText().toString();
-			if(serverInfo.getAccountServer().equals("Yahoo") && userName.indexOf("@") != -1) {
-				userName = userName.substring(0, userName.indexOf("@"));
-			}
+			//Fix For Yahoo Not Syncing Contacts
+	        	String userName = editUserName.getText().toString();
 
 			serverInfo.setAccountName(editUserName.getText().toString());
 			serverInfo.setUserName(userName);
@@ -257,4 +261,29 @@ public class UserCredentialsFragment extends Fragment {
 		dialog.setArguments(arguments);
 		dialog.show(ft, QueryServerDialogFragment.class.getName());
 	}
+
+    /**
+     * Implements TextWatcher
+     */
+    public void afterTextChanged(Editable s) {
+        boolean notValid = TextUtils.isEmpty(editUserName.getText())
+            || TextUtils.isEmpty(editPassword.getText());
+        if(notValid){
+           buttonLayout.setLeftButtonVisibility(false);
+        } else {
+           buttonLayout.setLeftButtonVisibility(true);
+        }
+    }
+
+    /**
+     * Implements TextWatcher
+     */
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+    }
+
+    /**
+     * Implements TextWatcher
+     */
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+    }
 }
