@@ -112,5 +112,7 @@
     <dimen name="layout_edittext_height">30dp</dimen>
     <dimen name="item_margin">22px</dimen>
     <dimen name="bottom_thickness">3px</dimen>
+    <dimen name="left_thickness">2px</dimen>
+    <dimen name="layout_content_padding_top">70px</dimen>
     <!-- iamwatch dimensions-->
 </resources>

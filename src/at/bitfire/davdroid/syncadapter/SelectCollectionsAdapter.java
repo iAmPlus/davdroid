@@ -98,9 +98,9 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 			case TYPE_CALENDARS_HEADING:
 				convertView = inflater.inflate(R.layout.calendars_heading, parent, false);
 			case TYPE_ADDRESS_BOOKS_ROW:
-				convertView = inflater.inflate(R.layout.simple_list_item_single_choice, parent, false);
+				convertView = inflater.inflate(android.R.layout.simple_list_item_multiple_choice, parent, false);
 			case TYPE_CALENDARS_ROW:
-				convertView = inflater.inflate(R.layout.simple_list_item_multiple_choice, parent, false);
+				convertView = inflater.inflate(android.R.layout.simple_list_item_multiple_choice, parent, false);
 			}
 		}
 		
@@ -118,7 +118,7 @@ public class SelectCollectionsAdapter extends BaseAdapter implements ListAdapter
 	
 	protected void setContent(CheckedTextView view, int collectionIcon, ServerInfo.ResourceInfo info, int type) {
 		// set layout and icons
-		view.setCheckMarkDrawable(collectionIcon);
+		//view.setCheckMarkDrawable(collectionIcon);
 		String title = info.getTitle();
 		if (title == null ) {
 			if (type == TYPE_ADDRESS_BOOKS_ROW) {
