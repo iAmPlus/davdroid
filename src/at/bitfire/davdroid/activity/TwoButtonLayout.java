@@ -51,8 +51,8 @@ public class TwoButtonLayout extends LinearLayout {
         leftButton.setPadding(0, 0, 0, 0);
         rightButton = new BorderButton(context, attrs);
         rightButton.setPadding(0, 0, 0, 0);
-        leftButton.setBorderThickness(0, 0,verticalThickness,horizontalThickness);
-        rightButton.setBorderThickness(0, 0, 0, horizontalThickness);
+        leftButton.setBorderThickness(verticalThickness, horizontalThickness,0,horizontalThickness);
+        rightButton.setBorderThickness(verticalThickness, horizontalThickness, verticalThickness, horizontalThickness);
         final LinearLayout.LayoutParams left = new LinearLayout.LayoutParams(0,
                   LinearLayout.LayoutParams.MATCH_PARENT, 1);
         final LinearLayout.LayoutParams right = new LinearLayout.LayoutParams(
@@ -144,11 +144,11 @@ public class TwoButtonLayout extends LinearLayout {
 
     private void adjustBorder() {
         boolean showvertical = true;
-        if(rightButton != null && rightButton.getVisibility() != View.VISIBLE) {
+        if(rightButton != null && rightButton.getVisibility() == View.VISIBLE) {
             showvertical = false;
         }
         if (leftButton != null) {
-            leftButton.setBorderThickness(0, 0,showvertical ? verticalThickness : 0,horizontalThickness);
+            leftButton.setBorderThickness(verticalThickness, horizontalThickness,showvertical ? verticalThickness : 0,horizontalThickness);
         }
     }
 

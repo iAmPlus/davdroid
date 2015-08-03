@@ -4,7 +4,8 @@
     android:id="@+id/slidinglayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:scrollbars="vertical" >
+    android:scrollbars="vertical"
+    android:paddingTop="@dimen/layout_content_padding_top" >
         
     <at.bitfire.davdroid.activity.TwoButtonLayout
             android:id="@+id/buttonPanel"
@@ -13,15 +14,22 @@
             davdroid:leftButtonText="@string/next_action"
             davdroid:rightButtonText="@string/message_cancel_text"
             davdroid:leftButtonVisibility="false"
-            android:layout_alignParentTop="true"
+            android:layout_alignParentBottom="true"
             android:orientation="horizontal" >
     </at.bitfire.davdroid.activity.TwoButtonLayout>
 
-    <ListView
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:fillViewport="true"
+        android:layout_above="@id/buttonPanel" >
+
+        <ListView
         android:id="@android:id/list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/buttonPanel"
         android:layout_alignParentBottom="true" />
+    </ScrollView>
 
 </RelativeLayout>

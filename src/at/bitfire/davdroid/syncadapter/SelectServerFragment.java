@@ -51,19 +51,6 @@ public class SelectServerFragment extends Fragment {
             Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.pref_title_layout, container, false);
 
-        View quickFrame = v.findViewById(R.id.quick_frame);
-        final Activity activity = getActivity();
-
-        Button backButton = (Button)v.findViewById(R.id.backButton);
-        backButton.setOnClickListener(new Button.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                activity.finish();
-            }
-        });
-
-
         ListView listView = (ListView) v.findViewById(android.R.id.list);
         String[] values = getResources().getStringArray(R.array.server_names);
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(v.getContext(),

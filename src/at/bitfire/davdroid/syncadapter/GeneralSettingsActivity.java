@@ -12,7 +12,9 @@ import android.content.Context;
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
 import android.text.TextUtils;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import at.bitfire.davdroid.R;
 
@@ -23,27 +25,17 @@ public class GeneralSettingsActivity extends Activity {
 	private static final String KEY_TITLE = "title";
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-        /*overridePendingTransition(android.R.anim.quick_enter_in,
-                android.R.anim.quick_enter_out);*/
+        
+        requestWindowFeature(Window.FEATURE_ANEEDA_ACTION_BAR);
 		super.onCreate(savedInstanceState);
         setContentView(R.layout.pref_settings);
         View quickFrame = findViewById(R.id.quick_frame);
         quickFrame.setBackgroundColor(ContextHelper.getApplicationColor(this));
-
-        Button backButton = (Button) findViewById(R.id.backButton);
-
-        backButton.setOnClickListener(new Button.OnClickListener() {
-            public void onClick(View v) {
-                finish();
-                /*overridePendingTransition(
-                        android.R.anim.quick_exit_in,
-                        android.R.anim.quick_exit_out);*/
-            }
-        });
 		
 		getFragmentManager().beginTransaction()
 			.add(R.id.fragments, new GeneralSettingsFragment())
         	.commit();
+		getActionBar().setDisplayHomeAsUpEnabled(true);
 	}
 	
 	
@@ -61,4 +53,15 @@ public class GeneralSettingsActivity extends Activity {
 	    }
 
 	}
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        final int itemId = item.getItemId();
+        if (itemId == android.R.id.home) {
+            setResult(RESULT_CANCELED);
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 }
