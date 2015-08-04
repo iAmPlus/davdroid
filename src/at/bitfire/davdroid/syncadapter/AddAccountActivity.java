@@ -10,6 +10,8 @@ package at.bitfire.davdroid.syncadapter;
 import android.accounts.AccountAuthenticatorActivity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
+import android.view.Window;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 
@@ -23,6 +25,9 @@ public class AddAccountActivity extends AccountAuthenticatorActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+
+	    requestWindowFeature(aneeda.view.Window.FEATURE_ANEEDA_ACTION_BAR);
+
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.add_account);
@@ -62,6 +67,8 @@ public class AddAccountActivity extends AccountAuthenticatorActivity {
 				.commit();
 		}
 
+        getActionBar().setDisplayHomeAsUpEnabled(true);
+
 	}
 
 	protected void onActivityResult(int requestCode, int resultCode,
@@ -69,5 +76,15 @@ public class AddAccountActivity extends AccountAuthenticatorActivity {
 
 		super.onActivityResult(requestCode, resultCode, data);
 	}
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        final int itemId = item.getItemId();
+        if (itemId == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
 }
