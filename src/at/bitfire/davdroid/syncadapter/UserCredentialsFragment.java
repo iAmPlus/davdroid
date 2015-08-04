@@ -159,7 +159,13 @@ public class UserCredentialsFragment extends Fragment implements TextWatcher {
             startActivityForResult(intent, 0);
             return v;
         }
-        
+
+        /*Button cancel = (Button) v.findViewById(R.id.cancel);
+        Button next = (Button) v.findViewById(R.id.next_action);
+        cancel.setTextColor(ContextHelper.getApplicationColor(getActivity()));
+        next.setTextColor(ContextHelper.getApplicationColor(getActivity()));
+        cancel.setVisibility(View.VISIBLE);
+        next.setVisibility(View.VISIBLE);*/
         buttonLayout = (TwoButtonLayout)v.findViewById(R.id.buttonPanel);
 
         buttonLayout.setRightButtonClickListener(new Button.OnClickListener() {

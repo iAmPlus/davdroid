@@ -9,10 +9,7 @@
         android:id="@+id/cancel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        aneeda:leftBorderThickness="@dimen/left_thickness"
-        aneeda:rightBorderThickness="@dimen/left_thickness"
-        aneeda:topBorderThickness="@dimen/bottom_thickness"
+        android:layout_alignParentTop="true"
         aneeda:bottomBorderThickness="@dimen/bottom_thickness"
         android:text="@android:string/cancel"
         android:textSize="@dimen/font_size_normal" />
@@ -22,7 +19,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_alignParentTop="true"
+        android:layout_below="@id/cancel"
         android:gravity="center"
         android:text="@string/querying_server" />
 
@@ -31,7 +28,6 @@
         android:layout_width="45dp"
         android:layout_height="45dp"
         android:layout_below="@id/query_text"
-        android:layout_above="@id/cancel"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true" >
 
