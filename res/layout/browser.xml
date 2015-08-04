@@ -3,8 +3,17 @@
     xmlns:aneeda="http://schemas.android.com/apk/res/aneeda.lib"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:paddingTop="@dimen/layout_content_padding_top" >
+    android:orientation="vertical" >
+        
+    <aneeda.widget.BorderButton
+        android:id="@+id/cancel"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:onClick="finish"
+        android:text="@android:string/cancel"
+        aneeda:bottomBorderThickness="@dimen/bottom_thickness"
+        android:textSize="@dimen/font_size_normal" />
 
     <RelativeLayout
         android:layout_width="match_parent"

@@ -4,7 +4,14 @@
     android:id="@+id/quick_frame"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:paddingTop="@dimen/layout_content_padding_top" >
+    android:orientation="horizontal" >
+        
+    <aneeda.widget.BorderButton
+            android:id="@+id/backButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@android:string/cancel"
+            aneeda:bottomBorderThickness="@dimen/bottom_thickness"
+            android:layout_alignParentTop="true" />
 
 </LinearLayout>

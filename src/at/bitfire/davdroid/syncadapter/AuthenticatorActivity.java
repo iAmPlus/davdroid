@@ -36,7 +36,6 @@ import android.accounts.AccountManager;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -220,8 +219,8 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 	    /*overridePendingTransition(android.R.anim.quick_enter_in,
                 android.R.anim.quick_enter_out);*/
-        requestWindowFeature(Window.FEATURE_ANEEDA_ACTION_BAR);
 		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		AccountDeatilsReader reader = new AccountDeatilsReader(this);
 		Bundle bnd = getIntent().getExtras();
 		ServerInfo serverInfo = null;
@@ -304,8 +303,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 
 			/* Disable In-app menu */
 			ActivityHelper.disableInAppMenu(this);
-		}
-		getActionBar().setDisplayHomeAsUpEnabled(true);
+		} 
 	}
 
 	@Override
@@ -326,6 +324,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 	public void initWebView() {
 		setContentView(R.layout.browser);
 		browser = (MyWebView) findViewById(R.id.browser_view);
+		Button cancel = (Button) findViewById(R.id.cancel);
 
 		//Make sure No cookies are created
 		CookieManager.getInstance().removeAllCookie();
@@ -354,17 +353,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
         finish();
         /*overridePendingTransition(android.R.anim.quick_exit_in,
                 android.R.anim.quick_exit_out);*/
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        final int itemId = item.getItemId();
-        if (itemId == android.R.id.home) {
-            setResult(RESULT_CANCELED);
-            finish();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 
 }

@@ -3,24 +3,23 @@
     android:id="@+id/slidinglayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:scrollbars="vertical"
-    android:paddingTop="@dimen/layout_content_padding_top" >
+    android:scrollbars="vertical" >
         
 	<at.bitfire.davdroid.activity.TwoButtonLayout
 	   xmlns:davdroid="http://schemas.android.com/apk/res/at.bitfire.davdroid"
 	        android:id="@+id/buttonPanel"
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
-	        davdroid:leftButtonText="@string/next_action"
-	        davdroid:rightButtonText="@string/message_cancel_text"
-	        davdroid:leftButtonVisibility="false"
-	        android:layout_alignParentBottom="true"
+	        davdroid:leftButtonText ="@string/next_action"
+	        davdroid:rightButtonText ="@string/message_cancel_text"
+	        davdroid:leftButtonVisibility ="false"
+	        android:layout_alignParentTop="true"
 	        android:orientation="horizontal" >
 	</at.bitfire.davdroid.activity.TwoButtonLayout>
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_above="@id/buttonPanel"
+        android:layout_below="@id/buttonPanel"
         android:layout_height="wrap_content">
     <LinearLayout
         android:layout_width="match_parent"
