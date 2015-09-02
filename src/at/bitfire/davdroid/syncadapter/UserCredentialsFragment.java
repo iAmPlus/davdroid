@@ -4,7 +4,7 @@
  * are made available under the terms of the GNU Public License v3.0
  * which accompanies this distribution, and is available at
  * http://www.gnu.org/licenses/gpl.html
- * 
+ *
  * Contributors:
  *     Richard Hirner (bitfire web engineering) - initial API and implementation
  ******************************************************************************/
@@ -48,13 +48,13 @@ import aneeda.content.ContextHelper;
 
 public class UserCredentialsFragment extends Fragment implements TextWatcher {
 	String protocol;
-	
+
 	EditText editBaseURL, editUserName, editPassword;
 	CheckBox checkboxPreemptive;
 	CheckBox showPassword;
 
 	ServerInfo serverInfo;
-    TwoButtonLayout buttonLayout;
+	TwoButtonLayout buttonLayout;
 	Account reauth_account = null;
 
 	@Override
@@ -140,26 +140,6 @@ public class UserCredentialsFragment extends Fragment implements TextWatcher {
                 });
         showPassword = (CheckBox) v.findViewById(R.id.showPassword);
 
-        if (serverInfo.getAccountServer().equals("Google")) {
-            editUserName.setVisibility(View.GONE);
-            editPassword.setVisibility(View.GONE);
-            showPassword.setVisibility(View.GONE);
-		
-            boolean isDeviceSetup = false;
-            if(getArguments() != null)
-            	isDeviceSetup = getArguments().getBoolean(Constants.EXTRA_IS_DEVICE_SETUP, false);
-        
-            Intent intent = new Intent(getActivity(),
-                    AuthenticatorActivity.class);
-            intent.putExtra(Constants.KEY_SERVER_INFO, serverInfo);
-            intent.putExtra(Constants.EXTRA_IS_DEVICE_SETUP, isDeviceSetup);
-
-            if (reauth_account != null)
-                intent.putExtra(Constants.ACCOUNT_PARCEL, reauth_account);
-            startActivityForResult(intent, 0);
-            return v;
-        }
-        
         buttonLayout = (TwoButtonLayout)v.findViewById(R.id.buttonPanel);
 
         buttonLayout.setRightButtonClickListener(new Button.OnClickListener() {
@@ -192,7 +172,7 @@ public class UserCredentialsFragment extends Fragment implements TextWatcher {
         });
 
         showPassword.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            
+
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if(isChecked){
@@ -204,6 +184,25 @@ public class UserCredentialsFragment extends Fragment implements TextWatcher {
                 editPassword.setSelection(editPassword.getText().length());
             }
         });
+
+        if (serverInfo.getAccountServer().equals("Google")) {
+            editUserName.setVisibility(View.GONE);
+            editPassword.setVisibility(View.GONE);
+            showPassword.setVisibility(View.GONE);
+
+            boolean isDeviceSetup = false;
+            if(getArguments() != null)
+            	isDeviceSetup = getArguments().getBoolean(Constants.EXTRA_IS_DEVICE_SETUP, false);
+
+            Intent intent = new Intent(getActivity(),
+                    AuthenticatorActivity.class);
+            intent.putExtra(Constants.KEY_SERVER_INFO, serverInfo);
+            intent.putExtra(Constants.EXTRA_IS_DEVICE_SETUP, isDeviceSetup);
+
+            if (reauth_account != null)
+                intent.putExtra(Constants.ACCOUNT_PARCEL, reauth_account);
+            startActivityForResult(intent, 0);
+        }
 
         return v;
     }
@@ -248,7 +247,7 @@ public class UserCredentialsFragment extends Fragment implements TextWatcher {
 		} else //OAuth did not succeed
 			getFragmentManager().popBackStackImmediate();
 	}
-	
+
 	void nextTransaction(Bundle arguments) {
 		FragmentTransaction ft = getFragmentManager().beginTransaction();
 		DialogFragment dialog = new QueryServerDialogFragment();
