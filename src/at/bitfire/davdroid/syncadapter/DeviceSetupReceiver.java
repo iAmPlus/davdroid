@@ -33,23 +33,27 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 	final static String TAG = "DeviceSetupReceiver";
 	final static String status = "status";
 	final static String message = "message";
-	
+
 	class UpdateAccount extends AsyncTask<String, Integer, String>{
-		
+
 		String accountName;
 		String accountServer;
 		PendingResult result;
 		Context mContext;
 		Boolean hasAddressBook = false;
 		Boolean hasCalendar = false;
+		Boolean addressBookEnabled = true;
+		Boolean calendarEnabled = true;
 		String sync_type;
-		
-		public UpdateAccount(String accountName, String accountType, PendingResult result, Context context, String sync_type) {
+
+		public UpdateAccount(String accountName, String accountType, PendingResult result, Context context, String sync_type, String enabled_services) {
 			this.accountName = accountName;
 			this.accountServer = accountType;
 			this.result = result;
 			this.mContext = context;
 			this.sync_type = sync_type;
+			this.addressBookEnabled = enabled_services.equalsIgnoreCase("both") || enabled_services.equalsIgnoreCase("calendar");
+			this.calendarEnabled = enabled_services.equalsIgnoreCase("both") || enabled_services.equalsIgnoreCase("contacts");
 		}
 
 		@Override
@@ -62,18 +66,18 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 			Account account = null;
 			String errorMessage = "";
 			Boolean valid_credentials = true;
-			
+
 			Intent resultIntent = new Intent();
 			resultIntent.setAction("at.bitfire.davdroid.ADD_ACCOUNT_RESPONSE");
 			resultIntent.addCategory(Intent.CATEGORY_DEFAULT);
-			
+
 			for (Account acc : accountManager.getAccountsByType(Constants.ACCOUNT_TYPE)) {
 				if(acc.name.equals(accountName)) {
 					account = acc;
 					break;
 				}
 			}
-			
+
 			if(account == null) {
 				resultIntent.putExtra(status, "Failed");
 				errorMessage.concat(mContext.getString(
@@ -86,7 +90,7 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 				accountManager.setUserData(account, properties.getProperty("client_secret_name"), properties.getProperty("client_secret_value"));
 				accountManager.setUserData(account, "token_url", properties.getProperty("token_url"));
 				accountManager.setUserData(account, Constants.ACCOUNT_SERVER, properties.getProperty("type"));
-				
+
 				AccountManagerFuture<Bundle> tokenBundle = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, false, null, null);
 				try {
 					String token = tokenBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
@@ -121,7 +125,7 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 				serverInfo.setUserName(userName);
 				serverInfo.setPassword(accountManager.getPassword(account));
 			}
-			
+
 			if(errorMessage != "") {
 				resultIntent.putExtra(status, "Failed");
 				errorMessage.concat(mContext.getString(
@@ -138,8 +142,8 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 			if (!TextUtils.isEmpty(properties.getProperty(Constants.ACCOUNT_KEY_CALDAV_URL))) {
 				serverInfo.setCaldavURL(properties.getProperty(Constants.ACCOUNT_KEY_CALDAV_URL));
 			}
-			
-			
+
+
 			try {
 				DavResourceFinder.findResources(mContext, serverInfo, sync_type);
 			} catch (URISyntaxException e) {
@@ -194,13 +198,13 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 				if(accountData.containsKey(Constants.ACCOUNT_KEY_ADDRESSBOOK_PATH))
 					accountManager.setUserData(account, Constants.ACCOUNT_KEY_ADDRESSBOOK_PATH,
 						accountData.getString(Constants.ACCOUNT_KEY_ADDRESSBOOK_PATH));
-				
+
 				if (syncContacts) {
 					ContentResolver.setIsSyncable(account, ContactsContract.AUTHORITY, 1);
-					ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true);
+					ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, addressBookEnabled);
 				} else
 					ContentResolver.setIsSyncable(account, ContactsContract.AUTHORITY, 0);
-		
+
 				boolean syncCalendars = false;
 				if(sync_type.equalsIgnoreCase("both") || sync_type.equalsIgnoreCase("calendar")) {
 					for (ServerInfo.ResourceInfo calendar : serverInfo.getCalendars()) {
@@ -215,7 +219,7 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 				}
 				if (syncCalendars) {
 					ContentResolver.setIsSyncable(account, CalendarContract.AUTHORITY, 1);
-					ContentResolver.setSyncAutomatically(account, CalendarContract.AUTHORITY, true);
+					ContentResolver.setSyncAutomatically(account, CalendarContract.AUTHORITY, calendarEnabled);
 				} else
 					ContentResolver.setIsSyncable(account, CalendarContract.AUTHORITY, 0);
 
@@ -223,7 +227,7 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 			}
 			return errorMessage;
 		}
-		
+
 		@Override
 		protected void onPostExecute(String error) {
 			Intent resultIntent = new Intent();
@@ -242,18 +246,22 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 			result.finish();
 		}
 	}
-	
+
 	@Override
 	public void onReceive(Context context, Intent addAccount) {
 		PendingResult result = goAsync();
 		String sync_type = "both";
+		String enabled_services = "both";
 		if(addAccount.hasExtra("sync_type")) {
 			sync_type = addAccount.getStringExtra("sync_type");
+		}
+		if(addAccount.hasExtra("enabled_services")) {
+			enabled_services = addAccount.getStringExtra("enabled_services");
 		}
 		UpdateAccount account_task = new UpdateAccount(
 				addAccount.getStringExtra(Constants.ACCOUNT_KEY_ACCOUNT_NAME),
 				addAccount.getStringExtra(Constants.ACCOUNT_KEY_ACCOUNT_TYPE),
-				result, context, sync_type);
+				result, context, sync_type, enabled_services);
 		account_task.execute();
 	}
 
