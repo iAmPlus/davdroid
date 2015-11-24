@@ -10,7 +10,7 @@ package at.bitfire.davdroid;
 public class Constants {
 	public static final String
 		APP_VERSION = "0.6.5",
-		ACCOUNT_TYPE = "bitfire.at.davdroid",
+		ACCOUNT_TYPE = "com.android.email",
 
 		ACCOUNT_KEY_USERNAME = "user_name",
 		ACCOUNT_KEY_PASSWORD = "password",
@@ -26,7 +26,7 @@ public class Constants {
 		ACCOUNT_BUNDLE = "account_bundle",
 
 		WEB_URL_HELP = "http://davdroid.bitfire.at/configuration?pk_campaign=davdroid-app",
-		
+
 		SETTING_DISABLE_COMPRESSION = "disable_compression",
 		SETTING_NETWORK_LOGGING = "network_logging";
 	public static final String ACCOUNT_KEY_REFRESH_TOKEN = "google_refresh_token";
