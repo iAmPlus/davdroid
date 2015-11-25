@@ -157,6 +157,7 @@ public class WebDavResource {
 		HttpOptions options = new HttpOptions(location);
 		if(authBearer != null)
 			options.addHeader("Authorization", authBearer);
+		options.addHeader("Allow", "*");
 
 		CloseableHttpResponse response = httpClient.execute(options, context);
 		try {
@@ -269,6 +270,7 @@ public class WebDavResource {
 			HttpPropfind propfind = new HttpPropfind(location, mode);
 			if(authBearer != null)
 				propfind.addHeader("Authorization", authBearer);
+			propfind.addHeader("Allow", "*");
 			response = httpClient.execute(propfind, context);
 			
 			if (response.getStatusLine().getStatusCode()/100 == 3) {
@@ -316,6 +318,7 @@ public class WebDavResource {
 			HttpReport report = new HttpReport(location, writer.toString());
 			if(authBearer != null)
 				report.addHeader("Authorization", authBearer);
+			report.addHeader("Allow", "*");
 			response = httpClient.execute(report, context);
 			
 			if (response.getStatusLine().getStatusCode()/100 == 3) {
@@ -348,6 +351,7 @@ public class WebDavResource {
 
 		if(authBearer != null)
 			get.addHeader("Authorization", authBearer);
+		get.addHeader("Allow", "*");
 		CloseableHttpResponse response = httpClient.execute(get, context);
 		try {
 			checkResponse(response);
@@ -380,6 +384,7 @@ public class WebDavResource {
 			put.addHeader("Content-Type", getContentType());
 		if(authBearer != null)
 			put.addHeader("Authorization", authBearer);
+		put.addHeader("Allow", "*");
 
 		CloseableHttpResponse response = httpClient.execute(put, context);
 		try {
@@ -403,6 +408,7 @@ public class WebDavResource {
 		
 		if(authBearer != null)
 			delete.addHeader("Authorization", authBearer);
+		delete.addHeader("Allow", "*");
 		CloseableHttpResponse response = httpClient.execute(delete, context);
 		try {
 			checkResponse(response);
