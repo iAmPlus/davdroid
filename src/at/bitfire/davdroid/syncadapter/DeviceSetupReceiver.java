@@ -52,8 +52,8 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 			this.result = result;
 			this.mContext = context;
 			this.sync_type = sync_type;
-			this.addressBookEnabled = enabled_services.equalsIgnoreCase("both") || enabled_services.equalsIgnoreCase("calendar");
-			this.calendarEnabled = enabled_services.equalsIgnoreCase("both") || enabled_services.equalsIgnoreCase("contacts");
+			this.addressBookEnabled = enabled_services.equalsIgnoreCase("both") || enabled_services.equalsIgnoreCase("contacts");
+			this.calendarEnabled = enabled_services.equalsIgnoreCase("both") || enabled_services.equalsIgnoreCase("calendar");
 		}
 
 		@Override
@@ -95,13 +95,7 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 				try {
 					String token = tokenBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
 					if(token == null) {
-		            			return "Require OAuth";
-					}
-					accountManager.invalidateAuthToken(Constants.ACCOUNT_TYPE, token);
-					tokenBundle = accountManager.getAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, null, false, null, null);
-					token = tokenBundle.getResult().getString(AccountManager.KEY_AUTHTOKEN);
-					if(token == null) {
-		            			return "Refresh token failed";
+						return "Require OAuth";
 					}
 					String authBearer = "Bearer " + token;
 					serverInfo.setAccessToken(authBearer);
