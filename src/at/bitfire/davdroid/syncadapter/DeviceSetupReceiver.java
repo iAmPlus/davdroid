@@ -243,18 +243,49 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent addAccount) {
+
+		Intent resultIntent = new Intent();
+		resultIntent.setAction("at.bitfire.davdroid.ADD_ACCOUNT_RESPONSE");
+		resultIntent.putExtra(status, "failed");
+
+		String account_name = addAccount.getStringExtra(Constants.ACCOUNT_KEY_ACCOUNT_NAME);
+		String account_type = addAccount.getStringExtra(Constants.ACCOUNT_KEY_ACCOUNT_TYPE);
+		if(account_name == null) {
+			resultIntent.putExtra(message, "Account name not present");
+			context.sendBroadcast(resultIntent);
+			return;
+		}
+		if(account_type == null) {
+			resultIntent.putExtra("account_name", account_name);
+			resultIntent.putExtra(message, "Unknown account type");
+			context.sendBroadcast(resultIntent);
+			return;
+		}
+		String sync_type = addAccount.getStringExtra("sync_type");
+		String enabled_services = addAccount.getStringExtra("enabled_services");
+		if(sync_type == null) {
+			sync_type = "both";
+		}
+		if(enabled_services == null) {
+			enabled_services = "both";
+		}
+
+		if(account_type.equalsIgnoreCase("google")) {
+			account_type = "Google";
+		} else if(account_type.equalsIgnoreCase("yahoo")) {
+			account_type = "Yahoo";
+		} else if(account_type.equalsIgnoreCase("icloud")) {
+			account_type = "iCloud";
+		} else {
+			resultIntent.putExtra("account_name", account_name);
+			resultIntent.putExtra(message, "Unknown account type");
+			context.sendBroadcast(resultIntent);
+			return;
+		}
+
 		PendingResult result = goAsync();
-		String sync_type = "both";
-		String enabled_services = "both";
-		if(addAccount.hasExtra("sync_type")) {
-			sync_type = addAccount.getStringExtra("sync_type");
-		}
-		if(addAccount.hasExtra("enabled_services")) {
-			enabled_services = addAccount.getStringExtra("enabled_services");
-		}
 		UpdateAccount account_task = new UpdateAccount(
-				addAccount.getStringExtra(Constants.ACCOUNT_KEY_ACCOUNT_NAME),
-				addAccount.getStringExtra(Constants.ACCOUNT_KEY_ACCOUNT_TYPE),
+				account_name, account_type,
 				result, context, sync_type, enabled_services);
 		account_task.execute();
 	}
