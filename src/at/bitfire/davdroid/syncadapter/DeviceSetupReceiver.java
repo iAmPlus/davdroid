@@ -158,7 +158,6 @@ public class DeviceSetupReceiver extends BroadcastReceiver {
 
 			if(!valid_credentials) {
 				resultIntent.putExtra(status, "Failed");
-				accountManager.removeAccount(account, null, null);
 				return errorMessage;
 			}
 
