@@ -144,6 +144,10 @@ public abstract class DavSyncAdapter extends AbstractThreadedSyncAdapter impleme
 		// TODO use VCard 4.0 if possible
 		AccountSettings accountSettings = new AccountSettings(getContext(), account);
 		Log.d(TAG, "Server supports VCard version " + accountSettings.getAddressBookVCardVersion());
+		String expiry = accountManager.getUserData(account, "oauth_expires_in");
+		if(expiry == null || (System.currentTimeMillis()/1000) > Long.parseLong(expiry)) {
+			refreshToken(account);
+		}
 
 		// get local <-> remote collection pairs
 		Map<LocalCollection<?>, RemoteCollection<?>> syncCollections = getSyncPairs(account, provider);
@@ -161,7 +165,6 @@ public abstract class DavSyncAdapter extends AbstractThreadedSyncAdapter impleme
 			} catch (HttpException ex) {
 				if (ex.getCode() == HttpStatus.SC_UNAUTHORIZED) {
 					Log.e(TAG, "HTTP Unauthorized " + ex.getCode(), ex);
-					refresh = true;
 					syncResult.stats.numAuthExceptions++;
 				} else if (ex.isClientError()) {
 					Log.e(TAG, "Hard HTTP error " + ex.getCode(), ex);
@@ -183,16 +186,6 @@ public abstract class DavSyncAdapter extends AbstractThreadedSyncAdapter impleme
 
 			Log.i(TAG, "Sync complete for " + authority);
 		}
-
-		if(refresh) {
-			if(refreshToken(account)) {
-				Bundle bundle = new Bundle();
-				bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true); // Performing a sync no matter if it's off
-				bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true); // Performing a sync no matter if it's off
-				ContentResolver.requestSync(account, Constants.ACCOUNT_TYPE, bundle);
-			}
-		}
-		//}
 		Log.i(TAG, "Sync complete for " + authority);
 	}
 
