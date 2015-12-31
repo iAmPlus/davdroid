@@ -1,8 +1,15 @@
+/*
+ * Copyright (c) 2013 – 2015 Ricki Hirner (bitfire web engineering).
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/gpl.html
+ */
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     repositories {
         mavenCentral()
-	    jcenter()
+        jcenter()
         maven {
             url 'http://puls-sdk.i.am/gradle'
         }
@@ -11,78 +18,9 @@ buildscript {
         classpath 'com.aneeda.puls.tools.build:gradle:1.0.0'
     }
 }
-
-apply plugin: 'android'
-
-repositories{
-    mavenCentral()
-    jcenter()
-}
-
-dependencies {
-
-    provided "org.projectlombok:lombok:1.12.6"
-
-    compile files('libs/httpclientandroidlib-1.2.1.jar')
-
-    compile 'commons-io:commons-io:2.4'
-    compile 'commons-logging:commons-logging:1.2'
-    compile 'commons-codec:commons-codec:1.8'
-    compile 'commons-lang:commons-lang:2.6'
-    compile 'com.googlecode.ez-vcard:ez-vcard:0.9.6'
-    compile 'org.mnode.ical4j:ical4j:1.0.6'
-    compile 'backport-util-concurrent:backport-util-concurrent:3.1'
-
-    compile('org.simpleframework:simple-xml:2.7.+') {
-        exclude group: 'stax', module: 'stax-api'
-        exclude group: 'xpp3', module: 'xpp3'
-    }
-}
-
-android {
-    compileSdkVersion 'AneedA:AneedA mPuls Add-On:21'
-    buildToolsVersion '22.0.1'
-
-    packagingOptions {
-	    exclude 'META-INF/LICENSE.txt'
-	    exclude 'META-INF/NOTICE.txt'
-	}
-
-	lintOptions {
-        abortOnError false
-    }
-
-    sourceSets {
-        main {
-            manifest.srcFile 'AndroidManifest.xml'
-            java.srcDirs = ['src']
-            resources.srcDirs = ['src']
-            aidl.srcDirs = ['src']
-            renderscript.srcDirs = ['src']
-            res.srcDirs = ['res']
-            assets.srcDirs = ['assets']
-        }
-
-        // Move the tests to tests/java, tests/res, etc...
-        instrumentTest.setRoot('tests')
-        debug.setRoot('build-types/debug')
-        release.setRoot('build-types/release')
-    }
-
-    signingConfigs {
-        shared {
-            storeFile file("android.keystore")
-            storePassword "android"
-            keyAlias "platform"
-            keyPassword "android"
-        }
-    }
-    buildTypes {
-        debug {
-            signingConfig signingConfigs.shared
-        }
-        release {
-            signingConfig signingConfigs.shared
-        }
+allprojects {
+    repositories {
+        jcenter()
+        mavenCentral()
     }
 }
