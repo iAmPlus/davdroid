@@ -97,6 +97,10 @@
                 android:name="android.content.SyncAdapter"
                 android:resource="@xml/sync_tasks" />
         </service>
+       <service
+            android:name=".ui.setup.AddAccountService"
+            android:exported="false" >
+       </service>
 
         <activity
             android:name=".ui.MainActivity"

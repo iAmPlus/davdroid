@@ -208,8 +208,7 @@
     <string name="sync_error_unauthorized">User name/password wrong</string>
     <string name="exception_account">Invalid Account</string>
     <string name="exception_token">Invalid Token</string>
-    <!--string name="exception_uri_syntax">URI Syntax Exception</string>
-    <string name="exception_io">IO Exception</string>
-    <string name="exception_http">HTTP Exception</string-->
+    <string name="unknown_account_type">Unknown account type</string>
+    <string name="oauth_error">This server requires OAuth authentication</string>
 
 </resources>
