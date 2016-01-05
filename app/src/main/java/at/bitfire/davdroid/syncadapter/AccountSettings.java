@@ -107,20 +107,22 @@ public class AccountSettings {
             Constants.log.info("AccountSettings version: v" + version + ", should be: v" + version);
 
 			if (version < CURRENT_VERSION) {
-                showNotification(Constants.NOTIFICATION_ACCOUNT_SETTINGS_UPDATED,
+                //Disable notification since user cannot take any action on it
+                /*showNotification(Constants.NOTIFICATION_ACCOUNT_SETTINGS_UPDATED,
                         context.getString(R.string.settings_version_update_title),
-                        context.getString(R.string.settings_version_update_description));
+                        context.getString(R.string.settings_version_update_description));*/
                 update(version);
             }
 
             // check whether Android version has changed
-            String lastAndroidVersionInt = accountManager.getUserData(account, KEY_LAST_ANDROID_VERSION);
+            //Disable notification since user cannot take any action on it
+            /*String lastAndroidVersionInt = accountManager.getUserData(account, KEY_LAST_ANDROID_VERSION);
             if (lastAndroidVersionInt != null && NumberUtils.toInt(lastAndroidVersionInt) < Build.VERSION.SDK_INT) {
                 // notify user
                 showNotification(Constants.NOTIFICATION_ANDROID_VERSION_UPDATED,
                         context.getString(R.string.settings_android_update_title),
                         context.getString(R.string.settings_android_update_description));
-            }
+            }*/
             accountManager.setUserData(account, KEY_LAST_ANDROID_VERSION, String.valueOf(Build.VERSION.SDK_INT));
 		}
 	}
