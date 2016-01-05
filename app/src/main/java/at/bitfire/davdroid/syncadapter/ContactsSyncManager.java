@@ -160,7 +160,8 @@ public class ContactsSyncManager extends SyncManager {
                 // only one contact, use GET
                 DavResource remote = bunch[0];
 
-                ResponseBody body = remote.get("text/vcard;version=4.0, text/vcard;charset=utf-8;q=0.8, text/vcard;q=0.5");
+                // Yahoo server accepts the request only when text/xml is present
+                ResponseBody body = remote.get("text/vcard;version=4.0, text/vcard;charset=utf-8;q=0.8, text/vcard;q=0.5, text/xml");
                 String eTag = ((GetETag) remote.properties.get(GetETag.NAME)).eTag;
 
                 Charset charset = Charsets.UTF_8;
