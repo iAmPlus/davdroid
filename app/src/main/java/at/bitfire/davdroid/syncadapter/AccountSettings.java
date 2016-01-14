@@ -29,6 +29,7 @@ import android.provider.CalendarContract;
 import android.provider.CalendarContract.Calendars;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.text.format.DateUtils;
 import android.util.Log;
 
 import com.squareup.okhttp.CipherSuite;
@@ -90,14 +91,14 @@ public class AccountSettings {
 	final Context context;
 	final AccountManager accountManager;
 	final Account account;
-	
-	
+
+
     public AccountSettings(Context context, Account account) {
 		this.context = context;
 		this.account = account;
-		
+
 		accountManager = AccountManager.get(context);
-		
+
 		synchronized(AccountSettings.class) {
 			int version = 0;
 			try {
@@ -143,8 +144,8 @@ public class AccountSettings {
         n.setContentText(message);
         nm.notify(id, Build.VERSION.SDK_INT >= 16 ? n.build() : n.getNotification());
     }
-	
-	
+
+
 	public static Bundle createBundle(ServerInfo serverInfo) {
 		Bundle bundle = new Bundle();
 		bundle.putString(KEY_SETTINGS_VERSION, String.valueOf(CURRENT_VERSION));
@@ -152,8 +153,8 @@ public class AccountSettings {
 		bundle.putString(KEY_AUTH_PREEMPTIVE, Boolean.toString(serverInfo.isAuthPreemptive()));
 		return bundle;
 	}
-	
-	
+
+
 	// authentication settings
 
 	public String username() { return accountManager.getUserData(account, KEY_USERNAME); }
@@ -162,7 +163,7 @@ public class AccountSettings {
     public String accessToken() {
         if("Google".equals(accountManager.getUserData(account, Constants.ACCOUNT_SERVER))) {
             String expiry = accountManager.getUserData(account, "oauth_expires_in");
-            if(expiry == null || (System.currentTimeMillis()/1000) > Long.parseLong(expiry)) {
+            if(expiry == null || System.currentTimeMillis() > Long.parseLong(expiry)) {
                 return refreshToken();
             }
             try {
@@ -210,8 +211,8 @@ public class AccountSettings {
                             responseJson = new JSONObject(data);
                             authToken = responseJson.getString("access_token");
                             accountManager.setAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, authToken);
-                            expiry = Long.parseLong(responseJson.getString("expires_in"));
-                            expiry += (System.currentTimeMillis()/1000);
+                            expiry = Long.parseLong(responseJson.getString("expires_in")) * DateUtils.SECOND_IN_MILLIS;
+                            expiry += System.currentTimeMillis();
                             accountManager.setUserData(account, "oauth_expires_in", Long.valueOf(expiry).toString());
                             return authToken;
                         } catch (JSONException e) {
@@ -228,10 +229,10 @@ public class AccountSettings {
             }
         return null;
     }
-	
+
 	public String password() { return accountManager.getPassword(account); }
 	public void password(String password) { accountManager.setPassword(account, password); }
-	
+
 	public boolean preemptiveAuth() { return Boolean.parseBoolean(accountManager.getUserData(account, KEY_AUTH_PREEMPTIVE)); }
 	public void preemptiveAuth(boolean preemptive) { accountManager.setUserData(account, KEY_AUTH_PREEMPTIVE, Boolean.toString(preemptive)); }
 
@@ -270,14 +271,14 @@ public class AccountSettings {
 		}
 	}
 
-	
+
 	// update from previous account settings
-	
+
 	private void update(int fromVersion) {
 		for (int toVersion = fromVersion + 1; toVersion <= CURRENT_VERSION; toVersion++)
             updateTo(toVersion);
 	}
-	
+
 	private void updateTo(int toVersion) {
         final int fromVersion = toVersion - 1;
         Constants.log.info("Updating account settings from v" + fromVersion + " to " + toVersion);
