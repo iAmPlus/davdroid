@@ -13,7 +13,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.provider.CalendarContract;
 import android.provider.ContactsContract;
-import android.util.Log;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
@@ -42,7 +41,6 @@ import lombok.Cleanup;
  */
 public class AddAccountService extends IntentService {
 
-	final static String TAG = "davdroid.AddAccountService";
 	final static String STATUS = "status";
 	final static String MESSAGE = "message";
 	static Context mContext = null;
@@ -80,13 +78,16 @@ public class AddAccountService extends IntentService {
 
 		String accountName = addAccount.getStringExtra(Constants.ACCOUNT_KEY_ACCOUNT_NAME);
 		String accountServer = addAccount.getStringExtra(Constants.ACCOUNT_KEY_ACCOUNT_TYPE);
+		Constants.log.info("Received Intent. Configuring contacts and calendar");
 
 		if(accountName == null) {
+			Constants.log.error("No account name present in Intent");
 			broadCastResult(false, accountName, mContext.getString(
 					R.string.exception_account));
 			return;
 		}
 		if(accountServer == null) {
+			Constants.log.error("No account type present in Intent");
 			broadCastResult(false, accountName, mContext.getString(
 					R.string.unknown_account_type));
 			return;
@@ -99,6 +100,7 @@ public class AddAccountService extends IntentService {
 		if(enabled_services == null) {
 			enabled_services = "both";
 		}
+		Constants.log.info("Account name:" + accountName + " Type:" + accountServer + " sync_type:" + sync_type + " enabled_services:" + enabled_services);
 
 		Boolean addressBookEnabled = enabled_services.equalsIgnoreCase("both") || enabled_services.equalsIgnoreCase("contacts");
 		Boolean calendarEnabled = enabled_services.equalsIgnoreCase("both") || enabled_services.equalsIgnoreCase("calendar");
@@ -260,7 +262,7 @@ public class AddAccountService extends IntentService {
 					try {
 						callback.createLocalCollection(account, resource);
 					} catch (ContactsStorageException e) {
-						Log.e("davdroid", "Couldn't add sync collection", e);
+						Constants.log.error("Couldn't add sync collection", e);
 						Toast.makeText(mContext, "Couldn't set up synchronization for " + authority, Toast.LENGTH_LONG).show();
 					}
 			}
