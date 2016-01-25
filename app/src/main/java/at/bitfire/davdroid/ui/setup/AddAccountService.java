@@ -140,35 +140,41 @@ public class AddAccountService extends IntentService {
 		ServerInfo serverInfo;
 
 		String userName = accountName;
-		switch (accountServer) {
+		try {
+			switch (accountServer) {
 
-			case "Yahoo":
-				if(userName.contains("@")) {
-					userName = userName.substring(0,userName.indexOf("@"));
-				}
-			case "iCloud":
-				serverInfo = new ServerInfo(URI.create("mailto:" + accountName), userName, accountManager.getPassword(account), true);
-				break;
-			case "Google":
-				serverInfo = new ServerInfo(URI.create("mailto:" + accountName), userName, "", true);
-				accountManager.setUserData(account, "client_id", properties.getProperty("client_id_value"));
-				accountManager.setUserData(account, properties.getProperty("client_secret_name"), properties.getProperty("client_secret_value"));
-				accountManager.setUserData(account, "token_url", properties.getProperty("token_url"));
-				try {
-					String token = accountManager.blockingGetAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, false);
-					if(token == null) {
-						broadCastResult(false, accountName, mContext.getString(R.string.oauth_error));
+				case "Yahoo":
+					if(userName.contains("@")) {
+						userName = userName.substring(0,userName.indexOf("@"));
+					}
+				case "iCloud":
+					serverInfo = new ServerInfo(URI.create("mailto:" + accountName), userName, accountManager.getPassword(account), true);
+					break;
+				case "Google":
+					serverInfo = new ServerInfo(URI.create("mailto:" + accountName), userName, "", true);
+					accountManager.setUserData(account, "client_id", properties.getProperty("client_id_value"));
+					accountManager.setUserData(account, properties.getProperty("client_secret_name"), properties.getProperty("client_secret_value"));
+					accountManager.setUserData(account, "token_url", properties.getProperty("token_url"));
+					try {
+						String token = accountManager.blockingGetAuthToken(account, Constants.ACCOUNT_KEY_ACCESS_TOKEN, false);
+						if(token == null) {
+							broadCastResult(false, accountName, mContext.getString(R.string.oauth_error));
+							return;
+						}
+						serverInfo.setAccessToken(token);
+					} catch (OperationCanceledException | IOException | AuthenticatorException e) {
+						broadCastResult(false, accountName, e.getLocalizedMessage());
 						return;
 					}
-					serverInfo.setAccessToken(token);
-				} catch (OperationCanceledException | IOException | AuthenticatorException e) {
-					broadCastResult(false, accountName, e.getLocalizedMessage());
+					break;
+				default:
+					broadCastResult(false, accountName, mContext.getString(R.string.unknown_account_type));
 					return;
-				}
-				break;
-			default:
-				broadCastResult(false, accountName, mContext.getString(R.string.unknown_account_type));
-				return;
+			}
+		} catch (IllegalArgumentException e) {
+			Constants.log.error("Invalid username");
+			broadCastResult(false, accountName, e.getLocalizedMessage());
+			return;
 		}
 		serverInfo.setCaldavURI(properties.getProperty("caldav_url"));
 		serverInfo.setCarddavURI(properties.getProperty("carddav_url"));
