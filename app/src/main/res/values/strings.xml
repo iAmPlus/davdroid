@@ -88,10 +88,6 @@
     <string name="login_email_description">Please enter your email address. Its domain name will be used to auto-detect service settings.</string>
     <string name="login_email_address">Email:</string>
     
-    <string-array name="login_url_scheme">
-        <item>http://</item>
-        <item>https://</item>
-    </string-array>
     <string name="login_http_warning">"If you don't use encryption (HTTPS), other people may easily intercept your login details, contacts and events."</string>
     <string name="login_user_name">User name:</string>
     <string name="login_base_url">Base URL (collections will be auto-detected):</string>
@@ -118,16 +114,7 @@
     <string name="settings_sync_summary_not_available">Not available</string>
     <string name="settings_sync_interval_calendars">Calendars sync. interval</string>
     <string name="settings_sync_interval_tasks">Tasks sync. interval</string>
-    <string-array name="settings_sync_interval_seconds">
-        <item>-1</item>
-        <item>300</item>
-        <item>600</item>
-        <item>900</item>
-        <item>3600</item>
-        <item>7200</item>
-        <item>14400</item>
-        <item>86400</item>
-    </string-array>
+
     <string-array name="settings_sync_interval_names">
         <item>Only manually</item>
         <item>Every 5 minutes</item>
