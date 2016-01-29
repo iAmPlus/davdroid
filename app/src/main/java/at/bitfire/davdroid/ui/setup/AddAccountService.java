@@ -123,10 +123,21 @@ public class AddAccountService extends IntentService {
 				reader.getProperties(accountServer);
 		Account account = null;
 
-		for (Account acc : accountManager.getAccountsByType(Constants.ACCOUNT_TYPE)) {
-			if(acc.name.equals(accountName)) {
-				account = acc;
-				break;
+		if(accountServer.equals("iCloud")) {
+			for (Account acc : accountManager.getAccountsByType(Constants.ACCOUNT_TYPE_ICLOUD)) {
+				if(acc.name.equals(accountName)) {
+					account = acc;
+					break;
+				}
+			}
+		}
+
+		if(account == null) {
+			for (Account acc : accountManager.getAccountsByType(Constants.ACCOUNT_TYPE)) {
+				if(acc.name.equals(accountName)) {
+					account = acc;
+					break;
+				}
 			}
 		}
 

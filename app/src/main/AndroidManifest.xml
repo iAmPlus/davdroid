@@ -9,8 +9,7 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
     package="at.bitfire.davdroid"
-    android:installLocation="internalOnly"
-    android:sharedUserId="at.bitfire.davdroid.user" >
+    android:installLocation="internalOnly" >
 
     <uses-sdk
         android:minSdkVersion="14"
@@ -47,7 +46,7 @@
         android:process=":sync" >
 
         <uses-library android:name="aneeda.lib" android:required="true" />
-        <!--service
+        <service
             android:name=".syncadapter.AccountAuthenticatorService"
             android:exported="false">
             <intent-filter>
@@ -56,7 +55,35 @@
             <meta-data
                 android:name="android.accounts.AccountAuthenticator"
                 android:resource="@xml/account_authenticator" />
-        </service-->
+        </service>
+
+        <service
+            android:name=".syncadapter.ContactsSyncAdapterServiceiCloud"
+            android:exported="true"
+            android:process=":sync"
+            tools:ignore="ExportedService">
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter" />
+            </intent-filter>
+            <meta-data
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/sync_contacts_icloud" />
+            <meta-data
+                android:name="android.provider.CONTACTS_STRUCTURE"
+                android:resource="@xml/contacts" />
+        </service>
+        <service
+            android:name=".syncadapter.CalendarsSyncAdapterServiceiCloud"
+            android:exported="true"
+            android:process=":sync"
+            tools:ignore="ExportedService">
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter" />
+            </intent-filter>
+            <meta-data
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/sync_calendars_icloud" />
+        </service>
 
         <service
             android:name=".syncadapter.ContactsSyncAdapterService"

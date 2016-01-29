@@ -9,10 +9,12 @@
 package at.bitfire.davdroid.ui.settings;
 
 import android.accounts.Account;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.os.Bundle;
 
+import aneeda.view.Window;
 import at.bitfire.davdroid.R;
 
 public class AccountActivity extends Activity {
@@ -20,10 +22,16 @@ public class AccountActivity extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		requestWindowFeature(Window.FEATURE_ANEEDA_ACTION_BAR);
+		requestWindowFeature(Window.FEATURE_ANEEDA_ACTION_PANEL_LAYOUT);
+		ActionBar actionBar = getActionBar();
+		actionBar.setHomeButtonEnabled(true);
+		actionBar.setDisplayShowHomeEnabled(true);
+		actionBar.setDisplayHomeAsUpEnabled(true);
+		//actionBar.setDisplayShowTitleEnabled(true);
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.settings_account_activity);
-		getActionBar().setDisplayHomeAsUpEnabled(true);
 
 		final FragmentManager fm = getFragmentManager();
 		AccountFragment fragment = (AccountFragment)fm.findFragmentById(R.id.account_fragment);

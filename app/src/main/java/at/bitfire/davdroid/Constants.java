@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 public class Constants {
 	public static final String
 		ACCOUNT_TYPE = "com.android.email",
+		ACCOUNT_TYPE_ICLOUD = "bitfire.at.davdroid",
 		WEB_URL_MAIN = "https://davdroid.bitfire.at/?pk_campaign=davdroid-app",
 		WEB_URL_HELP = "https://davdroid.bitfire.at/configuration?pk_campaign=davdroid-app",
 

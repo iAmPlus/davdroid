@@ -27,7 +27,7 @@ public class SettingsScopeFragment extends ListFragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		final AccountManager manager = AccountManager.get(getActivity());
-		accounts = manager.getAccountsByType(Constants.ACCOUNT_TYPE);
+		accounts = manager.getAccountsByType(Constants.ACCOUNT_TYPE_ICLOUD);
 
 		final String[] accountNames = new String[accounts.length];
 		for (int i = 0; i < accounts.length; i++)
