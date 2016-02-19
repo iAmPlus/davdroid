@@ -20,6 +20,8 @@ import android.preference.PreferenceFragment;
 import android.preference.SwitchPreference;
 import android.provider.CalendarContract;
 import android.provider.ContactsContract;
+import android.view.View;
+import android.widget.ListView;
 
 import java.io.File;
 
@@ -177,6 +179,16 @@ public class AccountFragment extends PreferenceFragment {
 
 	}
 
+     @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        // remove dividers
+          View rootView = getView();
+          if(rootView != null) {
+             ListView list = (ListView) rootView.findViewById(android.R.id.list);
+             list.setDivider(null);
+          }
+   }
 
     public static class LogExternalFileDialogFragment extends DialogFragment {
         private static final String

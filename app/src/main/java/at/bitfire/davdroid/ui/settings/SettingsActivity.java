@@ -9,10 +9,12 @@
 package at.bitfire.davdroid.ui.settings;
 
 import android.accounts.Account;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 
 import at.bitfire.davdroid.R;
 
@@ -24,8 +26,7 @@ public class SettingsActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		getActionBar().hide();
-
+        requestWindowFeature(aneeda.view.Window.FEATURE_ANEEDA_ACTION_BAR);
 		setContentView(R.layout.settings_activity);
 
 		tabletLayout = findViewById(R.id.right_pane) != null;
@@ -33,7 +34,12 @@ public class SettingsActivity extends Activity {
 			SettingsScopeFragment scope = (SettingsScopeFragment)getFragmentManager().findFragmentById(R.id.settings_scope);
 			scope.setLayout(true);
 		}
-	}
+        ActionBar actionBar = getActionBar();
+        if(actionBar != null) {
+         actionBar.setHomeButtonEnabled(true);
+         actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+    }
 
 	void showAccountSettings(Account account) {
 		if (tabletLayout) {
@@ -53,4 +59,13 @@ public class SettingsActivity extends Activity {
 			startActivity(intent);
 		}
 	}
+     @Override
+     public boolean onOptionsItemSelected(MenuItem item) {
+          int id = item.getItemId();
+          if (id == android.R.id.home) {
+              finish();
+              return true;
+          }
+        return super.onOptionsItemSelected(item);
+     }
 }
