@@ -48,6 +48,12 @@ public class SettingsScopeFragment extends ListFragment {
 		setEmptyText(getString(R.string.settings_no_accounts));
 	}
 
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        getListView().setDivider(null);
+   }
+
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
 		l.clearChoices();

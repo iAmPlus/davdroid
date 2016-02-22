@@ -13,6 +13,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.os.Bundle;
+import android.view.MenuItem;
 
 import aneeda.view.Window;
 import at.bitfire.davdroid.R;
@@ -24,11 +25,7 @@ public class AccountActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		requestWindowFeature(Window.FEATURE_ANEEDA_ACTION_BAR);
 		requestWindowFeature(Window.FEATURE_ANEEDA_ACTION_PANEL_LAYOUT);
-		ActionBar actionBar = getActionBar();
-		actionBar.setHomeButtonEnabled(true);
-		actionBar.setDisplayShowHomeEnabled(true);
-		actionBar.setDisplayHomeAsUpEnabled(true);
-		//actionBar.setDisplayShowTitleEnabled(true);
+
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.settings_account_activity);
@@ -46,6 +43,21 @@ public class AccountActivity extends Activity {
 				.add(R.id.account_fragment, fragment, SettingsActivity.TAG_ACCOUNT_SETTINGS)
 				.commit();
 		}
-	}
+        ActionBar actionBar = getActionBar();
+        if(actionBar != null){
+            actionBar.setHomeButtonEnabled(true);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+
+}
+      @Override
+      public boolean onOptionsItemSelected(MenuItem item) {
+            int id = item.getItemId();
+            if (id == android.R.id.home) {
+            	finish();
+            	return true;
+            }
+         return super.onOptionsItemSelected(item);
+     }
 
 }
