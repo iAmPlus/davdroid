@@ -287,6 +287,7 @@ public class AddAccountService extends IntentService {
 		if (sync) {
 			ContentResolver.setIsSyncable(account, authority, 1);
 			ContentResolver.setSyncAutomatically(account, authority, true);
+			ContentResolver.addPeriodicSync(account, authority, new Bundle(), 3600);
 		} else
 			ContentResolver.setIsSyncable(account, authority, 0);
 	}
