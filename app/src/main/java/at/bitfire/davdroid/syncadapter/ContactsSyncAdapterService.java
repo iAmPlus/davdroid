@@ -19,6 +19,8 @@ import android.os.IBinder;
 
 import at.bitfire.davdroid.Constants;
 
+import aneeda.content.ContextHelper;
+
 public class ContactsSyncAdapterService extends Service {
 	private static ContactsSyncAdapter syncAdapter;
 
@@ -50,7 +52,7 @@ public class ContactsSyncAdapterService extends Service {
 
             ContactsSyncManager syncManager = new ContactsSyncManager(getContext(), account, extras, authority, provider, syncResult);
             syncManager.performSync();
-
+            ContextHelper.updateLastSuccessTime(account, authority);
             Constants.log.info("Address book sync complete");
         }
 

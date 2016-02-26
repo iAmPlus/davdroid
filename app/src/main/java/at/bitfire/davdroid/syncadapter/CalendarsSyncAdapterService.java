@@ -22,6 +22,8 @@ import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.resource.LocalCalendar;
 import at.bitfire.ical4android.CalendarStorageException;
 
+import aneeda.content.ContextHelper;
+
 public class CalendarsSyncAdapterService extends Service {
 	private static SyncAdapter syncAdapter;
 
@@ -56,6 +58,7 @@ public class CalendarsSyncAdapterService extends Service {
                     Constants.log.info("Synchronizing calendar #"  + calendar.getId() + ", URL: " + calendar.getName());
                     CalendarSyncManager syncManager = new CalendarSyncManager(getContext(), account, extras, authority, syncResult, calendar);
                     syncManager.performSync();
+                    ContextHelper.updateLastSuccessTime(account, authority);
                 }
             } catch (CalendarStorageException e) {
                 Constants.log.error("Couldn't enumerate local calendars", e);
