@@ -29,6 +29,12 @@ public class Constants {
 	public static final String ACCOUNT_KEY_ACCOUNT_TYPE = "account_type";
 	public static final String KEY_SERVER_INFO = "server_info";
 	public static final String EXTRA_IS_DEVICE_SETUP = "isDeviceSetup";
+    public static final String EXTRA_RESULT_RECEIVER = "email_result_receiver";
+    public static final int EMAIL_RESULT_CODE_IO_EXCEPTION = 10001;
+    public static final int EMAIL_RESULT_CODE_HTTP_EXCEPTION = 10002;
+    public static final int EMAIL_RESULT_CODE_DAV_EXCEPTION = 10003;
+    public static final int EMAIL_RESULT_CODE_SYNTAX_EXCEPTION = 10004;
+    public static final int EMAIL_RESULT_CODE_SUCCESS = 10005;
 
     public static final Logger log = LoggerFactory.getLogger("davdroid");
 

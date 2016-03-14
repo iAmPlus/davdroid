@@ -11,6 +11,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.ResultReceiver;
 import android.provider.CalendarContract;
 import android.provider.ContactsContract;
 import android.widget.Toast;
@@ -19,8 +20,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Properties;
 
+import at.bitfire.dav4android.exception.DavException;
+import at.bitfire.dav4android.exception.HttpException;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 import at.bitfire.davdroid.log.StringLogger;
@@ -44,6 +48,8 @@ public class AddAccountService extends IntentService {
 	final static String STATUS = "status";
 	final static String MESSAGE = "message";
 	static Context mContext = null;
+
+        private ResultReceiver mEmailResultReceiver;
 
 	/**
 	 * Creates an IntentService.  Invoked by your subclass's constructor.
@@ -75,6 +81,7 @@ public class AddAccountService extends IntentService {
 
 		//Needed for ServiceLoader
 		Thread.currentThread().setContextClassLoader(mContext.getClassLoader());
+        mEmailResultReceiver = addAccount.getParcelableExtra(Constants.EXTRA_RESULT_RECEIVER);
 
 		String accountName = addAccount.getStringExtra(Constants.ACCOUNT_KEY_ACCOUNT_NAME);
 		String accountServer = addAccount.getStringExtra(Constants.ACCOUNT_KEY_ACCOUNT_TYPE);
@@ -192,7 +199,33 @@ public class AddAccountService extends IntentService {
 
 		StringLogger logger = new StringLogger("DavResourceFinder", true);
 		DavResourceFinder finder = new DavResourceFinder(logger, mContext, serverInfo);
-		finder.findResources();
+        String errorMessage = null;
+        int errorCode = -1;
+        try {
+            finder.findResources();
+        } catch (IOException ioe) {
+            Constants.log.error("AddAccountService IOException ", ioe);
+            errorMessage = ioe.getLocalizedMessage();
+            errorCode = Constants.EMAIL_RESULT_CODE_IO_EXCEPTION;
+        } catch (HttpException hte) {
+            Constants.log.error("AddAccountService HttpException ", hte);
+            errorMessage = hte.getLocalizedMessage();
+            errorCode = Constants.EMAIL_RESULT_CODE_HTTP_EXCEPTION;
+        } catch (DavException dae) {
+            Constants.log.error("AddAccountService DavException ", dae);
+            errorMessage = dae.getLocalizedMessage();
+            errorCode = Constants.EMAIL_RESULT_CODE_DAV_EXCEPTION;
+        } catch (URISyntaxException ure) {
+            Constants.log.error("AddAccountService URISyntaxException ", ure);
+            errorMessage = ure.getLocalizedMessage();
+            errorCode = Constants.EMAIL_RESULT_CODE_SYNTAX_EXCEPTION;
+        }
+        if(mEmailResultReceiver != null && errorMessage != null && errorCode != -1) {
+            Bundle exceptionData = new Bundle();
+            exceptionData.putString(MESSAGE, errorMessage);
+            mEmailResultReceiver.send(errorCode, exceptionData);
+            return;
+        }
 
 		// duplicate logs to ADB
 		String logs = logger.toString();
@@ -264,6 +297,9 @@ public class AddAccountService extends IntentService {
 		accountManager.setUserData(account, Constants.ACCOUNT_KEY_AUTH_PREEMPTIVE, userData.getString(Constants.ACCOUNT_KEY_AUTH_PREEMPTIVE));
 
 		broadCastResult(true, accountName, null);
+        if(mEmailResultReceiver != null) {
+            mEmailResultReceiver.send(Constants.EMAIL_RESULT_CODE_SUCCESS, null);
+        }
 	}
 
 	protected interface AddSyncCallback {

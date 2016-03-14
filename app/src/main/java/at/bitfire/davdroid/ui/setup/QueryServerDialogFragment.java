@@ -26,7 +26,10 @@ import android.view.inputmethod.InputMethodManager;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URISyntaxException;
 
+import at.bitfire.dav4android.exception.DavException;
+import at.bitfire.dav4android.exception.HttpException;
 import at.bitfire.davdroid.Constants;
 import at.bitfire.davdroid.R;
 import at.bitfire.davdroid.log.StringLogger;
@@ -161,7 +164,17 @@ public class QueryServerDialogFragment extends DialogFragment implements LoaderC
 
             StringLogger logger = new StringLogger("DavResourceFinder", true);
             DavResourceFinder finder = new DavResourceFinder(logger, context, serverInfo);
-            finder.findResources();
+            try {
+                finder.findResources();
+            } catch (IOException ioe) {
+                Constants.log.error("QueryServerDialogFragment IOException ", ioe);
+            } catch (HttpException hte) {
+                Constants.log.error("QueryServerDialogFragment HttpException ", hte);
+            } catch (DavException dae) {
+                Constants.log.error("QueryServerDialogFragment DavException ", dae);
+            } catch (URISyntaxException ure) {
+                Constants.log.error("QueryServerDialogFragment URISyntaxException ", ure);
+            }
 
             // duplicate logs to ADB
             String logs = logger.toString();

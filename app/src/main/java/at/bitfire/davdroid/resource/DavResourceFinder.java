@@ -84,16 +84,12 @@ public class DavResourceFinder {
         HttpClient.addLogger(httpClient);
 	}
 
-	public void findResources() {
-        try {
-            findResources(Service.CARDDAV);
-            findResources(Service.CALDAV);
-        } catch(URISyntaxException e) {
-            log.warn("Invalid user-given URI", e);
-        }
+	public void findResources() throws IOException, HttpException, DavException, URISyntaxException {
+        findResources(Service.CARDDAV);
+        findResources(Service.CALDAV);
     }
 
-    public void findResources(Service service) throws URISyntaxException {
+    public void findResources(Service service) throws IOException, HttpException, DavException, URISyntaxException {
         URI baseURI = serverInfo.getBaseURI();
         String domain = null;
 
@@ -140,6 +136,7 @@ public class DavResourceFinder {
                 }
             } catch (IOException|HttpException|DavException e) {
                 log.debug("PROPFIND on user-given URL failed", e);
+                throw e;
             }
 
             if (service == Service.CALDAV) {
