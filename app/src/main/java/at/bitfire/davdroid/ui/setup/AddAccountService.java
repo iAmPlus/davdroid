@@ -109,8 +109,8 @@ public class AddAccountService extends IntentService {
 		}
 		Constants.log.info("Account name:" + accountName + " Type:" + accountServer + " sync_type:" + sync_type + " enabled_services:" + enabled_services);
 
-		Boolean addressBookEnabled = enabled_services.equalsIgnoreCase("both") || enabled_services.equalsIgnoreCase("contacts");
-		Boolean calendarEnabled = enabled_services.equalsIgnoreCase("both") || enabled_services.equalsIgnoreCase("calendar");
+		final Boolean addressBookEnabled = enabled_services.equalsIgnoreCase("both") || enabled_services.equalsIgnoreCase("contacts");
+		final Boolean calendarEnabled = enabled_services.equalsIgnoreCase("both") || enabled_services.equalsIgnoreCase("calendar");
 
 		if(accountServer.equalsIgnoreCase("google")) {
 			accountServer = "Google";
@@ -202,6 +202,7 @@ public class AddAccountService extends IntentService {
         String errorMessage = null;
         int errorCode = -1;
         try {
+			Constants.log.info("Finding calendar and contact resources from server.");
             finder.findResources();
         } catch (IOException ioe) {
             Constants.log.error("AddAccountService IOException ", ioe);
@@ -251,6 +252,7 @@ public class AddAccountService extends IntentService {
 			public void createLocalCollection(Account account, ServerInfo.ResourceInfo resource) throws ContactsStorageException {
 				@Cleanup("release") ContentProviderClient provider = mContext.getContentResolver().acquireContentProviderClient(ContactsContract.AUTHORITY);
 				if (provider != null) {
+					Constants.log.info("Contacts sync enabled for "+(resource.getTitle() != null ? resource.getTitle(): "")+". Is enabled by user ?"+addressBookEnabled);
 					LocalAddressBook addressBook = new LocalAddressBook(account, provider);
 
 					// set URL
@@ -264,19 +266,20 @@ public class AddAccountService extends IntentService {
 				} else
 					Constants.log.error("Couldn't access Contacts Provider");
 			}
-		});
+		}, addressBookEnabled);
 		ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, addressBookEnabled);
 
 		addSync(account, CalendarContract.AUTHORITY, serverInfo.getCalendars(), new AddSyncCallback() {
 			@Override
 			public void createLocalCollection(Account account, ServerInfo.ResourceInfo calendar) {
 				try {
+					Constants.log.info("Calendar sync enabled for "+(calendar.getTitle() != null ? calendar.getTitle(): "")+". Is enabled by user ?"+calendarEnabled);
 					LocalCalendar.create(account, mContext.getContentResolver(), calendar);
 				} catch (CalendarStorageException e) {
 					Constants.log.error("Couldn't create local calendar", e);
 				}
 			}
-		});
+		}, calendarEnabled);
 		ContentResolver.setSyncAutomatically(account, CalendarContract.AUTHORITY, calendarEnabled);
 
 		addSync(account, TaskProvider.ProviderName.OpenTasks.authority, serverInfo.getTaskLists(), new AddSyncCallback() {
@@ -288,7 +291,7 @@ public class AddAccountService extends IntentService {
 					Constants.log.error("Couldn't create local task list", e);
 				}
 			}
-		});
+		}, false);
 		ContentResolver.setSyncAutomatically(account, TaskProvider.ProviderName.OpenTasks.authority, false);
 
 		Bundle userData = AccountSettings.createBundle(serverInfo);
@@ -306,7 +309,7 @@ public class AddAccountService extends IntentService {
 		void createLocalCollection(Account account, ServerInfo.ResourceInfo resource) throws ContactsStorageException;
 	}
 
-	protected void addSync(Account account, String authority, ServerInfo.ResourceInfo[] resourceList, AddSyncCallback callback) {
+	protected void addSync(Account account, String authority, ServerInfo.ResourceInfo[] resourceList, AddSyncCallback callback, boolean isEnabledByUser) {
 		boolean sync = false;
 		for (ServerInfo.ResourceInfo resource : resourceList) {
 			if (resource.isEnabled()) {
@@ -321,10 +324,18 @@ public class AddAccountService extends IntentService {
 			}
 		}
 		if (sync) {
+			//If the servers enabled for sync, we must provide options to initiate sync manually.
 			ContentResolver.setIsSyncable(account, authority, 1);
-			ContentResolver.setSyncAutomatically(account, authority, true);
-			ContentResolver.addPeriodicSync(account, authority, new Bundle(), 3600);
-		} else
+			if(isEnabledByUser) {
+				Constants.log.info(authority+" : Should start sync for "+account.name);
+				ContentResolver.setSyncAutomatically(account, authority, true);
+				ContentResolver.addPeriodicSync(account, authority, new Bundle(), 3600);
+			} else {
+				Constants.log.info(authority+" : Should not start sync for "+account.name+", even the server resources are enabled.");
+			}
+		} else {
+			Constants.log.info(authority+" : Sync is not enabled by server resources for "+account.name);
 			ContentResolver.setIsSyncable(account, authority, 0);
+		}
 	}
 }
