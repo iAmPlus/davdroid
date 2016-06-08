@@ -50,7 +50,6 @@
             <Type type="home" />
             <Type type="work" />
             <Type type="other" />
-            <Type type="mobile" />
             <Type type="custom" />
         </DataKind>
         
