@@ -2,7 +2,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- common strings -->
-    <string name="app_name">Contacts &amp; Calendars</string>
+    <string name="app_name">Kontakte &amp; Kalender</string>
     <string name="help">Hilfe</string>
     <string name="next">Weiter</string>
     <string name="please_wait">Bitte warten ...</string>
