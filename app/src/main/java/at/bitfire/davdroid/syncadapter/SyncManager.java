@@ -229,49 +229,24 @@ abstract public class SyncManager {
 
             final Intent detailsIntent;
             if (e instanceof UnauthorizedException) {
-                //detailsIntent = new Intent(context, AccountActivity.class);
-                //detailsIntent.putExtra(AccountActivity.EXTRA_ACCOUNT, account);
                 String accessToken = settings.accessToken();
                 if(accessToken != null) {
-                    settings.refreshToken();
-                    Bundle bundle = new Bundle();
-                    bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true); // Performing a sync no matter if it's off
-                    bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true); // Performing a sync no matter if it's off
-                    ContentResolver.requestSync(account, Constants.ACCOUNT_TYPE, bundle);
+                    if(syncResult.stats.numAuthExceptions > 1) {
+                        log.info("accessToken would have been revoked so send the information to email app to post notification about updating the credentials");
+                        sendBroadcasttoEmailApp(account.name);
+                    } else {
+                        log.info("refreshToken would have been expired so going for new refresh token here and force sync happens here");
+                        settings.refreshToken();
+                        Bundle bundle = new Bundle();
+                        bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true); // Performing a sync no matter if it's off
+                        bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true); // Performing a sync no matter if it's off
+                        ContentResolver.requestSync(account, Constants.ACCOUNT_TYPE, bundle);
+                    }
+                } else {
+                    log.info("refreshToken is expired and new refresh token request fails sending information to email app/account password changed");
+                    sendBroadcasttoEmailApp(account.name);
                 }
-            } /*else {
-                detailsIntent = new Intent(context, DebugInfoActivity.class);
-                detailsIntent.putExtra(DebugInfoActivity.KEY_EXCEPTION, e);
-                detailsIntent.putExtra(DebugInfoActivity.KEY_ACCOUNT, account);
-                detailsIntent.putExtra(DebugInfoActivity.KEY_AUTHORITY, authority);
-                detailsIntent.putExtra(DebugInfoActivity.KEY_PHASE, syncPhase);
-            }*/
-
-            /*Notification.Builder builder = new Notification.Builder(context);
-            Notification notification;
-            builder .setSmallIcon(R.drawable.ic_launcher)
-                    .setContentTitle(getSyncErrorTitle())
-                    .setContentIntent(PendingIntent.getActivity(context, notificationId, detailsIntent, PendingIntent.FLAG_UPDATE_CURRENT));
-
-            if (Build.VERSION.SDK_INT >= 20)
-                builder.setLocalOnly(true);
-
-            try {
-                String[] phases = context.getResources().getStringArray(R.array.sync_error_phases);
-                String message = context.getString(messageString, phases[syncPhase]);
-                builder.setContentText(message);
-            } catch (IndexOutOfBoundsException ex) {
-                // should never happen
             }
-
-            if (Build.VERSION.SDK_INT >= 16) {
-                if (Build.VERSION.SDK_INT >= 21)
-                    builder.setCategory(Notification.CATEGORY_ERROR);
-                notification = builder.build();
-            } else {
-                notification = builder.getNotification();
-            }
-            notificationManager.notify(account.name, notificationId, notification);*/
         } finally {
             if (log instanceof ExternalFileLogger)
                 try {
@@ -472,6 +447,12 @@ abstract public class SyncManager {
            cause all remote entries to be listed at the next sync. */
         log.info("Saving CTag=" + remoteCTag);
         localCollection.setCTag(remoteCTag);
+    }
+    protected void sendBroadcasttoEmailApp(String acntmngrAccountname) {
+        Intent intent = new Intent();
+        intent.setAction("com.android.email.UPDATE_ACCOUNT_CREDENTIALS_NOTI");
+        intent.putExtra("accountname", acntmngrAccountname);
+        context.sendBroadcast(intent);
     }
 
 }
