@@ -1,5 +1,4 @@
 
-<<<<<<< HEAD
 DAVDROID
 ========
 
@@ -31,4 +30,21 @@ Please see:
 * [DAVdroid Web site](https://davdroid.bitfire.at/)
 * [Source code](https://davdroid.bitfire.at/source)
 * [Help/discussion](https://davdroid.bitfire.at/forums)
->>>>>>> 0dcaa4775755d23158ba10f48ae1beb1e987e4ef
+=======
+
+DAVdroid
+========
+
+This project is not on GitHub anymore.
+
+Please see the [DAVdroid Web site](https://davdroid.bitfire.at/) for more information.
+
+* [DAVdroid Web site](https://davdroid.bitfire.at/)
+* [DAVdroid source code](https://davdroid.bitfire.at/source/)
+
+
+You might be interested in
+==========================
+
+* [GitHub monoculture](http://nedbatchelder.com/blog/201405/github_monoculture.html)
+* [Free software needs free tools](https://mako.cc/copyrighteous/free-software-needs-free-tools)
